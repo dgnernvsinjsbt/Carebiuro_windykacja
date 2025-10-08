@@ -36,13 +36,13 @@ async function getIgnorowaneClients() {
     return [];
   }
 
-  // Pobierz wszystkie faktury z flagą ignorowania dla klientów zignorowanych
-  // Używamy internal_note z flagą [LIST_POLECONY_IGNORED]true jako źródło prawdy
+  // Pobierz wszystkie faktury z list polecony dla klientów zignorowanych
+  // Jeśli klient jest zignorowany, pokazujemy wszystkie jego faktury z list polecony
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .in('client_id', clientIds)
-    .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
+    .like('internal_note', '%[LIST_POLECONY]true%');
 
   if (invoicesError) {
     console.error('[ListPolecony Ignorowane] Error fetching invoices:', invoicesError);

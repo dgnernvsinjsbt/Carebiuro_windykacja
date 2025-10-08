@@ -76,12 +76,12 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`[ListPolecony Restore] Restoring invoices with IGNORED flag for client ${client.id}...`);
 
-        // Pobierz faktury z Supabase które mają IGNORED=true
+        // Pobierz faktury z Supabase które mają IGNORED=true w internal_note
         const { data: ignoredInvoices } = await supabaseAdmin()
           .from('invoices')
           .select('*')
           .eq('client_id', client.id)
-          .eq('list_polecony_ignored', true);
+          .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
         for (const invoice of ignoredInvoices || []) {
           const updatedComment = removeListPoleconyIgnoredFromInvoice(invoice.internal_note);
