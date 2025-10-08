@@ -13,6 +13,7 @@ import { parseListPolecony, parseListPoleconyIgnored } from '@/lib/list-polecony
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getListPoleconyClients() {
   const supabase = supabaseAdmin;

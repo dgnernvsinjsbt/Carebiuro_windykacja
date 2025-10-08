@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getIgnorowaneClients() {
   const supabase = supabaseAdmin;
