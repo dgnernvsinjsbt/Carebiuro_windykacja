@@ -98,7 +98,8 @@ export async function POST(request: NextRequest) {
 
     for (const invoice of eligibleInvoices) {
       try {
-        console.log(`[AutoSend] Sending S1 for invoice ${invoice.id} (${invoice.number})`);
+        const invoiceNumber = invoice.number || `INV-${invoice.id}`;
+        console.log(`[AutoSend] Sending S1 for invoice ${invoice.id} (${invoiceNumber})`);
 
         // Use HTTP for local development to avoid SSL issues
         const apiUrl = process.env.NODE_ENV === 'development'
@@ -119,11 +120,11 @@ export async function POST(request: NextRequest) {
 
         if (data.success) {
           successCount++;
-          results.push({ invoice_id: invoice.id, invoice_number: invoice.number, success: true });
-          console.log(`[AutoSend] ✓ S1 sent for invoice ${invoice.id} (${invoice.number})`);
+          results.push({ invoice_id: invoice.id, invoice_number: invoiceNumber, success: true });
+          console.log(`[AutoSend] ✓ S1 sent for invoice ${invoice.id} (${invoiceNumber})`);
         } else {
           failureCount++;
-          results.push({ invoice_id: invoice.id, invoice_number: invoice.number, success: false, error: data.error });
+          results.push({ invoice_id: invoice.id, invoice_number: invoiceNumber, success: false, error: data.error });
           console.log(`[AutoSend] ✗ Failed to send S1 for invoice ${invoice.id}: ${data.error}`);
         }
 

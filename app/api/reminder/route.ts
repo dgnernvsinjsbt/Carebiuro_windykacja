@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { invoicesDb, commentsDb, messageHistoryDb } from '@/lib/supabase';
+import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
 import { updateFiscalSync } from '@/lib/fiscal-sync-parser';
 
 // Validation schema
@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
       const balance = parseFloat(total) - parseFloat(paid);
       const balanceFormatted = balance.toFixed(2);
 
-      const message = `Drogi kliencie, w dniu ${issueDate} na Twoj Email wyslalismy fakture ${invoice.number} na ${balanceFormatted} ${invoice.currency || 'EUR'}.\n\nCBB / Carebiuro`;
+      const invoiceNumber = invoice.number || `#${invoice.id}`;
+      const message = `Drogi kliencie, w dniu ${issueDate} na Twoj Email wyslalismy fakture ${invoiceNumber} na ${balanceFormatted} ${invoice.currency || 'EUR'}.\n\nCBB / Carebiuro`;
 
       console.log(`[SMS] Message prepared:`, {
         to: invoice.buyer_phone,
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               invoice_id,
-              invoice_number: invoice.number,
+              invoice_number: invoice.number || `INV-${invoice.id}`,
               client_id: invoice.client_id,
               type,
               level,
@@ -211,24 +212,14 @@ export async function POST(request: NextRequest) {
 
     // 6. Log message to history
     try {
-      if (!invoice.client_id) {
-        console.warn('[Reminder] Cannot log message - missing client_id for invoice:', invoice.id);
-      } else {
-        await messageHistoryDb.logMessage({
-          client_id: invoice.client_id,
-          invoice_id: invoice.id,
-          invoice_number: invoice.number || `INV-${invoice.id}`,
-          client_name: invoice.buyer_name || 'Unknown',
-          message_type: type,
-          level: level as 1 | 2 | 3,
-          status: 'sent',
-          sent_by: 'manual',
-          is_auto_initial: false,
-          invoice_total: invoice.total ?? 0,
-          invoice_currency: invoice.currency || 'EUR',
-        });
-        console.log(`[Reminder] Message logged to history`);
-      }
+      const historyEntry = prepareMessageHistoryEntry(
+        invoice,
+        type,
+        level as 1 | 2 | 3,
+        { sent_by: 'manual', is_auto_initial: false }
+      );
+      await messageHistoryDb.logMessage(historyEntry);
+      console.log(`[Reminder] Message logged to history`);
     } catch (historyError) {
       console.error('[Reminder] Failed to log message to history:', historyError);
       // Don't fail the request if history logging fails

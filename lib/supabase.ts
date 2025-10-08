@@ -440,6 +440,48 @@ export const commentsDb = {
 };
 
 /**
+ * Helper function to safely prepare invoice data for message history logging
+ * Handles all nullable fields from Invoice type
+ */
+export function prepareMessageHistoryEntry(
+  invoice: {
+    id: number;
+    client_id: number | null;
+    number: string | null;
+    buyer_name: string | null;
+    total: number | null;
+    currency: string | null;
+  },
+  messageType: 'email' | 'sms' | 'whatsapp',
+  level: 1 | 2 | 3,
+  options?: {
+    status?: 'sent' | 'failed';
+    error_message?: string;
+    sent_by?: string;
+    is_auto_initial?: boolean;
+  }
+) {
+  if (!invoice.client_id) {
+    throw new Error(`Cannot log message: invoice ${invoice.id} has no client_id`);
+  }
+
+  return {
+    client_id: invoice.client_id,
+    invoice_id: invoice.id,
+    invoice_number: invoice.number || `INV-${invoice.id}`,
+    client_name: invoice.buyer_name || 'Unknown Client',
+    message_type: messageType,
+    level,
+    status: options?.status || 'sent',
+    error_message: options?.error_message,
+    sent_by: options?.sent_by || 'system',
+    is_auto_initial: options?.is_auto_initial || false,
+    invoice_total: invoice.total ?? 0,
+    invoice_currency: invoice.currency || 'EUR',
+  };
+}
+
+/**
  * Database operations for Message History
  */
 export const messageHistoryDb = {

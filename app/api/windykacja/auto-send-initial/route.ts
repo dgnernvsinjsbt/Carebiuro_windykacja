@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       const fiscalSync = parseFiscalSync(invoice.internal_note);
       const invoiceResults: any = {
         invoice_id: invoice.id,
-        invoice_number: invoice.number,
+        invoice_number: invoice.number || `INV-${invoice.id}`,
         sent: [],
         failed: [],
       };
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       // Send E1 if needed
       if (!fiscalSync?.EMAIL_1) {
         try {
-          console.log(`[AutoSendInitial] Sending E1 for invoice ${invoice.id} (${invoice.number})`);
+          console.log(`[AutoSendInitial] Sending E1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
           const apiUrl = process.env.NODE_ENV === 'development'
             ? 'http://localhost:3000/api/reminder'
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
       // Send S1 if needed
       if (!fiscalSync?.SMS_1) {
         try {
-          console.log(`[AutoSendInitial] Sending S1 for invoice ${invoice.id} (${invoice.number})`);
+          console.log(`[AutoSendInitial] Sending S1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
           const apiUrl = process.env.NODE_ENV === 'development'
             ? 'http://localhost:3000/api/reminder'
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
       // Send W1 if needed
       if (!fiscalSync?.WHATSAPP_1) {
         try {
-          console.log(`[AutoSendInitial] Sending W1 for invoice ${invoice.id} (${invoice.number})`);
+          console.log(`[AutoSendInitial] Sending W1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
           const apiUrl = process.env.NODE_ENV === 'development'
             ? 'http://localhost:3000/api/reminder'
