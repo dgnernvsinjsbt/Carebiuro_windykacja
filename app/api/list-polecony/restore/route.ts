@@ -74,11 +74,16 @@ export async function POST(request: NextRequest) {
       }
 
       // Pobierz faktury z flagą IGNORED dla tego klienta
-      const { data: ignoredInvoices } = await supabaseAdmin()
+      // PostgreSQL LIKE ma problem z [] - filtrujemy po stronie aplikacji
+      const { data: allInvoices } = await supabaseAdmin()
         .from('invoices')
         .select('*')
         .eq('client_id', client.id)
-        .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
+        .not('internal_note', 'is', null);
+
+      const ignoredInvoices = allInvoices?.filter(inv =>
+        inv.internal_note?.includes('[LIST_POLECONY_IGNORED]true')
+      );
 
       console.log(`[ListPolecony Restore] Found ${ignoredInvoices?.length || 0} ignored invoices for client ${client.id}`);
 

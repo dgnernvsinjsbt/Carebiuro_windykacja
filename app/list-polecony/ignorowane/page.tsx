@@ -38,12 +38,18 @@ async function getIgnorowaneClients() {
 
   console.log('[ListPolecony Ignorowane] Looking for invoices with client_ids:', clientIds);
 
-  // Pobierz faktury z flagą [LIST_POLECONY_IGNORED]true dla klientów zignorowanych
-  const { data: clientInvoices, error: invoicesError } = await supabase()
+  // Pobierz wszystkie faktury dla tych klientów (filtrujemy po stronie klienta)
+  // PostgreSQL LIKE ma problem z nawiasami kwadratowymi [] - filtrujemy po stronie aplikacji
+  const { data: allClientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .in('client_id', clientIds)
-    .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
+    .not('internal_note', 'is', null);
+
+  // Filtruj faktury z flagą [LIST_POLECONY_IGNORED]true po stronie aplikacji
+  const clientInvoices = allClientInvoices?.filter(inv =>
+    inv.internal_note?.includes('[LIST_POLECONY_IGNORED]true')
+  );
 
   if (invoicesError) {
     console.error('[ListPolecony Ignorowane] Error fetching invoices:', invoicesError);
