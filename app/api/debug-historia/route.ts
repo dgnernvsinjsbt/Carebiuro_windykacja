@@ -12,11 +12,11 @@ export async function GET(request: NextRequest) {
   try {
     console.log('[Debug Historia] Fetching invoices...');
 
-    // Fetch all invoices with internal_note
+    // Fetch all invoices with comment (Fakturownia internal_note → Supabase comment)
     const { data: invoices, error } = await supabase()
       .from('invoices')
-      .select('id, number, client_id, internal_note, buyer_name')
-      .not('internal_note', 'is', null)
+      .select('id, number, client_id, comment, buyer_name')
+      .not('comment', 'is', null)
       .limit(10);
 
     if (error) {
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    console.log(`[Debug Historia] Found ${invoices?.length || 0} invoices with internal_note`);
+    console.log(`[Debug Historia] Found ${invoices?.length || 0} invoices with comment`);
 
     // Parse FISCAL_SYNC from each invoice
     const results = (invoices || []).map((invoice) => {
-      const fiscalSync = parseFiscalSync(invoice.internal_note);
+      const fiscalSync = parseFiscalSync(invoice.comment);
 
       // Extract SMS messages
       const smsMessages = [];
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         has_fiscal_sync: !!fiscalSync,
         fiscal_sync: fiscalSync,
         sms_messages: smsMessages,
-        internal_note_preview: invoice.internal_note?.substring(0, 200),
+        comment_preview: invoice.comment?.substring(0, 200),
       };
     });
 

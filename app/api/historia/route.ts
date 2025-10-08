@@ -29,11 +29,11 @@ export async function GET(request: NextRequest) {
 
     console.log('[Historia] Fetching invoices with FISCAL_SYNC flags:', filters);
 
-    // Fetch invoices with internal_note (contains FISCAL_SYNC)
+    // Fetch invoices with comment (contains FISCAL_SYNC from Fakturownia internal_note)
     let query = supabase()
       .from('invoices')
-      .select('id, number, client_id, internal_note, total, currency, buyer_name, issue_date')
-      .not('internal_note', 'is', null);
+      .select('id, number, client_id, comment, total, currency, buyer_name, issue_date')
+      .not('comment', 'is', null);
 
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const allMessages: any[] = [];
 
     for (const invoice of invoices || []) {
-      const fiscalSync = parseFiscalSync(invoice.internal_note);
+      const fiscalSync = parseFiscalSync(invoice.comment);
       if (!fiscalSync) continue;
 
       // Check each message type and level
