@@ -504,11 +504,16 @@ export default function ListPoleconyTable({ clients, hideGenerateButton = false,
               clients.map((client) => (
                 <tr
                   key={client.id}
-                  className={`hover:bg-gray-50 transition-colors ${
+                  onClick={(e) => {
+                    // Don't navigate if clicking checkbox
+                    if ((e.target as HTMLElement).type === 'checkbox') return;
+                    router.push(`/client/${client.id}`);
+                  }}
+                  className={`hover:bg-gray-50 transition-colors cursor-pointer ${
                     selectedClients.has(client.id) ? 'bg-teal-50' : ''
                   }`}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedClients.has(client.id)}
@@ -517,15 +522,10 @@ export default function ListPoleconyTable({ clients, hideGenerateButton = false,
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => router.push(`/client/${client.id}`)}
-                      className="text-left hover:text-teal-600 transition-colors"
-                    >
-                      <div className="text-sm font-medium text-gray-900 hover:underline">
-                        {client.name || 'Brak nazwy'}
-                      </div>
-                      <div className="text-xs text-gray-500">ID: {client.id}</div>
-                    </button>
+                    <div className="text-sm font-medium text-gray-900">
+                      {client.name || 'Brak nazwy'}
+                    </div>
+                    <div className="text-xs text-gray-500">ID: {client.id}</div>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className="text-sm text-gray-600">
