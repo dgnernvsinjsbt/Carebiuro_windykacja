@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
         .upsert({
           id: clientData.id,
           name: clientData.name || null,
-          first_name: clientData.first_name || null,
-          last_name: clientData.last_name || null,
+          first_name: null,
+          last_name: null,
           email: clientData.email || null,
           phone: clientData.phone || null,
           note: clientData.note || null,
