@@ -70,7 +70,27 @@ export async function POST(request: NextRequest) {
       console.error('[ListPolecony Ignore] Error fetching invoices:', invoicesError);
     }
 
-    console.log(`[ListPolecony Ignore] Znaleziono ${invoices?.length || 0} faktur z list_polecony = true`);
+    console.log(`[ListPolecony Ignore] Znaleziono ${invoices?.length || 0} faktur z [LIST_POLECONY]true`);
+
+    if (invoices && invoices.length > 0) {
+      console.log('[ListPolecony Ignore] Przykładowa faktura przed aktualizacją:', {
+        id: invoices[0].id,
+        internal_note_preview: invoices[0].internal_note?.substring(0, 200)
+      });
+    } else {
+      console.log('[ListPolecony Ignore] NIE ZNALEZIONO ŻADNYCH FAKTUR - sprawdzam czy faktury istnieją dla tych klientów...');
+      const { data: allInvoices } = await supabaseAdmin()
+        .from('invoices')
+        .select('id, client_id, internal_note')
+        .in('client_id', clientIds)
+        .limit(5);
+      console.log('[ListPolecony Ignore] Wszystkie faktury dla tych klientów (max 5):', allInvoices?.map(i => ({
+        id: i.id,
+        client_id: i.client_id,
+        has_internal_note: !!i.internal_note,
+        internal_note_preview: i.internal_note?.substring(0, 100)
+      })));
+    }
 
     // Zaktualizuj flagę [LIST_POLECONY_IGNORED]true dla klientów
     console.log('[ListPolecony Ignore] Aktualizowanie flag klientów...');
