@@ -51,9 +51,13 @@ export async function POST(request: NextRequest) {
     for (const client of clients || []) {
       console.log(`[ListPolecony Restore] Processing client ${client.id}...`);
 
+      // Parsuj oryginalną datę (zachowaj)
+      const clientFlags = parseInvoiceFlags(client.note);
+      const originalDate = clientFlags.listPoleconyStatusDate || today;
+
       // Zmień status ignore → sent (zachowaj oryginalną datę wysłania)
-      const updatedNote = setListPoleconyStatusSent(client.note || '', today);
-      console.log(`[ListPolecony Restore] Client ${client.id} note: ignore → sent`);
+      const updatedNote = setListPoleconyStatusSent(client.note || '', originalDate);
+      console.log(`[ListPolecony Restore] Client ${client.id} note: ignore → sent (date preserved: ${originalDate})`);
 
       // Aktualizuj klienta w Supabase
       const { error: updateError } = await supabaseAdmin()

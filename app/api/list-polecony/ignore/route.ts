@@ -94,13 +94,16 @@ export async function POST(request: NextRequest) {
     // Zaktualizuj flagę [LIST_POLECONY_STATUS]ignore dla klientów
     console.log('[ListPolecony Ignore] Aktualizowanie flag klientów...');
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
 
     const updateClientPromises = clients.map(async (client) => {
       try {
-        // Użyj nowego formatu [LIST_POLECONY_STATUS]ignore
+        // Parsuj obecną datę (zachowaj oryginalną datę wysłania)
+        const clientFlags = parseInvoiceFlags(client.note);
+        const originalDate = clientFlags.listPoleconyStatusDate || today.toISOString().split('T')[0];
+
+        // Użyj nowego formatu [LIST_POLECONY_STATUS]ignore (zachowaj datę)
         console.log(`[Update Client] ${client.id} - current note:`, client.note);
-        const updatedNote = setListPoleconyStatusIgnore(client.note || '', todayStr);
+        const updatedNote = setListPoleconyStatusIgnore(client.note || '', originalDate);
         console.log(`[Update Client] ${client.id} - updated note:`, updatedNote);
 
         // 1. Zaktualizuj w Supabase
@@ -133,16 +136,15 @@ export async function POST(request: NextRequest) {
 
     const invoiceUpdatePromises = (invoices || []).map(async (invoice) => {
       try {
-        // Ustaw status=ignore + datę
-        const todayStr = today.toISOString().split('T')[0];
-        const updatedInternalNote = setListPoleconyStatusIgnore(invoice.internal_note || '', todayStr);
-
-        // Parsuj datę z internal_note
+        // Parsuj oryginalną datę (zachowaj datę wysłania)
         const flags = parseInvoiceFlags(invoice.internal_note);
-        const statusDate = flags.listPoleconyStatusDate || todayStr;
+        const originalDate = flags.listPoleconyStatusDate || today.toISOString().split('T')[0];
+
+        // Ustaw status=ignore (zachowaj oryginalną datę)
+        const updatedInternalNote = setListPoleconyStatusIgnore(invoice.internal_note || '', originalDate);
 
         console.log(`[Update Invoice] ${invoice.id} - new internal_note:`, updatedInternalNote);
-        console.log(`[Update Invoice] ${invoice.id} - status_date:`, statusDate);
+        console.log(`[Update Invoice] ${invoice.id} - original_date (preserved):`, originalDate);
 
         // 1. Zaktualizuj w Supabase
         const { error: supabaseError } = await supabaseAdmin()
@@ -150,8 +152,8 @@ export async function POST(request: NextRequest) {
           .update({
             internal_note: updatedInternalNote,
             list_polecony_ignored: true, // boolean flag (stary format dla kompatybilności)
-            list_polecony_ignored_date: today.toISOString(), // zachowaj datę dla historii
-            list_polecony_sent_date: statusDate // data
+            list_polecony_ignored_date: today.toISOString(), // data ignorowania (do historii)
+            list_polecony_sent_date: originalDate // data wysłania (ZACHOWANA)
           })
           .eq('id', invoice.id);
 
