@@ -21,15 +21,17 @@ export interface InvoiceFlags {
 export function parseInvoiceFlags(internalNote: string | null | undefined): InvoiceFlags {
   const note = internalNote || '';
 
-  // Parsuj flagę LIST_POLECONY
-  const listPolecony = /\[LIST_POLECONY\]true\[\/LIST_POLECONY\]/.test(note);
+  // Parsuj flagę LIST_POLECONY (czytaj rzeczywistą wartość true/false)
+  const listPoleconyMatch = note.match(/\[LIST_POLECONY\](true|false)\[\/LIST_POLECONY\]/);
+  const listPolecony = listPoleconyMatch ? listPoleconyMatch[1] === 'true' : false;
 
   // Parsuj datę wysłania
   const sentDateMatch = note.match(/\[LIST_POLECONY_SENT_DATE\](.*?)\[\/LIST_POLECONY_SENT_DATE\]/);
   const listPoleconySentDate = sentDateMatch && sentDateMatch[1] ? sentDateMatch[1] : null;
 
-  // Parsuj flagę IGNORED
-  const listPoleconyIgnored = /\[LIST_POLECONY_IGNORED\]true\[\/LIST_POLECONY_IGNORED\]/.test(note);
+  // Parsuj flagę IGNORED (czytaj rzeczywistą wartość true/false)
+  const listPoleconyIgnoredMatch = note.match(/\[LIST_POLECONY_IGNORED\](true|false)\[\/LIST_POLECONY_IGNORED\]/);
+  const listPoleconyIgnored = listPoleconyIgnoredMatch ? listPoleconyIgnoredMatch[1] === 'true' : false;
 
   // Parsuj datę ignorowania
   const ignoredDateMatch = note.match(/\[LIST_POLECONY_IGNORED_DATE\](.*?)\[\/LIST_POLECONY_IGNORED_DATE\]/);
