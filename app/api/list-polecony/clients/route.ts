@@ -7,13 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { qualifiesForListPolecony, calculateTotalDebt, getInvoicesWithThirdReminder } from '@/lib/list-polecony-logic';
 import { updateListPolecony } from '@/lib/list-polecony-parser';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    // supabase client already initialized in lib
 
     // Pobierz wszystkich klientów
     const { data: clients, error: clientsError } = await supabase

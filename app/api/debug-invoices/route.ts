@@ -14,7 +14,7 @@ export async function GET() {
         id: inv.id,
         number: inv.number,
         status: inv.status,
-        kind: inv.kind,
+        kind: (inv as any).kind,
         comment: inv.internal_note?.substring(0, 100) || '(empty)',
       })),
     });

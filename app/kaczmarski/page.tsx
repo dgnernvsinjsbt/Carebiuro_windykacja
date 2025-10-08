@@ -45,7 +45,7 @@ async function getKaczmarskiClients() {
   }
 
   // KROK 2: Pobierz unikalnych klientów dla tych faktur
-  const clientIds = [...new Set(qualifyingInvoices.map(inv => inv.client_id).filter(Boolean))] as number[];
+  const clientIds = Array.from(new Set(qualifyingInvoices.map(inv => inv.client_id).filter(Boolean))) as number[];
 
   const { data: clients, error: clientsError } = await supabase
     .from('clients')

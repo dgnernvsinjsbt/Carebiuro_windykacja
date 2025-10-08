@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     console.log('[CollectiveInvoice] Creating invoice with positions:', positions.length);
     console.log('[CollectiveInvoice] Payload:', JSON.stringify(payload, null, 2));
 
-    const createdInvoice = await fakturowniaApi.fakturowniaRequest(
+    const createdInvoice = await fakturowniaApi.fakturowniaRequest<any>(
       '/invoices.json',
       {
         method: 'POST',

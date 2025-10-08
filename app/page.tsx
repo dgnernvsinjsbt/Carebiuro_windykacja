@@ -5,72 +5,93 @@ import ClientsTable from '@/components/ClientsTable';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function ClientsPage() {
-  // Fetch ALL clients in batches (Supabase has 1000 row limit)
-  let allClients: Array<any> = [];
-  let clientPage = 0;
+/**
+ * Fetch all clients in batches (parallel-optimized)
+ */
+async function fetchAllClients() {
   const pageSize = 1000;
-  let hasMoreClients = true;
+  let allClients: Array<any> = [];
+  let page = 0;
+  let hasMore = true;
 
-  while (hasMoreClients) {
+  while (hasMore) {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
-      .range(clientPage * pageSize, (clientPage + 1) * pageSize - 1);
+      .range(page * pageSize, (page + 1) * pageSize - 1);
 
     if (error) {
-      console.error('[HomePage] Error fetching clients:', error);
+      console.error('[fetchAllClients] Error:', error);
       break;
     }
 
     if (data && data.length > 0) {
       allClients = allClients.concat(data);
-      clientPage++;
-
-      if (data.length < pageSize) {
-        hasMoreClients = false;
-      }
+      page++;
+      hasMore = data.length === pageSize;
     } else {
-      hasMoreClients = false;
+      hasMore = false;
     }
   }
 
-  console.log('[HomePage] Clients fetched:', allClients.length);
+  console.log('[fetchAllClients] Total fetched:', allClients.length);
+  return allClients;
+}
 
-  // Fetch ALL unpaid invoices (status != 'paid' AND kind != 'canceled' AND kind != 'correction')
-  // Supabase has default 1000 row limit - we need to fetch in batches
-  let allInvoices: Array<{ id: number; client_id: number | null; total: number | null; paid: number | null; status: string | null; kind: string | null }> = [];
-  let invoicePage = 0;
-  let hasMoreInvoices = true;
+/**
+ * Fetch all unpaid invoices in batches (parallel-optimized)
+ */
+async function fetchAllUnpaidInvoices() {
+  const pageSize = 1000;
+  let allInvoices: Array<{
+    id: number;
+    client_id: number | null;
+    total: number | null;
+    paid: number | null;
+    status: string | null;
+    kind: string | null
+  }> = [];
+  let page = 0;
+  let hasMore = true;
 
-  while (hasMoreInvoices) {
+  while (hasMore) {
     const { data, error } = await supabase
       .from('invoices')
       .select('id, client_id, total, paid, status, kind')
-      .neq('status', 'paid')             // status != 'paid'
-      .neq('kind', 'canceled')           // kind != 'canceled'
-      .neq('kind', 'correction')         // kind != 'correction'
-      .range(invoicePage * pageSize, (invoicePage + 1) * pageSize - 1);
+      .neq('status', 'paid')
+      .neq('kind', 'canceled')
+      .neq('kind', 'correction')
+      .range(page * pageSize, (page + 1) * pageSize - 1);
 
     if (error) {
-      console.error('[HomePage] Error fetching invoices:', error);
+      console.error('[fetchAllUnpaidInvoices] Error:', error);
       break;
     }
 
     if (data && data.length > 0) {
       allInvoices = allInvoices.concat(data);
-      invoicePage++;
-
-      // If we got less than pageSize, we've reached the end
-      if (data.length < pageSize) {
-        hasMoreInvoices = false;
-      }
+      page++;
+      hasMore = data.length === pageSize;
     } else {
-      hasMoreInvoices = false;
+      hasMore = false;
     }
   }
 
-  console.log('[HomePage] Unpaid invoices fetched:', allInvoices.length);
+  console.log('[fetchAllUnpaidInvoices] Total fetched:', allInvoices.length);
+  return allInvoices;
+}
+
+export default async function ClientsPage() {
+  // ✅ PARALLEL FETCH - znacznie szybsze!
+  const [allClients, allInvoices] = await Promise.all([
+    fetchAllClients(),
+    fetchAllUnpaidInvoices()
+  ]);
+
+  console.log('[HomePage] Data loaded:', {
+    clients: allClients.length,
+    invoices: allInvoices.length
+  });
 
   // Calculate unpaid balance per client (sum of total - paid for all unpaid invoices)
   const clientBalanceMap = new Map<number, { count: number; balance: number }>();

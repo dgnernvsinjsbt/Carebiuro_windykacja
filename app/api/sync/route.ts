@@ -81,10 +81,14 @@ export async function POST(request: NextRequest) {
           const invoiceData = clientDataMap.get(clientId)!;
           return {
             id: clientId,
-            name: invoiceData.buyer_name || invoiceData.buyer_company || `Client ${clientId}`,
+            name: invoiceData.buyer_name || `Client ${clientId}`,
+            first_name: null,
+            last_name: null,
             email: invoiceData.buyer_email || null,
             phone: invoiceData.buyer_phone || null,
             total_unpaid: 0, // Will be calculated at the end from Supabase
+            note: null,
+            list_polecony: null,
             updated_at: new Date().toISOString(),
           };
         });
@@ -160,6 +164,8 @@ export async function POST(request: NextRequest) {
 
         // Optimization flags
         has_third_reminder: hasThird,
+        list_polecony_sent_date: null,
+        list_polecony_ignored_date: null,
       };
       });
 
@@ -217,9 +223,12 @@ export async function POST(request: NextRequest) {
       const clientsToUpdate: Client[] = (existingClients || []).map(client => ({
         id: client.id,
         name: client.name,
+        first_name: client.first_name,
+        last_name: client.last_name,
         email: client.email,
         phone: client.phone,
         note: clientNotesMap.get(client.id) || client.note || null, // Update note from Fakturownia
+        list_polecony: client.list_polecony,
         total_unpaid: clientTotalsMap.get(client.id) || 0,
         updated_at: new Date().toISOString(),
       }));
@@ -234,7 +243,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        synced_clients: clients.length,
+        synced_clients: totalClients,
         synced_invoices: totalInvoices,
         duration_seconds: parseFloat(duration),
       },
@@ -320,6 +329,8 @@ export async function GET(request: NextRequest) {
 
         // Optimization flags
         has_third_reminder: hasThird,
+        list_polecony_sent_date: null,
+        list_polecony_ignored_date: null,
       };
       });
 

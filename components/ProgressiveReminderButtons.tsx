@@ -87,14 +87,14 @@ export default function ProgressiveReminderButtons({
     if (level === 2) {
       const level1Sent = fiscalSync[`${typeUpper}_1` as keyof FiscalSyncData];
       const level2Sent = fiscalSync[`${typeUpper}_2` as keyof FiscalSyncData];
-      return level1Sent && !level2Sent;
+      return Boolean(level1Sent) && !Boolean(level2Sent);
     }
 
     // Level 3 requires level 2 to be sent
     if (level === 3) {
       const level2Sent = fiscalSync[`${typeUpper}_2` as keyof FiscalSyncData];
       const level3Sent = fiscalSync[`${typeUpper}_3` as keyof FiscalSyncData];
-      return level2Sent && !level3Sent;
+      return Boolean(level2Sent) && !Boolean(level3Sent);
     }
 
     return false;

@@ -22,9 +22,13 @@ export async function POST(request: NextRequest) {
     await clientsDb.upsert({
       id: clientData.id,
       name: clientData.name || `Client ${clientData.id}`,
+      first_name: null,
+      last_name: null,
       email: clientData.email || null,
       phone: clientData.phone || null,
       total_unpaid: 0,
+      note: clientData.note || null,
+      list_polecony: null,
       updated_at: new Date().toISOString(),
     });
 
@@ -69,6 +73,11 @@ export async function POST(request: NextRequest) {
         view_url: inv.view_url || null,
         payment_url: inv.payment_url || null,
         overdue: inv['overdue?'] || null,
+
+        // Optimization flags
+        has_third_reminder: null,
+        list_polecony_sent_date: null,
+        list_polecony_ignored_date: null,
       };
 
       invoices.push(invoice);

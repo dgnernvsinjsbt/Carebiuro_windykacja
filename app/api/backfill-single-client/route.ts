@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Aktualizuj każdą fakturę
     for (const invoice of invoices || []) {
-      const hasThird = hasThirdReminder(invoice);
+      const hasThird = hasThirdReminder(invoice as any);
 
       const { error: updateError } = await supabaseAdmin
         .from('invoices')

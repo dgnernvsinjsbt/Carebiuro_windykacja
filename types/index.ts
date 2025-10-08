@@ -81,17 +81,46 @@ export interface FakturowniaInvoice {
   number: string;
   price_gross: string;
   price_net: string;
+  price_tax: string;
   currency: string;
   status: string;
+  paid: string;
+
+  // Dates
+  issue_date: string;
+  sell_date: string;
   payment_to: string;
+  paid_date: string | null;
+  created_at: string;
+  updated_at: string;
+
+  // Payment
+  payment_type: string;
+
+  // Buyer information
   buyer_name: string;
   buyer_email: string;
   buyer_phone: string;
+  buyer_tax_no: string;
+  buyer_street: string;
+  buyer_city: string;
+  buyer_post_code: string;
+  buyer_country: string;
+
+  // Document metadata
+  kind: string;
+  description: string | null;
+  place: string | null;
+  view_url: string;
+  payment_url: string | null;
+
+  // Notes and status
   internal_note: string; // Notatka prywatna - niewidoczna na wydruku (używamy do [FISCAL_SYNC])
   email_status: string | null; // Status emaila: 'sent' jeśli faktura została wysłana mailem
   sent_time: string | null; // Data i czas wysłania emaila (jeśli email_status='sent')
-  created_at: string;
-  updated_at: string;
+
+  // Status fields (Fakturownia uses "overdue?" as key)
+  'overdue?': boolean;
 }
 
 export interface FakturowniaClient {

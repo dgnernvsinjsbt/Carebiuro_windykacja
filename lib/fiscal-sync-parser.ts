@@ -23,6 +23,7 @@ const DEFAULT_FISCAL_SYNC: FiscalSyncData = {
   WHATSAPP_3: false,
   WHATSAPP_3_DATE: null,
   STOP: false,
+  WINDYKACJA: false,
   UPDATED: new Date().toISOString(),
 };
 
@@ -52,10 +53,10 @@ export function parseFiscalSync(comment: string | null): FiscalSyncData | null {
       data[key] = value;
     } else if (key.endsWith('_DATE')) {
       // Parse date fields (null if 'NULL', otherwise the date string)
-      data[key as keyof FiscalSyncData] = value === 'NULL' ? null : value;
+      (data as any)[key] = value === 'NULL' ? null : value;
     } else {
       // Parse boolean fields
-      data[key as keyof FiscalSyncData] = value === 'TRUE';
+      (data as any)[key] = value === 'TRUE';
     }
   }
 
@@ -120,12 +121,12 @@ export function updateFiscalSync(
   const fiscalData: FiscalSyncData = existing || { ...DEFAULT_FISCAL_SYNC };
 
   // Update field
-  fiscalData[field] = value;
+  (fiscalData as any)[field] = value;
 
   // If date is provided and this is a reminder field, update the corresponding date field
-  if (date && !field.endsWith('_DATE') && field !== 'STOP') {
-    const dateField = `${field}_DATE` as keyof FiscalSyncData;
-    fiscalData[dateField] = date;
+  if (date && !field.endsWith('_DATE') && field !== 'STOP' && field !== 'WINDYKACJA') {
+    const dateField = `${field}_DATE`;
+    (fiscalData as any)[dateField] = date;
   }
 
   fiscalData.UPDATED = new Date().toISOString();

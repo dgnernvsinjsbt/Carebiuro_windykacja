@@ -219,8 +219,8 @@ export async function POST(request: NextRequest) {
       await archive.finalize();
 
       // Czekaj aż ZIP zostanie zapisany
-      await new Promise((resolve, reject) => {
-        output.on('close', resolve);
+      await new Promise<void>((resolve, reject) => {
+        output.on('close', () => resolve());
         output.on('error', reject);
       });
 
@@ -279,8 +279,10 @@ export async function POST(request: NextRequest) {
       const { setListPoleconyDate } = await import('@/lib/list-polecony-sent-parser');
       const today = new Date();
 
-      const invoiceUpdatePromises = clientsData.map(async (clientData) => {
-        const invoicesWithThirdReminder = clientData.invoices.filter(inv =>
+      const invoiceUpdatePromises = pdfResults.map(async (result) => {
+        // Pobierz faktury klienta z bazy
+        const clientInvoices = invoices.filter((inv) => inv.client_id === result.client.id);
+        const invoicesWithThirdReminder = clientInvoices.filter(inv =>
           inv.has_third_reminder === true
         );
 

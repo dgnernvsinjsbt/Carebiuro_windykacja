@@ -207,7 +207,7 @@ export default function ListPoleconyTable({ clients, hideGenerateButton = false,
 
     try {
       // Synchronizuj każdego klienta osobno
-      for (const clientId of selectedClients) {
+      for (const clientId of Array.from(selectedClients)) {
         const response = await fetch('/api/list-polecony/sync-client', {
           method: 'POST',
           headers: {

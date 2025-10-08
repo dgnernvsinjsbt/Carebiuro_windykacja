@@ -51,6 +51,7 @@ export default async function ClientDetailPage({
 
     return {
       ...invoice,
+      client: client,
       email_status: fakturowniaData?.email_status || invoice.email_status,
       sent_time: fakturowniaData?.sent_time || invoice.sent_time,
       fiscal_sync: parseFiscalSync(initializedComment),
@@ -102,7 +103,7 @@ export default async function ClientDetailPage({
               </div>
               <ClientInvoicesTable
                 invoices={invoicesWithFiscalSync}
-                clientPhone={clientPhone}
+                clientPhone={clientPhone || undefined}
                 windykacjaEnabled={windykacjaEnabled}
               />
             </div>

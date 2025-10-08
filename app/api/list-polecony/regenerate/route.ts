@@ -221,8 +221,8 @@ export async function POST(request: NextRequest) {
       await archive.finalize();
 
       // Czekaj aż ZIP zostanie zapisany
-      await new Promise((resolve, reject) => {
-        output.on('close', resolve);
+      await new Promise<void>((resolve, reject) => {
+        output.on('close', () => resolve());
         output.on('error', reject);
       });
 
