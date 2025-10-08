@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { setWindykacja } from '@/lib/client-flags';
+import { setWindykacja } from '@/lib/client-flags-v2';
 
 /**
  * PATCH /api/client/[id]/windykacja
