@@ -21,6 +21,35 @@ export async function POST(request: NextRequest) {
 
     console.log(`[TestSync] Syncing client ${client_id} from Fakturownia...`);
 
+    // First sync the client data
+    try {
+      const clientData = await fakturowniaApi.getClient(client_id);
+      console.log(`[TestSync] Found client: ${clientData.name}`);
+
+      const { error: clientError } = await supabaseAdmin()
+        .from('clients')
+        .upsert({
+          id: clientData.id,
+          name: clientData.name || null,
+          first_name: clientData.first_name || null,
+          last_name: clientData.last_name || null,
+          email: clientData.email || null,
+          phone: clientData.phone || null,
+          note: clientData.note || null,
+          list_polecony: false,
+          total_unpaid: 0,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (clientError) {
+        console.error(`[TestSync] Error upserting client:`, clientError);
+      } else {
+        console.log(`[TestSync] Client ${client_id} synced successfully`);
+      }
+    } catch (clientErr) {
+      console.error(`[TestSync] Failed to sync client:`, clientErr);
+    }
+
     // Fetch invoices from Fakturownia
     const invoices = await fakturowniaApi.getInvoicesByClientId(client_id, 100);
     console.log(`[TestSync] Found ${invoices.length} invoices`);
@@ -84,8 +113,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      synced: successCount,
-      total: invoices.length,
+      client_synced: true,
+      invoices_synced: successCount,
+      total_invoices: invoices.length,
     });
   } catch (error: any) {
     console.error('[TestSync] Error:', error);

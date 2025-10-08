@@ -1,4 +1,4 @@
-import { clientsDb, supabase } from '@/lib/supabase';
+import { clientsDb, supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ClientsTable from '@/components/ClientsTable';
 
@@ -15,7 +15,7 @@ async function fetchAllClients() {
   let hasMore = true;
 
   while (hasMore) {
-    const { data, error } = await supabase()
+    const { data, error } = await supabaseAdmin()
       .from('clients')
       .select('*')
       .range(page * pageSize, (page + 1) * pageSize - 1);
@@ -55,7 +55,7 @@ async function fetchAllUnpaidInvoices() {
   let hasMore = true;
 
   while (hasMore) {
-    const { data, error } = await supabase()
+    const { data, error } = await supabaseAdmin()
       .from('invoices')
       .select('id, client_id, total, paid, status, kind')
       .neq('status', 'paid')
