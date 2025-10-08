@@ -9,6 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ListPoleconyTable from '@/components/ListPoleconyTable';
 import Link from 'next/link';
+import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,11 +37,12 @@ async function getIgnorowaneClients() {
   }
 
   // Pobierz wszystkie faktury z flagą ignorowania dla klientów zignorowanych
+  // Używamy internal_note z flagą [LIST_POLECONY_IGNORED]true jako źródło prawdy
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .in('client_id', clientIds)
-    .eq('list_polecony_ignored', true);
+    .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
   if (invoicesError) {
     console.error('[ListPolecony Ignorowane] Error fetching invoices:', invoicesError);
@@ -69,10 +71,11 @@ async function getIgnorowaneClients() {
       return sum + balance;
     }, 0);
 
-    // Znajdź najwcześniejszą datę WYSŁANIA (kiedy była wysłana lista polecona)
+    // Znajdź najwcześniejszą datę WYSŁANIA (parsuj z internal_note)
     const earliestSentDate = invoices.reduce((earliest, inv) => {
-      if (!inv.list_polecony_sent_date) return earliest;
-      const invDate = new Date(inv.list_polecony_sent_date);
+      const flags = parseInvoiceFlags(inv.internal_note);
+      if (!flags.listPoleconySentDate) return earliest;
+      const invDate = new Date(flags.listPoleconySentDate);
       return !earliest || invDate < earliest ? invDate : earliest;
     }, null as Date | null);
 
