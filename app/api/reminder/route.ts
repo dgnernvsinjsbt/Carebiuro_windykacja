@@ -217,18 +217,15 @@ export async function POST(request: NextRequest) {
         await messageHistoryDb.logMessage({
           client_id: invoice.client_id,
           invoice_id: invoice.id,
+          invoice_number: invoice.number,
+          client_name: invoice.buyer_name || 'Unknown',
           message_type: type,
+          level: level as 1 | 2 | 3,
           status: 'sent',
-          message: `${type.toUpperCase()} reminder level ${level} sent`,
-          metadata: {
-            invoice_number: invoice.number,
-            client_name: invoice.buyer_name || 'Unknown',
-            level: level as 1 | 2 | 3,
-            sent_by: 'manual',
-            is_auto_initial: false,
-            invoice_total: invoice.total,
-            invoice_currency: invoice.currency || 'EUR',
-          },
+          sent_by: 'manual',
+          is_auto_initial: false,
+          invoice_total: invoice.total,
+          invoice_currency: invoice.currency || 'EUR',
         });
         console.log(`[Reminder] Message logged to history`);
       }

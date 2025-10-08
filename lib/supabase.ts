@@ -593,16 +593,24 @@ export const messageHistoryDb = {
   async logMessage(entry: {
     client_id: number;
     invoice_id?: number;
+    invoice_number: string;
+    client_name: string;
     message_type: 'email' | 'sms' | 'whatsapp';
-    status: 'sent' | 'failed' | 'pending';
-    message: string;
-    metadata?: any;
+    level: 1 | 2 | 3;
+    status: 'sent' | 'failed';
+    error_message?: string;
+    sent_by?: string;
+    is_auto_initial?: boolean;
+    invoice_total?: number | string;
+    invoice_currency?: string;
   }) {
     const { data, error } = await getSupabaseAdmin()
       .from('message_history')
       .insert({
         ...entry,
         sent_at: new Date().toISOString(),
+        sent_by: entry.sent_by || 'system',
+        is_auto_initial: entry.is_auto_initial || false,
       })
       .select()
       .single();
