@@ -78,10 +78,10 @@ export async function POST(request: NextRequest) {
         .from('invoices')
         .update({
           comment: invoice.internal_note || '',
-          list_polecony: flags.listPolecony, // boolean flag
-          list_polecony_sent_date: flags.listPoleconySentDate, // data dla historii
-          list_polecony_ignored: flags.listPoleconyIgnored, // boolean flag
-          list_polecony_ignored_date: flags.listPoleconyIgnoredDate, // data dla historii
+          list_polecony: flags.listPoleconyStatus === 'sent', // boolean flag (stary format)
+          list_polecony_sent_date: flags.listPoleconyStatus === 'sent' ? flags.listPoleconyStatusDate : null,
+          list_polecony_ignored: flags.listPoleconyStatus === 'ignore', // boolean flag (stary format)
+          list_polecony_ignored_date: flags.listPoleconyStatus === 'ignore' ? flags.listPoleconyStatusDate : null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', invoice.id);
