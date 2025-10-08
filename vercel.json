@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/windykacja/auto-send-initial",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}

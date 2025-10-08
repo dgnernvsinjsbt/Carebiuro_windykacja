@@ -1,0 +1,100 @@
+/**
+ * API Endpoint: Get List Polecony Clients
+ *
+ * GET /api/list-polecony/clients
+ *
+ * Zwraca listę klientów kwalifikujących się do listu poleconego
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase';
+import { qualifiesForListPolecony, calculateTotalDebt, getInvoicesWithThirdReminder } from '@/lib/list-polecony-logic';
+import { updateListPolecony } from '@/lib/list-polecony-parser';
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = createClient();
+
+    // Pobierz wszystkich klientów
+    const { data: clients, error: clientsError } = await supabase
+      .from('clients')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (clientsError || !clients) {
+      console.error('Błąd pobierania klientów:', clientsError);
+      return NextResponse.json(
+        { success: false, error: 'Błąd pobierania klientów' },
+        { status: 500 }
+      );
+    }
+
+    // Pobierz wszystkie faktury
+    const { data: allInvoices, error: invoicesError } = await supabase
+      .from('invoices')
+      .select('*');
+
+    if (invoicesError || !allInvoices) {
+      console.error('Błąd pobierania faktur:', invoicesError);
+      return NextResponse.json(
+        { success: false, error: 'Błąd pobierania faktur' },
+        { status: 500 }
+      );
+    }
+
+    // Filtruj klientów kwalifikujących się do listu poleconego
+    const qualifiedClients = clients
+      .map((client) => {
+        const clientInvoices = allInvoices.filter((inv) => inv.client_id === client.id);
+
+        const qualifies = qualifiesForListPolecony(client, clientInvoices);
+
+        if (!qualifies) return null;
+
+        // Oblicz statystyki
+        const invoicesWithReminders = getInvoicesWithThirdReminder(clientInvoices);
+        const totalDebt = calculateTotalDebt(clientInvoices);
+
+        return {
+          ...client,
+          invoice_count: invoicesWithReminders.length,
+          total_debt: totalDebt,
+          qualifies_for_list_polecony: true,
+        };
+      })
+      .filter(Boolean); // Usuń null
+
+    console.log(`Znaleziono ${qualifiedClients.length} klientów kwalifikujących się do listu poleconego`);
+
+    // Opcjonalnie: Aktualizuj flagę list_polecony w bazie danych
+    // (możesz to zrobić w osobnym endpoincie lub w sync)
+    for (const client of qualifiedClients) {
+      if (client) {
+        // Aktualizuj flagę w Supabase
+        await supabase
+          .from('clients')
+          .update({ list_polecony: true })
+          .eq('id', client.id);
+
+        // Opcjonalnie: Aktualizuj tag [LIST_POLECONY] w Fakturowni
+        // (wymaga wywołania Fakturownia API)
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      clients: qualifiedClients,
+      count: qualifiedClients.length,
+    });
+  } catch (error: any) {
+    console.error('Błąd pobierania klientów:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Błąd serwera',
+        details: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}

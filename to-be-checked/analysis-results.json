@@ -1,0 +1,3599 @@
+{
+  "period": {
+    "start": "2025-09-15",
+    "end": "2025-09-30"
+  },
+  "summary": {
+    "totalPayments": 20999.94,
+    "totalInvoices": 28461.2,
+    "difference": -7461.26,
+    "percentDiff": -35.53
+  },
+  "dailyAnalysis": [
+    {
+      "date": "2025-09-15",
+      "payments": {
+        "total": 2073.86,
+        "count": 28
+      },
+      "invoices": {
+        "total": 988.86,
+        "count": 15
+      },
+      "difference": 1085,
+      "percentDiff": 109.7,
+      "isAnomaly": true
+    },
+    {
+      "date": "2025-09-16",
+      "payments": {
+        "total": 2105.95,
+        "count": 27
+      },
+      "invoices": {
+        "total": 2125.95,
+        "count": 32
+      },
+      "difference": -20,
+      "percentDiff": -0.9,
+      "isAnomaly": false
+    },
+    {
+      "date": "2025-09-17",
+      "payments": {
+        "total": 1570,
+        "count": 17
+      },
+      "invoices": {
+        "total": 1570,
+        "count": 25
+      },
+      "difference": 0,
+      "percentDiff": 0,
+      "isAnomaly": false
+    },
+    {
+      "date": "2025-09-18",
+      "payments": {
+        "total": 1137.84,
+        "count": 15
+      },
+      "invoices": {
+        "total": 1137.84,
+        "count": 14
+      },
+      "difference": 0,
+      "percentDiff": 0,
+      "isAnomaly": false
+    },
+    {
+      "date": "2025-09-19",
+      "payments": {
+        "total": 1837.36,
+        "count": 18
+      },
+      "invoices": {
+        "total": 4304.8,
+        "count": 27
+      },
+      "difference": -2467.44,
+      "percentDiff": -57.3,
+      "isAnomaly": true
+    },
+    {
+      "date": "2025-09-22",
+      "payments": {
+        "total": 1362.02,
+        "count": 14
+      },
+      "invoices": {
+        "total": 1362.02,
+        "count": 20
+      },
+      "difference": 0,
+      "percentDiff": 0,
+      "isAnomaly": false
+    },
+    {
+      "date": "2025-09-23",
+      "payments": {
+        "total": 897.75,
+        "count": 15
+      },
+      "invoices": {
+        "total": 927.75,
+        "count": 16
+      },
+      "difference": -30,
+      "percentDiff": -3.2,
+      "isAnomaly": false
+    },
+    {
+      "date": "2025-09-24",
+      "payments": {
+        "total": 537.93,
+        "count": 6
+      },
+      "invoices": {
+        "total": 942.93,
+        "count": 16
+      },
+      "difference": -405,
+      "percentDiff": -43,
+      "isAnomaly": true
+    },
+    {
+      "date": "2025-09-25",
+      "payments": {
+        "total": 1718,
+        "count": 12
+      },
+      "invoices": {
+        "total": 2353,
+        "count": 23
+      },
+      "difference": -635,
+      "percentDiff": -27,
+      "isAnomaly": true
+    },
+    {
+      "date": "2025-09-26",
+      "payments": {
+        "total": 1253.71,
+        "count": 18
+      },
+      "invoices": {
+        "total": 5928.18,
+        "count": 24
+      },
+      "difference": -4674.47,
+      "percentDiff": -78.9,
+      "isAnomaly": true
+    },
+    {
+      "date": "2025-09-29",
+      "payments": {
+        "total": 2271.69,
+        "count": 29
+      },
+      "invoices": {
+        "total": 2496.69,
+        "count": 34
+      },
+      "difference": -225,
+      "percentDiff": -9,
+      "isAnomaly": true
+    },
+    {
+      "date": "2025-09-30",
+      "payments": {
+        "total": 4233.83,
+        "count": 40
+      },
+      "invoices": {
+        "total": 4323.18,
+        "count": 47
+      },
+      "difference": -89.35,
+      "percentDiff": -2.1,
+      "isAnomaly": true
+    }
+  ],
+  "anomalyDays": [
+    {
+      "date": "2025-09-15",
+      "payments": {
+        "total": 2073.86,
+        "count": 28
+      },
+      "invoices": {
+        "total": 988.86,
+        "count": 15
+      },
+      "difference": 1085,
+      "percentDiff": 109.7,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "PATRYK POLAJDOWICZ ULICA ADAMA MICKIEWICZA 2",
+          "description": "BIURO RACHUNKOWE (SIERPIEN)",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "DAMIAN BIESZCZAD OSIEDLE LUZYCKIE 54",
+          "description": "OPLATA ZA BIURO WRZESIEN - DAMIAN BIESZCZAD",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 130,
+          "name": "BRZEZINSKI KRYSTIAN GREBOSZOW 41A",
+          "description": "OPLATA SIERPIEN WRZESIEN",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 80,
+          "name": "NAWROT LUKASZ EUGENIUSZ DWORCOWA 3",
+          "description": "OPLATA ZA PROWADZENIE GEWERBA",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 40,
+          "name": "PATRYCJA SREDNICKA M.GOLISZA 9 M. 6",
+          "description": "PRZELEW SRODKOW PATRYCJA SREDNICKA",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 40,
+          "name": "CHLEBOWSKA KARINA UL. NADRZECZNA 38",
+          "description": "GEWERBE WANDA RYDLICHOWSKA, WRZESIEN 2025",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 60.79,
+          "name": "LT383250003401530589 DARIUSZ PARGULSKI",
+          "description": "/ROC/NOTPROVIDED//[WYSLANO Z REVOLUT] /LT383250003401530589 4.4418 270.00PLN",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 63.04,
+          "name": "REVOLUT BANK UAB KONSTITUCIJOS 21B  VILNIUS 08130 LT",
+          "description": "Patrycja Szkoda Oplata za prowadzenie gewerby pazdziernik 2025 Szkoda Patrycja 4.4418 280.00PLN",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 40,
+          "name": "JOANNA KAMINSKA UL.RACLAWICKA 57A",
+          "description": "PRZELEW WALUTOWY",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "GAJ GRZEGORZ ZEGADLOWICZA 26",
+          "description": "GRZEGORZ GAJ OPLATA MIESIECZNA BIURA BAU 10/2025",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 340,
+          "name": "SKORZEWSKA-BURDANOWSKA INGA MAGDALE NA",
+          "description": "ZAPLATA ZALEGLOSCI MAREK BURDANOWSKI",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "SIWIEC ALEKSANDER FELIKS CEGIELNIANA 24",
+          "description": "FP2025/09/000307",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 115,
+          "name": "LIS ADAM JAWORZE GORNE 120 B",
+          "description": "ADAM LIS, REJESTRACJA GEWERBE 50 EURO I 1 MIESIAC PAZDZIERNIK 65 EURO",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 40,
+          "name": "KRYSTYNA ZIELONKA SUKIENNICZA",
+          "description": "GEWERBE .KRYSTYNA ZIELONKA",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "MICHAL CZUBEK ULICA SPOKOJNA 52",
+          "description": "OPLATA BIURO WRZESIEN KLIKENTA 14260 CZUBEK MICHAL",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 40,
+          "name": "EWA JOZEFA LINDNER",
+          "description": "EWA LINDNER",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "LESZEK SMIECINSKI GRODZKI 7D OSTROW MAZ 07-300",
+          "description": "PRZELEW ZA BIURO SIERPIEN",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "KRZYSZTOF BARSZCZEWSKI ULICA KAROLA MARCINKOWSKIEGO 9A",
+          "description": "FAKTURA FP 2025/08/000743KRZYSZTOF BARSZCZEWSKI",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "MAREK MIELNICZEK ULICA DLUGA 3, 9",
+          "description": "FP2025/09/000438",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "MICHAL JAKUBIAK UL. OGRODOWA 8/3",
+          "description": "OPLATA ZA WRZESIEN 2025",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "MATEUSZ POREMBSKI ULICA PIASTOW 3/10",
+          "description": "WRZESIEN. POREMBSKI MATEUSZ",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 50,
+          "name": "ELZBIETA CIESIELSKA-HENSEL",
+          "description": "",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "KAMIL PODSIADLO JODLOWICKA 22 M. 28",
+          "description": "FP2025/09/000101",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 65,
+          "name": "PATRYK POCZEREWNY UL. GLOWNA 24",
+          "description": "OPLATA MIESIECZNA BIURA BAU/ MONATLICHE BROKOSTEN..",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 40,
+          "name": "DANUTA BIERNAT UL. RACULA WITOSA 48",
+          "description": "ZA I BIURO",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 90,
+          "name": "MIROSLAW DZIENIARZ UL. KRZYWOUSTEGO 1",
+          "description": "REJESTRACJA I OPLATA ZA BIURO- WRZESIEN. DOROTA DZIENIARZ",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 80,
+          "name": "EURO WORK' KATARZYNA MIELCARZ WALEREGO WROBLEWSKIEGO 134",
+          "description": "ZAMKNIECIE GEWERBY MARIA LUKASZYK",
+          "dateNormalized": "2025-09-15"
+        },
+        {
+          "date": "15/9/2025",
+          "amount": 45.03,
+          "name": "REVOLUT BANK UAB KONSTITUCIJOS 21B  VILNIUS 08130 LT",
+          "description": "Aleksandra Pusdrowska Wyslano z Revolut 4.4418 200.00PLN",
+          "dateNormalized": "2025-09-15"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 417844281,
+          "client_id": 198718703,
+          "from_invoice_id": 412493036,
+          "paid": "45.03",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-18",
+          "payment_to": "2025-10-18",
+          "paid_date": "2025-09-18",
+          "created_at": "2025-09-18T09:28:18.000+02:00",
+          "updated_at": "2025-10-01T08:17:13.000+02:00"
+        },
+        {
+          "id": 417842506,
+          "client_id": 162475173,
+          "from_invoice_id": null,
+          "paid": "80.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-18",
+          "payment_to": "2025-10-18",
+          "paid_date": "2025-09-18",
+          "created_at": "2025-09-18T09:24:34.000+02:00",
+          "updated_at": "2025-10-01T08:17:13.000+02:00"
+        },
+        {
+          "id": 417839134,
+          "client_id": 209542194,
+          "from_invoice_id": null,
+          "paid": "90.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-18",
+          "payment_to": "2025-10-18",
+          "paid_date": "2025-09-18",
+          "created_at": "2025-09-18T09:17:11.000+02:00",
+          "updated_at": "2025-10-01T08:17:10.000+02:00"
+        },
+        {
+          "id": 417836626,
+          "client_id": 209540998,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-18",
+          "payment_to": "2025-10-18",
+          "paid_date": "2025-09-18",
+          "created_at": "2025-09-18T09:11:32.000+02:00",
+          "updated_at": "2025-10-01T08:17:09.000+02:00"
+        },
+        {
+          "id": 417748283,
+          "client_id": 145937101,
+          "from_invoice_id": null,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T19:12:04.000+02:00",
+          "updated_at": "2025-10-01T08:18:08.000+02:00"
+        },
+        {
+          "id": 417747896,
+          "client_id": 188947650,
+          "from_invoice_id": null,
+          "paid": "63.04",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T19:09:53.000+02:00",
+          "updated_at": "2025-10-01T08:18:08.000+02:00"
+        },
+        {
+          "id": 417747024,
+          "client_id": 138554813,
+          "from_invoice_id": 412492191,
+          "paid": "60.79",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T19:04:29.000+02:00",
+          "updated_at": "2025-10-01T08:18:08.000+02:00"
+        },
+        {
+          "id": 417746634,
+          "client_id": 196046046,
+          "from_invoice_id": 404450330,
+          "paid": "15.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T19:02:44.000+02:00",
+          "updated_at": "2025-10-01T08:18:08.000+02:00"
+        },
+        {
+          "id": 417744626,
+          "client_id": 196046046,
+          "from_invoice_id": 395850247,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T18:52:25.000+02:00",
+          "updated_at": "2025-10-01T08:18:08.000+02:00"
+        },
+        {
+          "id": 417726195,
+          "client_id": 193126329,
+          "from_invoice_id": 412492935,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-15",
+          "created_at": "2025-09-17T17:12:47.000+02:00",
+          "updated_at": "2025-10-01T08:18:08.000+02:00"
+        },
+        {
+          "id": 417719791,
+          "client_id": 193126329,
+          "from_invoice_id": 404450285,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-09-18",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T16:43:51.000+02:00",
+          "updated_at": "2025-09-18T13:54:06.000+02:00"
+        },
+        {
+          "id": 417718317,
+          "client_id": 193126329,
+          "from_invoice_id": 404450285,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-09-18",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T16:38:04.000+02:00",
+          "updated_at": "2025-09-18T13:53:03.000+02:00"
+        },
+        {
+          "id": 417722728,
+          "client_id": 193126329,
+          "from_invoice_id": 404450285,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-09-18",
+          "paid_date": "2025-09-15",
+          "created_at": "2025-09-17T16:55:53.000+02:00",
+          "updated_at": "2025-10-01T08:18:56.000+02:00"
+        },
+        {
+          "id": 417696302,
+          "client_id": 198132681,
+          "from_invoice_id": 412493015,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-17",
+          "payment_to": "2025-10-17",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T15:39:13.000+02:00",
+          "updated_at": "2025-10-01T08:18:57.000+02:00"
+        },
+        {
+          "id": 417684080,
+          "client_id": 149113192,
+          "from_invoice_id": 412492364,
+          "paid": "65.0",
+          "sell_date": "2025-09-15",
+          "issue_date": "2025-09-15",
+          "payment_to": "2025-10-15",
+          "paid_date": "2025-09-17",
+          "created_at": "2025-09-17T15:13:55.000+02:00",
+          "updated_at": "2025-10-01T08:21:15.000+02:00"
+        }
+      ]
+    },
+    {
+      "date": "2025-09-19",
+      "payments": {
+        "total": 1837.36,
+        "count": 18
+      },
+      "invoices": {
+        "total": 4304.8,
+        "count": 27
+      },
+      "difference": -2467.44,
+      "percentDiff": -57.3,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "19/9/2025",
+          "amount": 115,
+          "name": "MILOSZ KACZYNSKI MAJEWO 64A",
+          "description": "MILOSZ KACZYNSKI OPLATA REJESTRACJIGEWERBA",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "VITALII KALIUKA GRUNWALDZKA 58/32, PODKARPACKIE 37-",
+          "description": "FP2025/08/000525",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "BAUGERUST 24 ROZANSKI JAROSLAW SOKOLOWICE 15",
+          "description": "2025/09/000285",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 2.56,
+          "name": "CENTRUM EUROKONTAKT 24 SPOLKA Z OGR ANICZONA ODPOWIDZIALNOSCIA",
+          "description": "FP2025/09/000973,FP2025/09/000974,FP2025/09/000975, FP2025/09/000976,FP2025/09/000977,FP2025/09/000978",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 115,
+          "name": "MARCIN SZCZESNIAK WARSZAWSKA 68, KULIGOW",
+          "description": "ZALOZENIE DZIALALNOSCI + PIERWSZY MIESIAC",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "MARCIN MARIUSZ JANISZEWSKI UL. NOWA 22",
+          "description": "JANISZEWSKI MARCIN ZA MIESIAC 09.2025 FP2025/09/000076",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "ADAM RAFAL KACZOR WS. STAROGARD 16A",
+          "description": "RECHNUNGNR:FP2025/09/000259,KUNDENNR:27972,KACZOR ADAM",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "ANNA JOZEFA SROZAK UL. NICPONIA 34",
+          "description": "OPLATA ZA BIURO ZA MSC 08/25",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 179.8,
+          "name": "MAŁGORZATA DUDZIŃSKA",
+          "description": "OPŁATA ZA BIURO 4.4495 800.00PLN",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 90,
+          "name": "DANAS+SYLWIAS SPOLKA Z ORGANICZONA ODPOWIEDZIALNOSCIA SP.K.",
+          "description": "WERA DANUTA BRAMBOR",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 40,
+          "name": "IRENEUSZ WOJTASIK UL.ZWIROWA 9",
+          "description": "PRZELEW WALUTOWY",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 40,
+          "name": "MICHAEL MARCIN SKIBA",
+          "description": "BOZENA SEMCZUK WRZESIEN",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 255,
+          "name": "MARCIN SZCZESNIAK WARSZAWSKA 68, KULIGOW",
+          "description": "FP2025/08/001182 PIERWSZA CZESC",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "KRZYSZTOF CHRZASZCZ ULICA KS. PIOTRA WAWRZYNIAKA 15",
+          "description": "KRZYSZTOF CHRZASZCZ OPLATA ZA BIUROMIESIAC SIERPIEN",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 90,
+          "name": "MIKULEWICZ MARIANNA JAGIELLONSKA 57G",
+          "description": "ZA GEWERBE DLA MALGORZATA SZWED",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 415,
+          "name": "PIOTR BARSZCZAK KUNKOWCE 166",
+          "description": "DAWID SKALSKI",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 65,
+          "name": "PATRYK JAKUB OPYRCHAL HAUS-BERGESTRASSE 11",
+          "description": "ZA WRZESIEN",
+          "dateNormalized": "2025-09-19"
+        },
+        {
+          "date": "19/9/2025",
+          "amount": 40,
+          "name": "ANNA ATANASOV DOBRA 16A",
+          "description": "OPLATA WRZESIEN",
+          "dateNormalized": "2025-09-19"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 420534935,
+          "client_id": 147431251,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-09-29T11:51:39.000+02:00",
+          "updated_at": "2025-10-01T08:15:46.000+02:00"
+        },
+        {
+          "id": 420141185,
+          "client_id": 197543832,
+          "from_invoice_id": 412493003,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:30:34.000+02:00",
+          "updated_at": "2025-10-01T08:15:44.000+02:00"
+        },
+        {
+          "id": 420141108,
+          "client_id": 189871624,
+          "from_invoice_id": 412492880,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:29:40.000+02:00",
+          "updated_at": "2025-10-01T08:16:46.000+02:00"
+        },
+        {
+          "id": 420140997,
+          "client_id": 147431251,
+          "from_invoice_id": 312972146,
+          "paid": "300.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:28:15.000+02:00",
+          "updated_at": "2025-10-01T08:16:46.000+02:00"
+        },
+        {
+          "id": 420140773,
+          "client_id": 210689702,
+          "from_invoice_id": null,
+          "paid": "90.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:24:50.000+02:00",
+          "updated_at": "2025-10-01T08:16:46.000+02:00"
+        },
+        {
+          "id": 420140566,
+          "client_id": 203009949,
+          "from_invoice_id": 404450465,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:22:18.000+02:00",
+          "updated_at": "2025-10-01T08:16:45.000+02:00"
+        },
+        {
+          "id": 420140405,
+          "client_id": 115463300,
+          "from_invoice_id": 420140203,
+          "paid": "255.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-11",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:20:44.000+02:00",
+          "updated_at": "2025-10-01T08:16:46.000+02:00"
+        },
+        {
+          "id": 420140203,
+          "client_id": 115463300,
+          "from_invoice_id": 420138734,
+          "paid": "115.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-04",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:18:45.000+02:00",
+          "updated_at": "2025-10-01T08:16:45.000+02:00"
+        },
+        {
+          "id": 420139855,
+          "client_id": 197484811,
+          "from_invoice_id": 412493000,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:15:50.000+02:00",
+          "updated_at": "2025-10-01T08:16:45.000+02:00"
+        },
+        {
+          "id": 420139822,
+          "client_id": 113857321,
+          "from_invoice_id": 412491688,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:15:25.000+02:00",
+          "updated_at": "2025-10-01T08:16:45.000+02:00"
+        },
+        {
+          "id": 420139625,
+          "client_id": 127308085,
+          "from_invoice_id": 420139057,
+          "paid": "19.8",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:13:22.000+02:00",
+          "updated_at": "2025-10-01T08:16:45.000+02:00"
+        },
+        {
+          "id": 420139177,
+          "client_id": 127308085,
+          "from_invoice_id": 404449923,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:08:21.000+02:00",
+          "updated_at": "2025-10-01T08:16:45.000+02:00"
+        },
+        {
+          "id": 420139130,
+          "client_id": 127308085,
+          "from_invoice_id": 395849813,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:07:57.000+02:00",
+          "updated_at": "2025-10-01T08:16:40.000+02:00"
+        },
+        {
+          "id": 420139103,
+          "client_id": 127308085,
+          "from_invoice_id": 387828985,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:07:37.000+02:00",
+          "updated_at": "2025-10-01T08:16:39.000+02:00"
+        },
+        {
+          "id": 420139057,
+          "client_id": 127308085,
+          "from_invoice_id": 379594475,
+          "paid": "40.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:07:02.000+02:00",
+          "updated_at": "2025-10-01T08:16:39.000+02:00"
+        },
+        {
+          "id": 420138955,
+          "client_id": 126092182,
+          "from_invoice_id": 412492053,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:05:33.000+02:00",
+          "updated_at": "2025-10-01T08:16:39.000+02:00"
+        },
+        {
+          "id": 420138908,
+          "client_id": 126265637,
+          "from_invoice_id": 412492064,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:04:55.000+02:00",
+          "updated_at": "2025-10-01T08:16:39.000+02:00"
+        },
+        {
+          "id": 420138819,
+          "client_id": 113683925,
+          "from_invoice_id": 412491720,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T21:04:15.000+02:00",
+          "updated_at": "2025-10-01T08:16:38.000+02:00"
+        },
+        {
+          "id": 420138325,
+          "client_id": 147568272,
+          "from_invoice_id": 418017595,
+          "paid": "440.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-09-27",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:59:03.000+02:00",
+          "updated_at": "2025-10-01T08:16:38.000+02:00"
+        },
+        {
+          "id": 420138288,
+          "client_id": 147568272,
+          "from_invoice_id": 418017348,
+          "paid": "440.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-09-27",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:58:32.000+02:00",
+          "updated_at": "2025-10-01T08:16:38.000+02:00"
+        },
+        {
+          "id": 420138244,
+          "client_id": 147568272,
+          "from_invoice_id": 418016609,
+          "paid": "440.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-09-27",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:57:49.000+02:00",
+          "updated_at": "2025-10-01T08:16:37.000+02:00"
+        },
+        {
+          "id": 420138200,
+          "client_id": 147568272,
+          "from_invoice_id": 418016330,
+          "paid": "440.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-09-27",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:57:18.000+02:00",
+          "updated_at": "2025-10-01T08:16:37.000+02:00"
+        },
+        {
+          "id": 420138146,
+          "client_id": 147568272,
+          "from_invoice_id": 418015973,
+          "paid": "440.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-09-27",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:56:41.000+02:00",
+          "updated_at": "2025-10-01T08:16:37.000+02:00"
+        },
+        {
+          "id": 420138079,
+          "client_id": 147568272,
+          "from_invoice_id": 418015277,
+          "paid": "360.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-09-27",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:55:59.000+02:00",
+          "updated_at": "2025-10-01T08:16:36.000+02:00"
+        },
+        {
+          "id": 420137813,
+          "client_id": 128449515,
+          "from_invoice_id": 412492097,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:53:31.000+02:00",
+          "updated_at": "2025-10-01T08:16:36.000+02:00"
+        },
+        {
+          "id": 420137752,
+          "client_id": 116491812,
+          "from_invoice_id": 398231110,
+          "paid": "65.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:52:56.000+02:00",
+          "updated_at": "2025-10-01T08:16:36.000+02:00"
+        },
+        {
+          "id": 420137403,
+          "client_id": 210687819,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-19",
+          "issue_date": "2025-09-19",
+          "payment_to": "2025-10-19",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-26T20:49:28.000+02:00",
+          "updated_at": "2025-10-01T08:16:36.000+02:00"
+        }
+      ]
+    },
+    {
+      "date": "2025-09-24",
+      "payments": {
+        "total": 537.93,
+        "count": 6
+      },
+      "invoices": {
+        "total": 942.93,
+        "count": 16
+      },
+      "difference": -405,
+      "percentDiff": -43,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "24/9/2025",
+          "amount": 62.96,
+          "name": "TOMASZ PRZYBYSZ",
+          "description": "WPŁ. 4.4472 280.00PLN",
+          "dateNormalized": "2025-09-24"
+        },
+        {
+          "date": "24/9/2025",
+          "amount": 40,
+          "name": "BOROWIEC BOZENA FABRYCZNA 6",
+          "description": "PRZELEW ZAGRANICZNY",
+          "dateNormalized": "2025-09-24"
+        },
+        {
+          "date": "24/9/2025",
+          "amount": 73,
+          "name": "JOLANTA IWONA ZAMOZNIEWICZ POPIELUSZKI 5/",
+          "description": "GEWERBA ZA MIESIAC 11 I 12",
+          "dateNormalized": "2025-09-24"
+        },
+        {
+          "date": "24/9/2025",
+          "amount": 65,
+          "name": "JACEK STRYJSKI",
+          "description": "FAKTURA FP2025/09/000433",
+          "dateNormalized": "2025-09-24"
+        },
+        {
+          "date": "24/9/2025",
+          "amount": 260,
+          "name": "DAWID BADUREK",
+          "description": "",
+          "dateNormalized": "2025-09-24"
+        },
+        {
+          "date": "24/9/2025",
+          "amount": 36.97,
+          "name": "ALINA E IDZI UL. MIERNICZA 39 66-40 0 GORZÓW WIELKOPOLSKI",
+          "description": "oplata za biuro 4.4472 164.42PLN",
+          "dateNormalized": "2025-09-24"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 421246628,
+          "client_id": 114149057,
+          "from_invoice_id": 395848757,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-09-30T21:22:40.000+02:00",
+          "updated_at": "2025-10-01T13:43:22.000+02:00"
+        },
+        {
+          "id": 421246627,
+          "client_id": 114149057,
+          "from_invoice_id": 412491742,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-09-30T21:22:40.000+02:00",
+          "updated_at": "2025-10-01T13:43:07.000+02:00"
+        },
+        {
+          "id": 421246626,
+          "client_id": 114149057,
+          "from_invoice_id": 387828159,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-09-30T21:22:40.000+02:00",
+          "updated_at": "2025-10-01T13:42:53.000+02:00"
+        },
+        {
+          "id": 421246625,
+          "client_id": 114149057,
+          "from_invoice_id": 404448943,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-09-30T21:22:40.000+02:00",
+          "updated_at": "2025-10-01T13:42:39.000+02:00"
+        },
+        {
+          "id": 421245519,
+          "client_id": 144925734,
+          "from_invoice_id": 412492315,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-09-30T21:19:31.000+02:00",
+          "updated_at": "2025-10-01T13:44:07.000+02:00"
+        },
+        {
+          "id": 421243130,
+          "client_id": 137201854,
+          "from_invoice_id": 412492172,
+          "paid": "40.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-09-30T21:11:18.000+02:00",
+          "updated_at": "2025-10-01T13:44:44.000+02:00"
+        },
+        {
+          "id": 422224897,
+          "client_id": 211551946,
+          "from_invoice_id": null,
+          "paid": "73.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-24",
+          "created_at": "2025-10-03T08:08:31.000+02:00",
+          "updated_at": "2025-10-06T13:36:31.000+02:00"
+        },
+        {
+          "id": 421259270,
+          "client_id": 178257517,
+          "from_invoice_id": 412493090,
+          "paid": "40.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:05:10.000+02:00",
+          "updated_at": "2025-10-01T14:20:45.000+02:00"
+        },
+        {
+          "id": 421247782,
+          "client_id": 114166802,
+          "from_invoice_id": null,
+          "paid": "36.97",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:26:38.000+02:00",
+          "updated_at": "2025-10-01T08:14:49.000+02:00"
+        },
+        {
+          "id": 421246500,
+          "client_id": 114149057,
+          "from_invoice_id": 404448943,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:22:23.000+02:00",
+          "updated_at": "2025-10-01T08:14:49.000+02:00"
+        },
+        {
+          "id": 421246348,
+          "client_id": 114149057,
+          "from_invoice_id": 412491742,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:21:57.000+02:00",
+          "updated_at": "2025-10-01T08:14:49.000+02:00"
+        },
+        {
+          "id": 421246194,
+          "client_id": 114149057,
+          "from_invoice_id": 395848757,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:21:29.000+02:00",
+          "updated_at": "2025-10-01T08:15:48.000+02:00"
+        },
+        {
+          "id": 421245901,
+          "client_id": 114149057,
+          "from_invoice_id": 387828159,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:20:43.000+02:00",
+          "updated_at": "2025-10-01T08:15:48.000+02:00"
+        },
+        {
+          "id": 421245450,
+          "client_id": 144925734,
+          "from_invoice_id": 412492315,
+          "paid": "65.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:19:17.000+02:00",
+          "updated_at": "2025-10-01T08:15:47.000+02:00"
+        },
+        {
+          "id": 421243007,
+          "client_id": 137201854,
+          "from_invoice_id": 412492172,
+          "paid": "40.0",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:10:52.000+02:00",
+          "updated_at": "2025-10-01T08:15:47.000+02:00"
+        },
+        {
+          "id": 421242617,
+          "client_id": 146911409,
+          "from_invoice_id": null,
+          "paid": "62.96",
+          "sell_date": "2025-09-24",
+          "issue_date": "2025-09-24",
+          "payment_to": "2025-10-24",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:09:24.000+02:00",
+          "updated_at": "2025-10-01T08:15:47.000+02:00"
+        }
+      ]
+    },
+    {
+      "date": "2025-09-25",
+      "payments": {
+        "total": 1718,
+        "count": 12
+      },
+      "invoices": {
+        "total": 2353,
+        "count": 23
+      },
+      "difference": -635,
+      "percentDiff": -27,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "25/9/2025",
+          "amount": 40,
+          "name": "KATARZYNA ROSOL OSIEDLE NA WZGORZACH 12/12, 31-722",
+          "description": "FP2025/09/000105 KATARZYNA ROSOL",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 65,
+          "name": "ROBERT HANULEWICZ",
+          "description": "OPLATA BIURO",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 455,
+          "name": "WELPA TEODORA NADODRZANSKA 26",
+          "description": "RACHUNEK FP2025/08/001175",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 120,
+          "name": "NATALIA DANILUK UL. KOMORSKA 35/39",
+          "description": "NATALIA DANILUK (FP2025/06/000346,FP2025/08/000318, FP2025/09/000258)",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 240,
+          "name": "FRANKOWSKA DOROTA JANA III SOBIESKIEGO 4",
+          "description": "OPLATA MIESIECZNA BIURA 2025",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 328,
+          "name": "PIOTR BARSZCZAK KUNKOWCE 166",
+          "description": "VITALII KALIUKA STYCZNIA LUTY MARZEC KWIECIEN LIPIEC",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 120,
+          "name": "KOZIEL HALINA KRYSTYNA DRUHNY ZJAWY 6",
+          "description": "GEWERBA ZA PAZDZIERNIK-LISTOPAD-GRUDZIEN 2025R KOZIEL HALINA 27-200 STARACHOWICE UL, DRUHNY ZJAWY 6 POLSKA",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 115,
+          "name": "BARTLOMIEJ RUSZCZAK ULICA FRYDERYKA CHOPINA 19A",
+          "description": "BARTLOMIEJ RUSZCZAK- PAZDZIERNIK",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 90,
+          "name": "MALGORZATA PRUSACZYK UL. ZWYCIESTWA 50",
+          "description": "ZA ZALOZENIE GEWERBE 1.10.2025 STANISLAW PRUSACZYK",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 40,
+          "name": "REGINA WASOWICZ KOCHANOWSKIEGO 2",
+          "description": "BIURO",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 40,
+          "name": "ELZBIETA JADWIGA KOSIK WS. DUNOWO 30B",
+          "description": "FP2025/09/000215",
+          "dateNormalized": "2025-09-25"
+        },
+        {
+          "date": "25/9/2025",
+          "amount": 65,
+          "name": "MACIEJ ZIMNY ORESZKOWA 29E32",
+          "description": "WRZESIEN",
+          "dateNormalized": "2025-09-25"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 421267609,
+          "client_id": 142504410,
+          "from_invoice_id": 404449515,
+          "paid": "65.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T22:34:38.000+02:00",
+          "updated_at": "2025-10-01T13:24:49.000+02:00"
+        },
+        {
+          "id": 421267261,
+          "client_id": 122543407,
+          "from_invoice_id": 412491998,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T22:33:15.000+02:00",
+          "updated_at": "2025-10-01T13:25:47.000+02:00"
+        },
+        {
+          "id": 421261750,
+          "client_id": 113644654,
+          "from_invoice_id": 224099423,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T22:13:33.000+02:00",
+          "updated_at": "2025-10-01T13:26:39.000+02:00"
+        },
+        {
+          "id": 421250156,
+          "client_id": 126252980,
+          "from_invoice_id": 412492062,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T21:34:08.000+02:00",
+          "updated_at": "2025-10-01T13:29:48.000+02:00"
+        },
+        {
+          "id": 421250154,
+          "client_id": 126252980,
+          "from_invoice_id": 404449287,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T21:34:08.000+02:00",
+          "updated_at": "2025-10-01T13:29:34.000+02:00"
+        },
+        {
+          "id": 421250153,
+          "client_id": 126252980,
+          "from_invoice_id": 387828452,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T21:34:08.000+02:00",
+          "updated_at": "2025-10-01T13:29:19.000+02:00"
+        },
+        {
+          "id": 421249530,
+          "client_id": 135952536,
+          "from_invoice_id": 419677125,
+          "paid": "280.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T21:32:09.000+02:00",
+          "updated_at": "2025-10-01T13:32:48.000+02:00"
+        },
+        {
+          "id": 421248721,
+          "client_id": 113623251,
+          "from_invoice_id": 412491704,
+          "paid": "65.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T21:29:49.000+02:00",
+          "updated_at": "2025-10-01T13:36:54.000+02:00"
+        },
+        {
+          "id": 421248719,
+          "client_id": 113623251,
+          "from_invoice_id": 412491704,
+          "paid": "65.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-25",
+          "created_at": "2025-09-30T21:29:48.000+02:00",
+          "updated_at": "2025-10-01T13:36:35.000+02:00"
+        },
+        {
+          "id": 421267561,
+          "client_id": 142504410,
+          "from_invoice_id": 404449515,
+          "paid": "65.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:34:27.000+02:00",
+          "updated_at": "2025-10-01T08:14:52.000+02:00"
+        },
+        {
+          "id": 421267189,
+          "client_id": 122543407,
+          "from_invoice_id": 412491998,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:32:53.000+02:00",
+          "updated_at": "2025-10-01T08:14:52.000+02:00"
+        },
+        {
+          "id": 421261580,
+          "client_id": 113644654,
+          "from_invoice_id": 412491676,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-04",
+          "created_at": "2025-09-30T22:12:53.000+02:00",
+          "updated_at": "2025-10-01T08:14:52.000+02:00"
+        },
+        {
+          "id": 421261251,
+          "client_id": 211152865,
+          "from_invoice_id": null,
+          "paid": "90.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:11:54.000+02:00",
+          "updated_at": "2025-10-01T14:20:46.000+02:00"
+        },
+        {
+          "id": 421260612,
+          "client_id": 150241801,
+          "from_invoice_id": 414305991,
+          "paid": "115.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:09:20.000+02:00",
+          "updated_at": "2025-10-01T08:14:51.000+02:00"
+        },
+        {
+          "id": 421259682,
+          "client_id": 178257517,
+          "from_invoice_id": null,
+          "paid": "80.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:06:38.000+02:00",
+          "updated_at": "2025-10-01T14:20:46.000+02:00"
+        },
+        {
+          "id": 421258789,
+          "client_id": 116491812,
+          "from_invoice_id": null,
+          "paid": "328.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:03:27.000+02:00",
+          "updated_at": "2025-10-01T08:14:51.000+02:00"
+        },
+        {
+          "id": 421254514,
+          "client_id": 175909426,
+          "from_invoice_id": null,
+          "paid": "240.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:50:19.000+02:00",
+          "updated_at": "2025-10-01T08:14:51.000+02:00"
+        },
+        {
+          "id": 421250076,
+          "client_id": 126252980,
+          "from_invoice_id": 412492062,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:33:53.000+02:00",
+          "updated_at": "2025-10-01T08:14:51.000+02:00"
+        },
+        {
+          "id": 421249969,
+          "client_id": 126252980,
+          "from_invoice_id": 404449287,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:33:31.000+02:00",
+          "updated_at": "2025-10-01T08:14:50.000+02:00"
+        },
+        {
+          "id": 421249793,
+          "client_id": 126252980,
+          "from_invoice_id": 387828452,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:33:01.000+02:00",
+          "updated_at": "2025-10-01T08:14:50.000+02:00"
+        },
+        {
+          "id": 421249374,
+          "client_id": 135952536,
+          "from_invoice_id": 419677125,
+          "paid": "455.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:31:35.000+02:00",
+          "updated_at": "2025-10-01T08:14:50.000+02:00"
+        },
+        {
+          "id": 421248606,
+          "client_id": 113623251,
+          "from_invoice_id": 412491704,
+          "paid": "65.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:29:29.000+02:00",
+          "updated_at": "2025-10-01T08:14:50.000+02:00"
+        },
+        {
+          "id": 421248374,
+          "client_id": 114174421,
+          "from_invoice_id": 412491764,
+          "paid": "40.0",
+          "sell_date": "2025-09-25",
+          "issue_date": "2025-09-25",
+          "payment_to": "2025-10-25",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T21:28:37.000+02:00",
+          "updated_at": "2025-10-01T08:14:50.000+02:00"
+        }
+      ]
+    },
+    {
+      "date": "2025-09-26",
+      "payments": {
+        "total": 1253.71,
+        "count": 18
+      },
+      "invoices": {
+        "total": 5928.18,
+        "count": 24
+      },
+      "difference": -4674.47,
+      "percentDiff": -78.9,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "26/9/2025",
+          "amount": 236.04,
+          "name": "REVOLUT BANK UAB KONSTITUCIJOS 21B  VILNIUS 08130 LT",
+          "description": "PAWEL PAWLAK Rejestracja Pawel Pawlak 4.4568 1052.00PLN",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 50,
+          "name": "MATEUSZ ZYWOCKI ULICA KARD. M. LEDOCHOWSKIEGO 144",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 100,
+          "name": "MATEUSZ ZYWOCKI ULICA KARD. M. LEDOCHOWSKIEGO 144",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 15,
+          "name": "MICHAL MISTERSKI UL. JERZEGO LUKOSZKA 4",
+          "description": "OPLATA ZA EXTRA FAKTURE",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 40,
+          "name": "ELZBIETA WIOLETTA GOSNIOWSKA SLAWSKA 16",
+          "description": "ELZBIETA GOSNIOWSKA",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 115,
+          "name": "ANDRZEJ MIROSLAW OLENDER",
+          "description": "OPLATA ZA GEWERBE I PIERWSZY MONAT OD 01.10.2025 OD KAZMIERCZUK TOMASZ",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 65,
+          "name": "GRZEGORZ STACHOWICZ NIEPODLEGLOSCI 6/33",
+          "description": "OPLATA BIURO",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 41.51,
+          "name": "MAŁGORZATA STELMASZAK UL. JACKOWSKIEGO 12, 63-000 ŚRODA W",
+          "description": "faktura FP2025/09/000969 4.4568 185.00PLN",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 89.75,
+          "name": "TERESA  LEWANDOWSKA WS. WAWRÓW 65  M.2",
+          "description": "PAWEŁ MARGAN RECHNUNG RE076094 4.4568 400.00PLN",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 65,
+          "name": "NATALIA LUCYNA GRABOWSKA UL. BIADOLINY SZLACHECKIE 60",
+          "description": "OPLATA ADAM GRABOWSKI WRZESIEN 2025CAREBIURO",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 80,
+          "name": "JUSTYNA ANNA BEBEN WS. OGRODOWA 29",
+          "description": "JUSTYNA BEBEN. GEWERBA OPLATA ZA 2MIESIACE( PAZDZIERNIK, LISTOPAD )",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 61.67,
+          "name": "CITIBANK EUROPE PUBLIC LIMITED 1 NORTH WALL QUAY",
+          "description": "/OPF/AU/LT183250048716170938/PatrykFerenc///KP8PPLDXERJ1 Patryk Feren c Gewerba 2 4.4595 275.00PLN",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 4.74,
+          "name": "BRUS INDUSTRIESERVICE GMBH",
+          "description": "RE NR.: FV2025/09/001560",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 65,
+          "name": "PATRYK POLAJDOWICZ ULICA ADAMA MICKIEWICZA 2",
+          "description": "BIURO RACHUNKOWE (WRZESIEN)",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 65,
+          "name": "JUSTYNA KRAJEWSKA ULICA OSIEDLOWA 20B",
+          "description": "MARCIN TOMASZ KRAJEWSKI, OPLATA MIESIECZNA 2025/10",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 40,
+          "name": "BARTOSZ WASIK LEKI 92A",
+          "description": "OPLATA PROWADZENIA BIURA DOROTA WOLANSKA -WASIK",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 40,
+          "name": "NOREK WIESLAWA GRODZIECKA 59",
+          "description": "PRZELEW MAROLA HARAPIN",
+          "dateNormalized": "2025-09-26"
+        },
+        {
+          "date": "26/9/2025",
+          "amount": 80,
+          "name": "MALGORZATA STASZEWSKA PLAC WOLNOSCI 3, 2",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-26"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 421275776,
+          "client_id": 142042186,
+          "from_invoice_id": 404449502,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T23:09:48.000+02:00",
+          "updated_at": "2025-10-01T13:00:05.000+02:00"
+        },
+        {
+          "id": 421275774,
+          "client_id": 142042186,
+          "from_invoice_id": 412492234,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T23:09:48.000+02:00",
+          "updated_at": "2025-10-01T12:59:20.000+02:00"
+        },
+        {
+          "id": 421275605,
+          "client_id": 176470159,
+          "from_invoice_id": 349288179,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T23:08:31.000+02:00",
+          "updated_at": "2025-10-01T13:01:39.000+02:00"
+        },
+        {
+          "id": 421275082,
+          "client_id": 143238302,
+          "from_invoice_id": 395849412,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T23:05:15.000+02:00",
+          "updated_at": "2025-10-01T13:05:00.000+02:00"
+        },
+        {
+          "id": 421273660,
+          "client_id": 85168143,
+          "from_invoice_id": 418981274,
+          "paid": "4740.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T23:00:30.000+02:00",
+          "updated_at": "2025-10-06T12:22:02.000+02:00"
+        },
+        {
+          "id": 421270558,
+          "client_id": 127377050,
+          "from_invoice_id": 412492073,
+          "paid": "65.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T22:47:27.000+02:00",
+          "updated_at": "2025-10-01T13:19:05.000+02:00"
+        },
+        {
+          "id": 421270132,
+          "client_id": 206813045,
+          "from_invoice_id": 411973449,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-26",
+          "created_at": "2025-09-30T22:45:15.000+02:00",
+          "updated_at": "2025-10-01T14:15:57.000+02:00"
+        },
+        {
+          "id": 421469777,
+          "client_id": 211266356,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T10:55:59.000+02:00",
+          "updated_at": "2025-10-01T10:56:09.000+02:00"
+        },
+        {
+          "id": 421275748,
+          "client_id": 142042186,
+          "from_invoice_id": 412492234,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T23:09:36.000+02:00",
+          "updated_at": "2025-10-01T08:13:01.000+02:00"
+        },
+        {
+          "id": 421275668,
+          "client_id": 142042186,
+          "from_invoice_id": 404449502,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T23:09:00.000+02:00",
+          "updated_at": "2025-10-01T08:13:00.000+02:00"
+        },
+        {
+          "id": 421275439,
+          "client_id": 176470159,
+          "from_invoice_id": 415245655,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T23:07:30.000+02:00",
+          "updated_at": "2025-10-01T08:12:59.000+02:00"
+        },
+        {
+          "id": 421275036,
+          "client_id": 143238302,
+          "from_invoice_id": 404449547,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T23:05:01.000+02:00",
+          "updated_at": "2025-10-01T08:12:58.000+02:00"
+        },
+        {
+          "id": 421274699,
+          "client_id": 193421961,
+          "from_invoice_id": 414061123,
+          "paid": "65.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T23:03:09.000+02:00",
+          "updated_at": "2025-10-01T08:12:58.000+02:00"
+        },
+        {
+          "id": 421274306,
+          "client_id": 149113192,
+          "from_invoice_id": 404449658,
+          "paid": "65.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T23:02:03.000+02:00",
+          "updated_at": "2025-10-01T08:12:58.000+02:00"
+        },
+        {
+          "id": 421273419,
+          "client_id": 175917129,
+          "from_invoice_id": 414334705,
+          "paid": "61.67",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:59:52.000+02:00",
+          "updated_at": "2025-10-01T08:12:58.000+02:00"
+        },
+        {
+          "id": 421272493,
+          "client_id": 202726901,
+          "from_invoice_id": 421272341,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:56:08.000+02:00",
+          "updated_at": "2025-10-01T08:12:58.000+02:00"
+        },
+        {
+          "id": 421272341,
+          "client_id": 202726901,
+          "from_invoice_id": 403483225,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:55:19.000+02:00",
+          "updated_at": "2025-10-01T08:12:58.000+02:00"
+        },
+        {
+          "id": 421271803,
+          "client_id": 162445214,
+          "from_invoice_id": 411948139,
+          "paid": "65.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:53:12.000+02:00",
+          "updated_at": "2025-10-01T08:14:53.000+02:00"
+        },
+        {
+          "id": 421271120,
+          "client_id": 208418253,
+          "from_invoice_id": 415562015,
+          "paid": "41.51",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:50:16.000+02:00",
+          "updated_at": "2025-10-01T08:14:53.000+02:00"
+        },
+        {
+          "id": 421270506,
+          "client_id": 127377050,
+          "from_invoice_id": 412492073,
+          "paid": "65.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:47:12.000+02:00",
+          "updated_at": "2025-10-01T08:14:53.000+02:00"
+        },
+        {
+          "id": 421270139,
+          "client_id": 206813045,
+          "from_invoice_id": 411973449,
+          "paid": "40.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:45:16.000+02:00",
+          "updated_at": "2025-10-01T14:20:46.000+02:00"
+        },
+        {
+          "id": 421269906,
+          "client_id": 114116340,
+          "from_invoice_id": null,
+          "paid": "15.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:44:13.000+02:00",
+          "updated_at": "2025-10-01T08:14:53.000+02:00"
+        },
+        {
+          "id": 421269664,
+          "client_id": 140487034,
+          "from_invoice_id": null,
+          "paid": "100.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:42:59.000+02:00",
+          "updated_at": "2025-10-01T08:14:52.000+02:00"
+        },
+        {
+          "id": 421269374,
+          "client_id": 140487034,
+          "from_invoice_id": null,
+          "paid": "50.0",
+          "sell_date": "2025-09-26",
+          "issue_date": "2025-09-26",
+          "payment_to": "2025-10-26",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:41:29.000+02:00",
+          "updated_at": "2025-10-01T08:14:52.000+02:00"
+        }
+      ]
+    },
+    {
+      "date": "2025-09-29",
+      "payments": {
+        "total": 2271.69,
+        "count": 29
+      },
+      "invoices": {
+        "total": 2496.69,
+        "count": 34
+      },
+      "difference": -225,
+      "percentDiff": -9,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "29/9/2025",
+          "amount": 120,
+          "name": "MARIA KRURSEL",
+          "description": "GEWERBE JAN MARIAN ZIELINSKI",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 111.13,
+          "name": "PAWEŁ PORĘBA UL.KOMOROWSKA 2A M.30",
+          "description": "GEWERBA PAWEŁ PORĘBA 4.4541 495.00PLN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 67.35,
+          "name": "TOMASZ KOWALEWSKI INSTALACJE GDAŃSKA 10A",
+          "description": "Tomasz Kowalewski opłata za gewerbemiesiąc październik 2025 4.4541 300.00PLN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 60.62,
+          "name": "KLAUDIA WALCZAK PŁOCKA 65, 09-440 STAROŹREBY",
+          "description": "Kod SWIFT PPABPLPKXXX 4.4541 270.00PLN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 130,
+          "name": "TOMASZ POZORSKI JOHNA BAILDONA 22D/37",
+          "description": "OPLATA BIURO Z CZERWIEC 2025 I SIERPIEN 2025",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "BARTOSZ WAWRZYNIAK GRONOWKO 14/1",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "MACIEJ KOPACZ GRYFITKI 2, 34",
+          "description": "MACIEJ KOPACZ OPLATA FIRMA WRZESIEN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "JONATAN ROBERT MUSIAL ULICA POLI GOJAWICZYNSKIEJ 17/9, PO",
+          "description": "JONATAN MUSIAL PAZDZIERNIK",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 15,
+          "name": "BARTOSZ WAWRZYNIAK GRONOWKO 14/1",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "ANNA MARCZAK SZKOLNA, 6/2",
+          "description": "ZA BIURO OD ANNA MARCZAK",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "ZDZISLAW ORLOWSKI",
+          "description": "FAKTURA PRO FORMA FP2025/07/000712",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "ZDZISLAW ORLOWSKI",
+          "description": "FAKTURA PRO FORMA FP2025/08/000648",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "HANNA MATUSINSKA UL.STEFANA ZEROMSKIEGO 24/10",
+          "description": "PRZELEW WALUTOWY WRZESIEN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "MARIUSZ WOCHNIK UL.LIPOWO 4",
+          "description": "OPLATA ZA BIURO",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "SADKO ELZBIETA PRZY LESIE 9",
+          "description": "ZAPLATA MIESIAC WRZESIEN 2025",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "DRAWC AGATA HOLZERNER STRASSE 14",
+          "description": "NUMER FAKTURY: FP2025/09/000662 CECYLIA LAMPKOWSKAlampkow",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 193.08,
+          "name": "REVOLUT BANK UAB KONSTITUCIJOS 21B  VILNIUS 08130 LT",
+          "description": "Miroslaw Gorski Wyslano z Revolut 4.4541 860.00PLN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "KATARZYNA LYB",
+          "description": "NINA GRYZIEC OPLATA MIESIECZNA",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 224.51,
+          "name": "SEBASTIAN RABENDA 76-100 JA NIEWICE  80",
+          "description": "OPŁATA ZA BIURO Wpłata w UP nr:993637250926BN#P0184 4.4541 1000.00PLN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 60,
+          "name": "NATALIA TERESA LEWANDOWSKA UL. POZNANSKA 9",
+          "description": "ADAM LEWANDOWSKI OPLATA ZA PAZDZIERNIK 2026",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "ELISABETH TERHEIDE",
+          "description": "FP2025/09/000406",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 40,
+          "name": "ELISABETH TERHEIDE",
+          "description": "FP2025/08/000487",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "KRZYSZTOF ROMAN ULICA LUDWIKA RYDYGIERA 29/6",
+          "description": "KRZYSZTOF ROMAN RECHNUNG FP2025/09/000956",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "SLAWOMIR LESZEK GRABOWSKI",
+          "description": "OPATA ZA BIODRO ZA OKRES OD/1.10.2025",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "ADRIAN PANKAU STRZEKECINO 20, 16",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "MILENA RAJKOWSKA UL.BURDAG 53",
+          "description": "PATRYK RAJKOWSKI / OPLATA ZA MIESIAC WRZESIEN",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "ZDZISLAW ORLOWSKI",
+          "description": "FAKTURA PRO FORMA FP2025/09/000538",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 65,
+          "name": "KRZYSZTOF ANDRZEJ KARWACKI",
+          "description": "OPLATA ZA BIURO",
+          "dateNormalized": "2025-09-29"
+        },
+        {
+          "date": "29/9/2025",
+          "amount": 230,
+          "name": "TOMASZ LEWICKI",
+          "description": "RE.FP2025/09/001568",
+          "dateNormalized": "2025-09-29"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 422143462,
+          "client_id": 142765601,
+          "from_invoice_id": 412492273,
+          "paid": "40.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-02",
+          "payment_to": "2025-11-02",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-02T18:56:49.000+02:00",
+          "updated_at": "2025-10-02T19:02:21.000+02:00"
+        },
+        {
+          "id": 421670616,
+          "client_id": 202890216,
+          "from_invoice_id": 421310921,
+          "paid": "63.08",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T15:16:31.000+02:00",
+          "updated_at": "2025-10-01T15:16:31.000+02:00"
+        },
+        {
+          "id": 421638874,
+          "client_id": 119864108,
+          "from_invoice_id": 421310641,
+          "paid": "40.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T14:24:03.000+02:00",
+          "updated_at": "2025-10-01T14:43:54.000+02:00"
+        },
+        {
+          "id": 421528361,
+          "client_id": 174527290,
+          "from_invoice_id": 412492725,
+          "paid": "40.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T11:55:17.000+02:00",
+          "updated_at": "2025-10-01T14:40:22.000+02:00"
+        },
+        {
+          "id": 421640264,
+          "client_id": 189905268,
+          "from_invoice_id": 412492892,
+          "paid": "40.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T14:26:24.000+02:00",
+          "updated_at": "2025-10-01T14:39:55.000+02:00"
+        },
+        {
+          "id": 421503368,
+          "client_id": 113896004,
+          "from_invoice_id": 421309938,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T11:30:22.000+02:00",
+          "updated_at": "2025-10-01T12:00:31.000+02:00"
+        },
+        {
+          "id": 421501636,
+          "client_id": 116810716,
+          "from_invoice_id": 412492004,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T11:28:46.000+02:00",
+          "updated_at": "2025-10-01T11:59:46.000+02:00"
+        },
+        {
+          "id": 421499750,
+          "client_id": 137090814,
+          "from_invoice_id": 421310139,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-10-01",
+          "payment_to": "2025-11-01",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T11:27:09.000+02:00",
+          "updated_at": "2025-10-01T11:58:10.000+02:00"
+        },
+        {
+          "id": 422241899,
+          "client_id": 211560367,
+          "from_invoice_id": null,
+          "paid": "224.51",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T08:51:38.000+02:00",
+          "updated_at": "2025-10-03T08:51:38.000+02:00"
+        },
+        {
+          "id": 422150975,
+          "client_id": 210915981,
+          "from_invoice_id": null,
+          "paid": "230.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T19:34:55.000+02:00",
+          "updated_at": "2025-10-02T19:35:52.000+02:00"
+        },
+        {
+          "id": 422147984,
+          "client_id": 113676416,
+          "from_invoice_id": null,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T19:19:19.000+02:00",
+          "updated_at": "2025-10-02T19:19:32.000+02:00"
+        },
+        {
+          "id": 422147196,
+          "client_id": 155756726,
+          "from_invoice_id": null,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T19:14:52.000+02:00",
+          "updated_at": "2025-10-02T19:14:52.000+02:00"
+        },
+        {
+          "id": 422146856,
+          "client_id": 144466489,
+          "from_invoice_id": 412492300,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-02T19:12:50.000+02:00",
+          "updated_at": "2025-10-02T19:12:50.000+02:00"
+        },
+        {
+          "id": 422146694,
+          "client_id": 148835143,
+          "from_invoice_id": 421310289,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-02T19:12:03.000+02:00",
+          "updated_at": "2025-10-02T19:12:03.000+02:00"
+        },
+        {
+          "id": 422146449,
+          "client_id": 146001922,
+          "from_invoice_id": 421310273,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-02T19:11:01.000+02:00",
+          "updated_at": "2025-10-02T19:11:01.000+02:00"
+        },
+        {
+          "id": 422146205,
+          "client_id": 142545312,
+          "from_invoice_id": 412493215,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-02T19:09:51.000+02:00",
+          "updated_at": "2025-10-02T19:09:51.000+02:00"
+        },
+        {
+          "id": 422145867,
+          "client_id": 142765601,
+          "from_invoice_id": 404449532,
+          "paid": "40.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-02T19:08:25.000+02:00",
+          "updated_at": "2025-10-02T19:08:25.000+02:00"
+        },
+        {
+          "id": 422138261,
+          "client_id": 153849351,
+          "from_invoice_id": null,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T18:29:25.000+02:00",
+          "updated_at": "2025-10-06T13:19:20.000+02:00"
+        },
+        {
+          "id": 422136070,
+          "client_id": 155756726,
+          "from_invoice_id": null,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T18:18:26.000+02:00",
+          "updated_at": "2025-10-02T18:18:27.000+02:00"
+        },
+        {
+          "id": 422135856,
+          "client_id": 155756726,
+          "from_invoice_id": null,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T18:17:23.000+02:00",
+          "updated_at": "2025-10-02T18:17:38.000+02:00"
+        },
+        {
+          "id": 421658709,
+          "client_id": 209708101,
+          "from_invoice_id": 421311030,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T14:59:30.000+02:00",
+          "updated_at": "2025-10-01T20:04:03.000+02:00"
+        },
+        {
+          "id": 421658707,
+          "client_id": 202890216,
+          "from_invoice_id": 403823697,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T14:59:29.000+02:00",
+          "updated_at": "2025-10-01T14:59:30.000+02:00"
+        },
+        {
+          "id": 421658705,
+          "client_id": 202890216,
+          "from_invoice_id": 412493112,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T14:59:29.000+02:00",
+          "updated_at": "2025-10-01T14:59:29.000+02:00"
+        },
+        {
+          "id": 421655978,
+          "client_id": 208261306,
+          "from_invoice_id": 421311038,
+          "paid": "40.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-09-29",
+          "created_at": "2025-10-01T14:55:28.000+02:00",
+          "updated_at": "2025-10-01T14:55:28.000+02:00"
+        },
+        {
+          "id": 421632309,
+          "client_id": 199006725,
+          "from_invoice_id": 412493059,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T14:12:39.000+02:00",
+          "updated_at": "2025-10-01T14:12:53.000+02:00"
+        },
+        {
+          "id": 421537196,
+          "client_id": 137090814,
+          "from_invoice_id": null,
+          "paid": "15.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T12:02:55.000+02:00",
+          "updated_at": "2025-10-01T12:03:04.000+02:00"
+        },
+        {
+          "id": 421502583,
+          "client_id": 113896004,
+          "from_invoice_id": 421309938,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:29:40.000+02:00",
+          "updated_at": "2025-10-01T11:29:51.000+02:00"
+        },
+        {
+          "id": 421501076,
+          "client_id": 116810716,
+          "from_invoice_id": 412492004,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:28:12.000+02:00",
+          "updated_at": "2025-10-01T11:28:19.000+02:00"
+        },
+        {
+          "id": 421499350,
+          "client_id": 137090814,
+          "from_invoice_id": 412492171,
+          "paid": "65.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:26:43.000+02:00",
+          "updated_at": "2025-10-01T11:27:09.000+02:00"
+        },
+        {
+          "id": 421497210,
+          "client_id": 170155063,
+          "from_invoice_id": 404449995,
+          "paid": "130.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:24:39.000+02:00",
+          "updated_at": "2025-10-01T11:24:52.000+02:00"
+        },
+        {
+          "id": 421490351,
+          "client_id": 182691488,
+          "from_invoice_id": 421310610,
+          "paid": "60.62",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:18:11.000+02:00",
+          "updated_at": "2025-10-01T11:20:26.000+02:00"
+        },
+        {
+          "id": 421484950,
+          "client_id": 125011723,
+          "from_invoice_id": 421310001,
+          "paid": "67.35",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:13:12.000+02:00",
+          "updated_at": "2025-10-01T11:13:24.000+02:00"
+        },
+        {
+          "id": 421483412,
+          "client_id": 211271008,
+          "from_invoice_id": null,
+          "paid": "111.13",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:11:13.000+02:00",
+          "updated_at": "2025-10-01T11:11:22.000+02:00"
+        },
+        {
+          "id": 421474314,
+          "client_id": 205390282,
+          "from_invoice_id": null,
+          "paid": "120.0",
+          "sell_date": "2025-09-29",
+          "issue_date": "2025-09-29",
+          "payment_to": "2025-10-29",
+          "paid_date": "2025-10-01",
+          "created_at": "2025-10-01T11:01:32.000+02:00",
+          "updated_at": "2025-10-01T11:01:42.000+02:00"
+        }
+      ]
+    },
+    {
+      "date": "2025-09-30",
+      "payments": {
+        "total": 4233.83,
+        "count": 40
+      },
+      "invoices": {
+        "total": 4323.18,
+        "count": 47
+      },
+      "difference": -89.35,
+      "percentDiff": -2.1,
+      "isAnomaly": true,
+      "paymentsDetails": [
+        {
+          "date": "30/9/2025",
+          "amount": 130,
+          "name": "MARCIN BARTLOMIEJ SWIAT SIKORSKIEGO 27",
+          "description": "OPLATA SIERPIEN, WRZESIEN -MARCIN SWIAT",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "PIOTR MALICKI ALEJA NIEPODLEGLOSCI 1/20",
+          "description": "OPLATA ZA FP2025/08/000728",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "EWA MAKOWSKA ALEJA I ARMII WOJSKA POLSKIEGO 17,",
+          "description": "OPLATA ZA PAZDZIERNIK DARIUSZ ZEGAN",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "TOMASZ POZORSKI JOHNA BAILDONA 22D/37",
+          "description": "OPLATA BIURO WRZESIEN 2025",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 115,
+          "name": "RAFAL KUBLICKI ZABRATOWKA 59",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 197.43,
+          "name": "LEW NOWAK ULICA TEOFILA A. LENARTOWICZA 17A/3",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 115,
+          "name": "LESZEK GORSKI STOLEZYN, 2/14",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "EWA MAKOWSKA ALEJA I ARMII WOJSKA POLSKIEGO 17,",
+          "description": "OPLATA ZA PAZDZIERNIK EWA MAKOWSKA",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "FRANKOW PRZEMYSLAW WLADYSLAWA SIKORSKIEGO 17A",
+          "description": "PRZEMYSLAW FRANKOW OPLATA ZA PROWADZENIE BIURA",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "STASIAK JOLANTA MALKOWSKIEGO 13",
+          "description": "OPLATA GEWERBE",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "MATEUSZ TOMASZ STASINSKI CENTRALNA 57",
+          "description": "MATEUSZ STASINSKI 1.10.2025R",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 115,
+          "name": "LUKASZ M OWCZARCZAK OS. LUZYCKIE 10A/2",
+          "description": "OPATA ZA BIURO I REJESTRACJE DAMIANKOROWACKI",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 50,
+          "name": "HALINA B SYNOWKA FARBOTKO UL. SWIERKOWA 19",
+          "description": "SPLATA ZAMKNIECIA GEWERBY CZERWIEC2025 OSTATNIA WPLATA",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "ANNA MIROSLAWA WLODARCZYK KROPIDLO 43 SLABOSZOW 32-218",
+          "description": "ANNA WLODARCZYK",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 90,
+          "name": "LUSZCZEWSKA LILIANA UL. WEGIERSKA 10/22",
+          "description": "OPLATA ZA ZALOZENIE DZIALALNOSCI",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 195,
+          "name": "RADOSLAW JAN KOLASA",
+          "description": "OPLATA ZA SERWIS BIUROWY 10/11/12/2025 KOLASA RADOSLAW",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 230,
+          "name": "ARKADIUSZ TADEUSZ GRABOWSKI",
+          "description": "MAREK POLUBINSKI GRYSZTAR KAMIL",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 535,
+          "name": "PAWEL ZAZEL",
+          "description": "RECHNUNG FP2025/08/001176 PLUS 10,11,12.25",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 200,
+          "name": "KRZYSZTOF LASOTA KLIMONTOW, UL.OGRODOWA",
+          "description": "OPLATA ZA BIURO",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 66,
+          "name": "KAMIL BILINSKI",
+          "description": "OPLATA BIURO KAMIL BILINSKI",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "KRZYSZTOF KUKULA UL.JAGIELLONSKA 9",
+          "description": "PRZELEW WALUTOWY",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "JANIK ELWIRA OSIEDLE TYSIACLECIA 6",
+          "description": "FP2025/06/000140 ELWIRA JANIK BURSCJEIDERSTR. 386 51381 LEVERKUSEN",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 195,
+          "name": "TOMASZ GRZEGORZ ZAMARSKI GELEITSTRABE 22",
+          "description": "DODAJ TYTUL",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 130,
+          "name": "SEBASTIAN WEGROWSKI",
+          "description": "OPLATA ZA WRZESIEN PAZDZIERNIK",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "MARCIN MICHAL TOMALA PANIENKI 7",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 205,
+          "name": "PAWEL NIEDZIELA",
+          "description": "",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "MICHAL OSKAR STAWARZ",
+          "description": "MICHAL STAWARZ NR.RACHUNKU FP20250900088 PLATNOSC ZA MIESIAC WRZESIEN",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "MICHAL OSKAR STAWARZ",
+          "description": "MICHAL STAWARZ NR.RACHUNKU FP20250800121 PLATNOSC ZA MIESIAC SIERPIEN",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 35,
+          "name": "ROBERT RAFAL ZAKRZEWSKI ULICA ZAGANSKA 34, 8",
+          "description": "OPLATA BIUROWA ROBERT ZAKRZEWSKI",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40.4,
+          "name": "KAMILLA TOMCZAK-ŚLIWA OS.ZIELONE 14 /33 33-100 TARNÓW",
+          "description": "ZA 09/2025 Monetia(2858:38934054 2025-09-26) 4.4557 180.00PLN",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "BARTOSZ WASIK LEKI 92A",
+          "description": "OPLATA BIURA DOROTA WOLANSKA -WASIK",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "RADOSLAW OTTA ROZANE 42A M. 10",
+          "description": "OPLATA ZA BIURO",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "MALGORZATA JUSTYNA KOBYLANSKA WS. RZEPIN II 24",
+          "description": "LIPIEC",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 200,
+          "name": "JOLANTA PILAT UL. KROKUSOWA 2A",
+          "description": "OPLATA ZA 3 MIESIACE GEVERBE",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 65,
+          "name": "JACEK HENRYK MICHNO UL. MIESZKA I 2",
+          "description": "OPLATA ZA BIURO MALICKI MARIUSZ",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 195,
+          "name": "ARTUR ROGOWSKI USL BUDOWLANE KOSCIUSZKI 11/2 TRZCIANKA 64-980",
+          "description": "BIURO",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 120,
+          "name": "EKIERT KACPER KRZYSZTOF MODRZEWIOWA 14",
+          "description": "DOTOCZY MARZENA EKIERT OPLATA ZA PROWADZENIE BIURA VII, VIII, IX 2025R.",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "ROZENSKI RYSZARD STANISLAW ZYGMUNTA NOSKOWSKIEGO 7",
+          "description": "RYSZARD ROZENSKI PAZDZIERNIK 2025",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 40,
+          "name": "LEWANDOWSKA IZABELA CHROBREGO 21",
+          "description": "IZABELA LEWANDOWSKA",
+          "dateNormalized": "2025-09-30"
+        },
+        {
+          "date": "30/9/2025",
+          "amount": 15,
+          "name": "BARTOSZ WAWRZYNIAK GRONOWKO 14/1",
+          "description": "WYSLANO Z REVOLUT",
+          "dateNormalized": "2025-09-30"
+        }
+      ],
+      "invoicesDetails": [
+        {
+          "id": 422257078,
+          "client_id": 144877639,
+          "from_invoice_id": null,
+          "paid": "110.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T09:13:28.000+02:00",
+          "updated_at": "2025-10-03T09:21:32.000+02:00"
+        },
+        {
+          "id": 422255662,
+          "client_id": 144877639,
+          "from_invoice_id": null,
+          "paid": "90.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T09:11:07.000+02:00",
+          "updated_at": "2025-10-03T09:11:50.000+02:00"
+        },
+        {
+          "id": 422252852,
+          "client_id": 211334177,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T09:07:02.000+02:00",
+          "updated_at": "2025-10-03T09:07:35.000+02:00"
+        },
+        {
+          "id": 422251798,
+          "client_id": 211334864,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T09:05:30.000+02:00",
+          "updated_at": "2025-10-03T09:05:48.000+02:00"
+        },
+        {
+          "id": 422249893,
+          "client_id": 211565119,
+          "from_invoice_id": null,
+          "paid": "90.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T09:02:50.000+02:00",
+          "updated_at": "2025-10-03T09:02:50.000+02:00"
+        },
+        {
+          "id": 422247256,
+          "client_id": 114179096,
+          "from_invoice_id": null,
+          "paid": "50.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T08:59:42.000+02:00",
+          "updated_at": "2025-10-03T08:59:42.000+02:00"
+        },
+        {
+          "id": 422245580,
+          "client_id": 211562669,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T08:57:16.000+02:00",
+          "updated_at": "2025-10-03T08:57:16.000+02:00"
+        },
+        {
+          "id": 422243857,
+          "client_id": 211561490,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-03",
+          "created_at": "2025-10-03T08:55:05.000+02:00",
+          "updated_at": "2025-10-03T08:55:05.000+02:00"
+        },
+        {
+          "id": 422169594,
+          "client_id": 137090814,
+          "from_invoice_id": null,
+          "paid": "15.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T21:11:08.000+02:00",
+          "updated_at": "2025-10-02T21:11:20.000+02:00"
+        },
+        {
+          "id": 422168387,
+          "client_id": 113674916,
+          "from_invoice_id": 421309715,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:08:09.000+02:00",
+          "updated_at": "2025-10-02T21:08:09.000+02:00"
+        },
+        {
+          "id": 422168236,
+          "client_id": 132294855,
+          "from_invoice_id": 421310708,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:07:32.000+02:00",
+          "updated_at": "2025-10-02T21:07:32.000+02:00"
+        },
+        {
+          "id": 422167985,
+          "client_id": 193050614,
+          "from_invoice_id": 421310723,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:06:06.000+02:00",
+          "updated_at": "2025-10-02T21:06:06.000+02:00"
+        },
+        {
+          "id": 422167984,
+          "client_id": 193050614,
+          "from_invoice_id": 404450281,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:06:06.000+02:00",
+          "updated_at": "2025-10-02T21:06:06.000+02:00"
+        },
+        {
+          "id": 422167982,
+          "client_id": 193050614,
+          "from_invoice_id": 412492929,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:06:06.000+02:00",
+          "updated_at": "2025-10-02T21:06:06.000+02:00"
+        },
+        {
+          "id": 422167561,
+          "client_id": 144909357,
+          "from_invoice_id": 418319108,
+          "paid": "195.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:03:48.000+02:00",
+          "updated_at": "2025-10-02T21:03:48.000+02:00"
+        },
+        {
+          "id": 422166967,
+          "client_id": 125356725,
+          "from_invoice_id": 421566591,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T21:00:43.000+02:00",
+          "updated_at": "2025-10-02T21:00:43.000+02:00"
+        },
+        {
+          "id": 422166593,
+          "client_id": 141431611,
+          "from_invoice_id": 395849352,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:58:44.000+02:00",
+          "updated_at": "2025-10-02T20:59:09.000+02:00"
+        },
+        {
+          "id": 422166509,
+          "client_id": 134696762,
+          "from_invoice_id": 421310117,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:58:14.000+02:00",
+          "updated_at": "2025-10-02T20:58:14.000+02:00"
+        },
+        {
+          "id": 422166363,
+          "client_id": 143238302,
+          "from_invoice_id": 421310234,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:57:20.000+02:00",
+          "updated_at": "2025-10-02T20:57:20.000+02:00"
+        },
+        {
+          "id": 422166011,
+          "client_id": 116699822,
+          "from_invoice_id": null,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:55:56.000+02:00",
+          "updated_at": "2025-10-02T20:56:12.000+02:00"
+        },
+        {
+          "id": 422165125,
+          "client_id": 203923686,
+          "from_invoice_id": null,
+          "paid": "35.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:51:27.000+02:00",
+          "updated_at": "2025-10-02T20:51:36.000+02:00"
+        },
+        {
+          "id": 422164321,
+          "client_id": 198017581,
+          "from_invoice_id": null,
+          "paid": "195.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:46:53.000+02:00",
+          "updated_at": "2025-10-02T20:47:05.000+02:00"
+        },
+        {
+          "id": 422163442,
+          "client_id": 113667894,
+          "from_invoice_id": 404448922,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:41:23.000+02:00",
+          "updated_at": "2025-10-02T20:41:23.000+02:00"
+        },
+        {
+          "id": 422163373,
+          "client_id": 113667894,
+          "from_invoice_id": 412491735,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:40:58.000+02:00",
+          "updated_at": "2025-10-02T20:40:58.000+02:00"
+        },
+        {
+          "id": 422163115,
+          "client_id": 149463767,
+          "from_invoice_id": null,
+          "paid": "205.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:39:22.000+02:00",
+          "updated_at": "2025-10-02T20:39:32.000+02:00"
+        },
+        {
+          "id": 422162564,
+          "client_id": 155835833,
+          "from_invoice_id": 421310366,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:36:28.000+02:00",
+          "updated_at": "2025-10-02T20:37:29.000+02:00"
+        },
+        {
+          "id": 422162426,
+          "client_id": 152416380,
+          "from_invoice_id": 421310316,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:35:28.000+02:00",
+          "updated_at": "2025-10-02T20:35:28.000+02:00"
+        },
+        {
+          "id": 422162425,
+          "client_id": 152416380,
+          "from_invoice_id": 412492411,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:35:28.000+02:00",
+          "updated_at": "2025-10-02T20:35:28.000+02:00"
+        },
+        {
+          "id": 422162112,
+          "client_id": 114162082,
+          "from_invoice_id": null,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:33:40.000+02:00",
+          "updated_at": "2025-10-02T20:33:40.000+02:00"
+        },
+        {
+          "id": 422159346,
+          "client_id": 123094867,
+          "from_invoice_id": 421309973,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T20:18:38.000+02:00",
+          "updated_at": "2025-10-02T20:18:38.000+02:00"
+        },
+        {
+          "id": 422159158,
+          "client_id": 188028256,
+          "from_invoice_id": null,
+          "paid": "66.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:17:48.000+02:00",
+          "updated_at": "2025-10-02T20:17:56.000+02:00"
+        },
+        {
+          "id": 422158692,
+          "client_id": 113682209,
+          "from_invoice_id": null,
+          "paid": "200.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:15:23.000+02:00",
+          "updated_at": "2025-10-02T20:15:35.000+02:00"
+        },
+        {
+          "id": 422157077,
+          "client_id": 134690112,
+          "from_invoice_id": null,
+          "paid": "535.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T20:06:31.000+02:00",
+          "updated_at": "2025-10-02T20:06:38.000+02:00"
+        },
+        {
+          "id": 422155796,
+          "client_id": 129614573,
+          "from_invoice_id": null,
+          "paid": "195.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T19:59:39.000+02:00",
+          "updated_at": "2025-10-02T19:59:51.000+02:00"
+        },
+        {
+          "id": 422155184,
+          "client_id": 186677676,
+          "from_invoice_id": 404450184,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:56:40.000+02:00",
+          "updated_at": "2025-10-02T19:56:40.000+02:00"
+        },
+        {
+          "id": 422154315,
+          "client_id": 113630567,
+          "from_invoice_id": 421310787,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:53:19.000+02:00",
+          "updated_at": "2025-10-02T19:53:19.000+02:00"
+        },
+        {
+          "id": 422154196,
+          "client_id": 126095279,
+          "from_invoice_id": 412493042,
+          "paid": "40.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:52:51.000+02:00",
+          "updated_at": "2025-10-02T19:52:51.000+02:00"
+        },
+        {
+          "id": 422154060,
+          "client_id": 147306979,
+          "from_invoice_id": 421310280,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:52:17.000+02:00",
+          "updated_at": "2025-10-02T19:52:17.000+02:00"
+        },
+        {
+          "id": 422153927,
+          "client_id": 191234385,
+          "from_invoice_id": 421310743,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:51:36.000+02:00",
+          "updated_at": "2025-10-02T19:51:36.000+02:00"
+        },
+        {
+          "id": 422153425,
+          "client_id": 202889018,
+          "from_invoice_id": null,
+          "paid": "197.43",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T19:49:10.000+02:00",
+          "updated_at": "2025-10-02T19:49:21.000+02:00"
+        },
+        {
+          "id": 422152749,
+          "client_id": 211335775,
+          "from_invoice_id": null,
+          "paid": "115.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-10-02",
+          "created_at": "2025-10-02T19:45:20.000+02:00",
+          "updated_at": "2025-10-02T19:46:33.000+02:00"
+        },
+        {
+          "id": 422152184,
+          "client_id": 170155063,
+          "from_invoice_id": 412492662,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:42:15.000+02:00",
+          "updated_at": "2025-10-02T19:42:15.000+02:00"
+        },
+        {
+          "id": 422152000,
+          "client_id": 191234943,
+          "from_invoice_id": 421310744,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:41:17.000+02:00",
+          "updated_at": "2025-10-02T19:41:17.000+02:00"
+        },
+        {
+          "id": 422151661,
+          "client_id": 162177903,
+          "from_invoice_id": 404449906,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:39:11.000+02:00",
+          "updated_at": "2025-10-02T19:39:11.000+02:00"
+        },
+        {
+          "id": 422151520,
+          "client_id": 185122293,
+          "from_invoice_id": 412492821,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:38:15.000+02:00",
+          "updated_at": "2025-10-02T19:38:15.000+02:00"
+        },
+        {
+          "id": 422151519,
+          "client_id": 185122293,
+          "from_invoice_id": 404450167,
+          "paid": "65.0",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-10-02T19:38:15.000+02:00",
+          "updated_at": "2025-10-02T19:38:15.000+02:00"
+        },
+        {
+          "id": 421271507,
+          "client_id": 152746045,
+          "from_invoice_id": 411715781,
+          "paid": "89.75",
+          "sell_date": "2025-09-30",
+          "issue_date": "2025-09-30",
+          "payment_to": "2025-10-30",
+          "paid_date": "2025-09-30",
+          "created_at": "2025-09-30T22:52:06.000+02:00",
+          "updated_at": "2025-10-01T08:11:33.000+02:00"
+        }
+      ]
+    }
+  ]
+}

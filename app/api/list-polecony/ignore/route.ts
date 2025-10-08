@@ -1,0 +1,166 @@
+/**
+ * API Endpoint: Ignore List Polecony Clients
+ *
+ * POST /api/list-polecony/ignore
+ * Body: { clientIds: number[] }
+ *
+ * Ustawia flagę IGNORED dla klientów i ich faktur z trzecim upomnieniem
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { fakturowniaApi } from '@/lib/fakturownia';
+import { setListPoleconyIgnored } from '@/lib/client-flags';
+import { setListPoleconyIgnoredOnInvoice } from '@/lib/invoice-flags';
+
+export async function POST(request: NextRequest) {
+  try {
+    let clientIds: number[] = [];
+
+    const contentType = request.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const body = await request.json();
+      clientIds = body.clientIds;
+    }
+
+    console.log('[ListPolecony Ignore] Otrzymano request z clientIds:', clientIds);
+
+    if (!clientIds || !Array.isArray(clientIds) || clientIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Brak wybranych klientów' },
+        { status: 400 }
+      );
+    }
+
+    console.log(`[ListPolecony Ignore] Ignorowanie ${clientIds.length} klientów...`);
+
+    // Pobierz klientów z Supabase
+    const { data: clients, error: clientsError } = await supabaseAdmin
+      .from('clients')
+      .select('*')
+      .in('id', clientIds);
+
+    if (clientsError) {
+      console.error('[ListPolecony Ignore] Error fetching clients:', clientsError);
+      return NextResponse.json(
+        { success: false, error: 'Błąd pobierania klientów' },
+        { status: 500 }
+      );
+    }
+
+    if (!clients || clients.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Nie znaleziono klientów' },
+        { status: 404 }
+      );
+    }
+
+    // Pobierz faktury z list_polecony = true dla tych klientów (czyli te które były wysłane)
+    const { data: invoices, error: invoicesError } = await supabaseAdmin
+      .from('invoices')
+      .select('*')
+      .in('client_id', clientIds)
+      .eq('list_polecony', true);
+
+    if (invoicesError) {
+      console.error('[ListPolecony Ignore] Error fetching invoices:', invoicesError);
+    }
+
+    console.log(`[ListPolecony Ignore] Znaleziono ${invoices?.length || 0} faktur z list_polecony = true`);
+
+    // Zaktualizuj flagę [LIST_POLECONY_IGNORED]true dla klientów
+    console.log('[ListPolecony Ignore] Aktualizowanie flag klientów...');
+    const today = new Date();
+
+    const updateClientPromises = clients.map(async (client) => {
+      try {
+        // Zaktualizuj note z flagą IGNORED=true (wszystkie 3 flagi w jednej linii)
+        console.log(`[Update Client] ${client.id} - current note:`, client.note);
+        const updatedNote = setListPoleconyIgnored(client.note, true);
+        console.log(`[Update Client] ${client.id} - updated note:`, updatedNote);
+
+        // 1. Zaktualizuj w Supabase
+        const { error: supabaseError } = await supabaseAdmin
+          .from('clients')
+          .update({ note: updatedNote })
+          .eq('id', client.id);
+
+        if (supabaseError) {
+          console.error(`✗ BŁĄD Supabase dla klienta ${client.id}:`, supabaseError);
+          throw supabaseError;
+        }
+        console.log(`✓ Supabase zaktualizowany: client ${client.id}`);
+
+        // 2. Zaktualizuj w Fakturowni
+        await fakturowniaApi.updateClient(client.id, {
+          note: updatedNote
+        });
+        console.log(`✓ Fakturownia zaktualizowana: client ${client.id}`);
+      } catch (err) {
+        console.error(`✗ Błąd aktualizacji klienta ${client.id}:`, err);
+      }
+    });
+
+    await Promise.all(updateClientPromises);
+    console.log('Zakończono aktualizację flag klientów');
+
+    // Zaktualizuj flagę [LIST_POLECONY_IGNORED]true na fakturach z trzecim upomnieniem
+    console.log('[ListPolecony Ignore] Aktualizowanie flag na fakturach...');
+
+    const invoiceUpdatePromises = (invoices || []).map(async (invoice) => {
+      try {
+        // Dodaj flagę [LIST_POLECONY_IGNORED]true + datę do komentarza
+        const todayStr = today.toISOString().split('T')[0];
+        const updatedComment = setListPoleconyIgnoredOnInvoice(invoice.comment || '', todayStr);
+
+        console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
+
+        // 1. Zaktualizuj w Supabase
+        const { error: supabaseError } = await supabaseAdmin
+          .from('invoices')
+          .update({
+            comment: updatedComment,
+            list_polecony_ignored: true, // boolean flag
+            list_polecony_ignored_date: today.toISOString() // zachowaj datę dla historii
+          })
+          .eq('id', invoice.id);
+
+        if (supabaseError) {
+          console.error(`✗ BŁĄD Supabase dla faktury ${invoice.id}:`, supabaseError);
+          throw supabaseError;
+        }
+        console.log(`✓ Supabase zaktualizowany: invoice ${invoice.id}`);
+
+        // 2. Zaktualizuj w Fakturowni
+        await fakturowniaApi.updateInvoice(invoice.id, {
+          internal_note: updatedComment
+        });
+        console.log(`✓ Fakturownia zaktualizowana: invoice ${invoice.id}`);
+      } catch (err) {
+        console.error(`✗ Błąd aktualizacji faktury ${invoice.id}:`, err);
+      }
+    });
+
+    await Promise.all(invoiceUpdatePromises);
+    console.log('Zakończono aktualizację flag na fakturach');
+
+    return NextResponse.json({
+      success: true,
+      message: `Zignorowano ${clientIds.length} klientów i ${invoices?.length || 0} faktur`,
+      data: {
+        clients_count: clientIds.length,
+        invoices_count: invoices?.length || 0
+      }
+    });
+  } catch (error: any) {
+    console.error('[ListPolecony Ignore] Error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Błąd ignorowania klientów',
+        details: error.message
+      },
+      { status: 500 }
+    );
+  }
+}

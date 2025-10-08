@@ -1,0 +1,154 @@
+czy w tym xml jest tez godzina? albo data+ godzina w jednym?
+
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.053.001.02\">\n <BkToCstmrStmt>\n  <GrpHdr>\n   <MsgId>20251007213116</MsgId>\n   <CreDtTm>2025-10-07T21:31:16</CreDtTm>\n  </GrpHdr>\n  <Stmt>\n   <Id>192/2025/BPL</Id>\n   <CreDtTm>2025-10-03T00:00:00</CreDtTm>\n   <FrToDt>\n    <FrDtTm>2025-10-03T00:00:00</FrDtTm>\n    <ToDtTm>2025-10-03T00:00:00</ToDtTm>\n   </FrToDt>\n   <Acct>\n    <Id>\n     <IBAN>PL09160014621806872930000003</IBAN>\n    </Id>\n    <Ccy>EUR</Ccy>\n    <Nm>RACHUNEK POMOCNICZY</Nm>\n    <Ownr>\n     <Nm>CBB-OFFICE GMBH (SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ) ODDZIAŁ W PO</Nm>\n     <PstlAdr>\n      <Ctry>PL</Ctry>\n      <AdrLine>BRUNÓW 43</AdrLine>\n      <AdrLine>59-140 Chocianów</AdrLine>\n     </PstlAdr>\n    </Ownr>\n   </Acct>\n   <Bal>\n    <Tp>\n     <CdOrPrtry>\n      <Cd>OPBD</Cd>\n     </CdOrPrtry>\n    </Tp>\n    <Amt Ccy=\"EUR\">35882.31</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Dt>\n     <Dt>2025-10-03</Dt>\n    </Dt>\n   </Bal>\n   <Bal>\n    <Tp>\n     <CdOrPrtry>\n      <Cd>CLBD</Cd>\n     </CdOrPrtry>\n    </Tp>\n    <Amt Ccy=\"EUR\">38344.64</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Dt>\n     <Dt>2025-10-03</Dt>\n    </Dt>\n   </Bal>\n   <Ntry>\n    <Amt Ccy=\"EUR\">36.97</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Sts>BOOK</Sts>\n    <BookgDt>\n     <Dt>2025-10-03</Dt>\n    </BookgDt>\n    <ValDt>\n     <Dt>2025-10-03</Dt>\n    </ValDt>\n    <BkTxCd>\n     <Domn>\n      <Cd>723</Cd>\n     </Domn>\n    </BkTxCd>\n    <NtryDtls>\n     <TxDtls>\n      <Refs>\n       <InstrId>CEN2510030354142</InstrId>\n       <EndToEndId>114 20251002 51</EndToEndId>\n      </Refs>\n      <RltdPties>\n       <Dbtr>\n        <Nm>DOMINIK SZCZOCZARZ UL. TOPAZOWA 22/ 31 62-500 KONIN</Nm>\n        <PstlAdr>\n         <Ctry></Ctry>\n         <AdrLine></AdrLine>\n        </PstlAdr>\n       </Dbtr>\n       <DbtrAcct>\n        <Id>\n         <Othr>\n          <Id>41109011990000000148576884</Id>\n         </Othr>\n        </Id>\n       </DbtrAcct>\n      </RltdPties>\n      <RmtInf>\n       <Ustrd>FP 2025/10/000656 4.4463 164.40PLN</Ustrd>\n      </RmtInf>\n     </TxDtls>\n    </NtryDtls>\n   </Ntry>\n   <Ntry>\n    <Amt Ccy=\"EUR\">36.93</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Sts>BOOK</Sts>\n    <BookgDt>\n     <Dt>2025-10-03</Dt>\n    </BookgDt>\n    <ValDt>\n     <Dt>2025-10-03</Dt>\n    </ValDt>\n    <BkTxCd>\n     <Domn>\n      <Cd>723</Cd>\n     </Domn>\n    </BkTxCd>\n    <NtryDtls>\n     <TxDtls>\n      <Refs>\n       <InstrId>CEN2510030355668</InstrId>\n       <EndToEndId>114 20251002 51</EndToEndId>\n      </Refs>\n      <RltdPties>\n       <Dbtr>\n        <Nm>ANNA ATANASOV DOBRA 16A 56-410 DOBR A</Nm>\n        <PstlAdr>\n         <Ctry></Ctry>\n         <AdrLine></AdrLine>\n        </PstlAdr>\n       </Dbtr>\n       <DbtrAcct>\n        <Id>\n         <Othr>\n          <Id>94109024150000000149781035</Id>\n         </Othr>\n        </Id>\n       </DbtrAcct>\n      </RltdPties>\n      <RmtInf>\n       <Ustrd>oplata październik 4.4463 164.21PLN</Ustrd>\n      </RmtInf>\n     </TxDtls>\n    </NtryDtls>\n   </Ntry>\n   <Ntry>\n    <Amt Ccy=\"EUR\">40.00</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Sts>BOOK</Sts>\n    <BookgDt>\n     <Dt>2025-10-03</Dt>\n    </BookgDt>\n    <ValDt>\n     <Dt>2025-10-03</Dt>\n    </ValDt>\n    <BkTxCd>\n     <Domn>\n      <Cd>P95</Cd>\n     </Domn>\n    </BkTxCd>\n    <NtryDtls>\n     <TxDtls>\n      <Refs>\n       <InstrId>CEN2510030582275</InstrId>\n       <EndToEndId></EndToEndId>\n      </Refs>\n      <RltdPties>\n       <Dbtr>\n        <Nm>SZCZEPAŃSKI T SZCZEPAŃSKA B OSIEDLOWA 10</Nm>\n        <PstlAdr>\n         <Ctry></Ctry>\n         <AdrLine>ŻUROMIN POLAND</AdrLine>\n         <AdrLine>Polska</AdrLine>\n        </PstlAdr>\n       </Dbtr>\n       <DbtrAcct>\n        <Id>\n         <IBAN>PL72160014621835536970000003</IBAN>\n        </Id>\n       </DbtrAcct>\n      </RltdPties>\n      <RmtInf>\n       <Ustrd>GEWERBE BSzczepanska FP2025/10/000330</Ustrd>\n      </RmtInf>\n     </TxDtls>\n    </NtryDtls>\n   </Ntry>\n   <Ntry>\n    <Amt Ccy=\"EUR\">40.00</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Sts>BOOK</Sts>\n    <BookgDt>\n     <Dt>2025-10-03</Dt>\n    </BookgDt>\n    <ValDt>\n     <Dt>2025-10-03</Dt>\n    </ValDt>\n    <BkTxCd>\n     <Domn>\n      <Cd>T53</Cd>\n     </Domn>\n    </BkTxCd>\n    <NtryDtls>\n     <TxDtls>\n      <Refs>\n       <InstrId>CEN2510030703014</InstrId>\n       <EndToEndId>NOTPROVIDED</EndToEndId>\n      </Refs>\n      <RltdPties>\n       <Dbtr>\n        <Nm>ANNA DREWING UL. ZIAI, 6</Nm>\n        <PstlAdr>\n         <Ctry></Ctry>\n         <AdrLine>ZEDOWICE, POLSKA, 47-120 /PL/</AdrLine>\n        </PstlAdr>\n       </Dbtr>\n       <DbtrAcct>\n        <Id>\n         <IBAN>LT493250044647844977</IBAN>\n        </Id>\n       </DbtrAcct>\n      </RltdPties>\n      <RmtInf>\n       <Ustrd>OPLATA ZA UTWORZENIE GEWERBE</Ustrd>\n      </RmtInf>\n     </TxDtls>\n    </NtryDtls>\n   </Ntry>\n   <Ntry>\n    <Amt Ccy=\"EUR\">65.00</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Sts>BOOK</Sts>\n    <BookgDt>\n     <Dt>2025-10-03</Dt>\n    </BookgDt>\n    <ValDt>\n     <Dt>2025-10-03</Dt>\n    </ValDt>\n    <BkTxCd>\n     <Domn>\n      <Cd>T53</Cd>\n     </Domn>\n    </BkTxCd>\n    <NtryDtls>\n     <TxDtls>\n      <Refs>\n       <InstrId>CEN2510030704958</InstrId>\n       <EndToEndId>000000009802</EndToEndId>\n      </Refs>\n      <RltdPties>\n       <Dbtr>\n        <Nm>GRZEGORZ JULIAN ZLOTNIK</Nm>\n        <PstlAdr>\n         <Ctry></Ctry>\n         <AdrLine></AdrLine>\n        </PstlAdr>\n       </Dbtr>\n       <DbtrAcct>\n        <Id>\n         <IBAN>DE14508700240027022305</IBAN>\n        </Id>\n       </DbtrAcct>\n      </RltdPties>\n      <RmtInf>\n       <Ustrd>BURO SERVICE</Ustrd>\n      </RmtInf>\n     </TxDtls>\n    </NtryDtls>\n   </Ntry>\n   <Ntry>\n    <Amt Ccy=\"EUR\">65.00</Amt>\n    <CdtDbtInd>CRDT</CdtDbtInd>\n    <Sts>BOOK</Sts>\n    <BookgDt>\n     <Dt>2025-10-03</Dt>\n    </BookgDt>\n    <ValDt>\n     <Dt>2025-10-03</Dt>\n    </ValDt>\n    <BkTxCd>\n     <Domn>\n      <Cd>T53</Cd>\n     </Domn>\n    </BkTxCd>\n    <NtryDtls>\n     <TxDtls>\n      <Refs>\n       <InstrId>CEN2510030705774</InstrId>\n       <EndToEndId>NOTPROVIDED</EndToEndId>\n      </Refs>\n      <RltdPties>\n       <Dbtr>\n        <Nm>IRENEUSZ ZBIGNIEW JANKOWSKI ULICA KOMISJI EDUKACJI NARODOWEJ 36</Nm>\n        <PstlAdr>\n         <Ctry></Ctry>\n         <AdrLine>BIALYSTOK, PODLASKIE, 15-687 /PL/</AdrLine>\n        </PstlAdr>\n       </Dbtr>\n       <DbtrAcct>\n     
+
+jesli tak to czy mozesz zmienic ten kod zeby podawal ja dalej jako zmienną?
+
+
+// Parser XML wyciągu bankowego do struktury tabeli (bez DOMParser)
+const xmlData = $input.first().json.data;
+
+// Funkcja do wyciągania wartości z XML używając regex
+function extractXMLValue(xml, tagName, attributeName = null) {
+    if (attributeName) {
+        const attrRegex = new RegExp(`<${tagName}[^>]*${attributeName}="([^"]*)"`, 'i');
+        const match = xml.match(attrRegex);
+        return match ? match[1] : '';
+    } else {
+        const regex = new RegExp(`<${tagName}[^>]*>([^<]*)</${tagName}>`, 'i');
+        const match = xml.match(regex);
+        return match ? match[1].trim() : '';
+    }
+}
+
+// Funkcja do wyciągania wszystkich wystąpień tagu
+function extractAllXMLBlocks(xml, tagName) {
+    const regex = new RegExp(`<${tagName}[^>]*>(.*?)</${tagName}>`, 'gis');
+    const matches = [];
+    let match;
+    
+    while ((match = regex.exec(xml)) !== null) {
+        matches.push(match[1]);
+    }
+    
+    return matches;
+}
+
+// Wyciągnij wszystkie transakcje (bloki Ntry)
+const entryBlocks = extractAllXMLBlocks(xmlData, 'Ntry');
+const transactions = [];
+
+console.log(`Znaleziono ${entryBlocks.length} transakcji w XML`);
+
+entryBlocks.forEach((entryXML, index) => {
+    try {
+        // Podstawowe dane transakcji
+        const amount = extractXMLValue(entryXML, 'Amt');
+        const currency = entryXML.match(/<Amt[^>]*Ccy="([^"]*)"/) ? entryXML.match(/<Amt[^>]*Ccy="([^"]*)"/)[1] : 'EUR';
+        const creditDebitInd = extractXMLValue(entryXML, 'CdtDbtInd');
+        
+        // Poprawne wyciąganie dat - szukamy wzorca <BookgDt><Dt>DATA</Dt></BookgDt>
+        const bookingDateMatch = entryXML.match(/<BookgDt>\s*<Dt>([^<]*)<\/Dt>/i);
+        const bookingDate = bookingDateMatch ? bookingDateMatch[1] : '';
+        
+        const valueDateMatch = entryXML.match(/<ValDt>\s*<Dt>([^<]*)<\/Dt>/i);
+        const valueDate = valueDateMatch ? valueDateMatch[1] : '';
+        
+        // Pobierz blok TxDtls
+        const txDetailsMatch = entryXML.match(/<TxDtls>(.*?)<\/TxDtls>/is);
+        
+        if (txDetailsMatch) {
+            const txDetailsXML = txDetailsMatch[1];
+            
+            // Referencje
+            const instrId = extractXMLValue(txDetailsXML, 'InstrId');
+            const endToEndId = extractXMLValue(txDetailsXML, 'EndToEndId');
+            
+            // Dane dłużnika/płatnika - poprawa wyciągania nazwy
+            const debtorNameMatch = txDetailsXML.match(/<Dbtr>\s*<Nm>([^<]*)<\/Nm>/i);
+            const debtorName = debtorNameMatch ? debtorNameMatch[1] : '';
+            
+            const debtorIBAN = extractXMLValue(txDetailsXML, 'IBAN');
+            
+            // Sprawdź czy jest inne konto (Othr Id)
+            let otherAccount = '';
+            const otherMatch = txDetailsXML.match(/<Othr>\\s*<Id>([^<]*)<\/Id>/i);
+            if (otherMatch) {
+                otherAccount = otherMatch[1];
+            }
+            
+            // Adres dłużnika
+            const addressMatch = txDetailsXML.match(/<AdrLine>([^<]*)<\/AdrLine>/i);
+            const debtorAddress = addressMatch ? addressMatch[1] : '';
+            
+            // Opis transakcji
+            const description = extractXMLValue(txDetailsXML, 'Ustrd');
+            
+            // Formatowanie daty dla Airtable (YYYY-MM-DD)
+            const formatDate = (dateStr) => {
+                if (!dateStr) return '';
+                try {
+                    const date = new Date(dateStr);
+                    // Format ISO YYYY-MM-DD dla Airtable
+                    return date.toISOString().split('T')[0];
+                } catch (e) {
+                    return dateStr;
+                }
+            };
+            
+            // Określenie typu operacji
+            const operationType = creditDebitInd === 'CRDT' ? 'Credit' : 'Debit';
+            
+            // Numer konta (IBAN lub inne)
+            const accountNumber = debtorIBAN || otherAccount;
+            
+            const transaction = {
+                // Kolumny zgodne ze screeniem
+                data_transakcji: formatDate(bookingDate),
+                data_ksiegowania: formatDate(valueDate),
+                typ_operacji: operationType,
+                kwota: parseFloat(amount) || 0,
+                waluta: currency,
+                kontrahent: debtorName,
+                numer_konta_kontrahenta: accountNumber,
+                cel_platnosci: description,
+                referencja: instrId,
+                ref_no: endToEndId || instrId,
+                
+                // Dodatkowe pola
+                adres_kontrahenta: debtorAddress,
+                kwota_formatted: `${amount} ${currency}`,
+                
+                // Debug info
+                transaction_index: index + 1
+            };
+            
+            transactions.push(transaction);
+            
+        } else {
+            console.log(`Brak TxDtls dla transakcji ${index + 1}`);
+        }
+        
+    } catch (error) {
+        console.log(`Błąd przetwarzania transakcji ${index + 1}: ${error.message}`);
+    }
+});
+
+// Sortuj transakcje po dacie (najnowsze pierwsze)
+transactions.sort((a, b) => {
+    const dateA = new Date(a.data_transakcji.split('.').reverse().join('-'));
+    const dateB = new Date(b.data_transakcji.split('.').reverse().join('-'));
+    return dateB - dateA;
+});
+
+console.log(`Pomyślnie przetworzono ${transactions.length} transakcji`);
+
+// Pokaż przykład pierwszej transakcji dla debugowania
+if (transactions.length > 0) {
+    console.log('Przykład pierwszej transakcji:', JSON.stringify(transactions[0], null, 2));
+}
+
+// Zwróć przetworzone transakcje
+return transactions.map(transaction => ({
+    json: transaction
+}));

@@ -1,0 +1,4306 @@
+{
+  "name": "Careburo Windykacja",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $json.id }}.pdf?api_token=1p1Eim2e_yp2ZsDRqMi3",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "=faktura"
+            }
+          }
+        }
+      },
+      "id": "693de4aa-7745-4d18-aaf9-91e3517bd26e",
+      "name": "Download Invoice PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        912
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        1680
+      ],
+      "id": "09acf1ef-c9c6-403a-88e9-4e34ca37ae67",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Group invoices by client_id for pre-litigation notices\nconst invoicesByClient = {};\nconst today = new Date();\n\n// Group all invoices with '003' by client_id\nfor (const invoice of $input.all()) {\n  const invoiceData = invoice.json;\n  const clientId = invoiceData.client_id;\n  \n  if (!invoicesByClient[clientId]) {\n    invoicesByClient[clientId] = {\n      client_id: clientId,\n      invoices: [],\n      total_amount: 0,\n      total_count: 0\n    };\n  }\n  \n  // Add invoice to group\n  invoicesByClient[clientId].invoices.push(invoiceData);\n  invoicesByClient[clientId].total_amount += parseFloat(invoiceData.price_gross || 0);\n  invoicesByClient[clientId].total_count += 1;\n}\n\n// Convert to array format\nconst groupedResults = [];\nfor (const clientId in invoicesByClient) {\n  const group = invoicesByClient[clientId];\n  groupedResults.push({\n    json: {\n      client_id: clientId,\n      invoices: group.invoices,\n      total_amount: group.total_amount.toFixed(2),\n      total_count: group.total_count,\n      currency: group.invoices[0]?.currency || 'PLN',\n      processed_date: today.toISOString().split('T')[0]\n    }\n  });\n}\n\nconsole.log(`Grouped ${$input.all().length} invoices into ${groupedResults.length} pre-litigation groups`);\nreturn groupedResults;"
+      },
+      "id": "d82ff7b5-344f-4d10-b423-a29c71bd79df",
+      "name": "Group Invoices by Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const testInvoiceIds = [150721411, 152421340, 151996324, 152977519, 150243261];\nreturn testInvoiceIds.map(id => ({ json: { invoice_id: id } }));"
+      },
+      "id": "5a9188c2-4a06-4e96-8517-8892fe3d5e12",
+      "name": "🔧 TEST: Set 003 in Invoices",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://cbb-office.fakturownia.pl/clients/{{ $json.client_id }}.json?api_token=1p1Eim2e_yp2ZsDRqMi3",
+        "options": {}
+      },
+      "id": "c62d7c7d-c7bf-422b-9bd6-f1a957b7af1e",
+      "name": "Get Client Data for Pre-litigation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://cbb-office.fakturownia.pl/invoices.json?client_id={{ $json.id }}&status=not_paid&period=all&api_token=1p1Eim2e_yp2ZsDRqMi3&per_page=100",
+        "options": {}
+      },
+      "id": "41796b52-18d2-4298-bc37-3e285e37654a",
+      "name": "Validate Client Total Debt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        2496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ustawienia i logowanie początkowe\nconsole.log('Starting debt calculation for ALL invoices...');\nconst allInvoices = [];\n\n// Krok 1: Zbierz wszystkie faktury, niezależnie od struktury wejściowej.\nfor (const item of $input.all()) {\n    const data = item.json;\n\n    // Sprawdzamy, czy dane są płaską tablicą faktur\n    if (Array.isArray(data) && data.length > 0 && !Array.isArray(data[0])) {\n        allInvoices.push(...data);\n    } \n    // Sprawdzamy, czy dane są zagnieżdżoną tablicą\n    else if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {\n        for (const invoiceGroup of data) {\n            if (Array.isArray(invoiceGroup)) {\n                allInvoices.push(...invoiceGroup);\n            }\n        }\n    }\n}\n\nconsole.log(`Total invoices found from all inputs: ${allInvoices.length}`);\n\n// Krok 2: Grupowanie wszystkich faktur po unikalnym identyfikatorze klienta (client_id)\n// Ten krok nie uwzględnia już filtra 'overdue?', sumując wszystkie faktury.\nconst groupedByClient = {};\nfor (const invoice of allInvoices) {\n    const key = invoice.client_id || invoice.buyer_name || 'unknown';\n\n    if (!groupedByClient[key]) {\n        groupedByClient[key] = {\n            invoices: [],\n            total_debt_net: 0,\n            currency: invoice.currency || 'EUR'\n        };\n    }\n\n    groupedByClient[key].invoices.push(invoice);\n    groupedByClient[key].total_debt_net += parseFloat(invoice.price_net || 0);\n}\n\n// Krok 3: Przygotuj ostateczne wyniki dla każdego klienta\nconst results = [];\nfor (const group of Object.values(groupedByClient)) {\n    const firstInvoice = group.invoices[0];\n\n    results.push({\n        json: {\n            client_id: firstInvoice.client_id || null,\n            buyer_name: firstInvoice.buyer_name || null,\n            buyer_email: firstInvoice.buyer_email || null,\n            total_debt_net: parseFloat(group.total_debt_net.toFixed(2)),\n            invoices_count: group.invoices.length,\n            currency: group.currency,\n            invoices: group.invoices,\n            calculation_date: new Date().toISOString()\n        }\n    });\n}\n\nconsole.log(`Returning ${results.length} results with client information.`);\nreturn results;"
+      },
+      "id": "c9474e09-1cf3-47c2-877b-4f707b84e550",
+      "name": "Calculate Real Total Debt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        2496
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "=krystian.todoraszko@gmail.com",
+        "subject": "=Przedsądowe wezwanie do zapłaty | {{ $json.klient }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1968,
+        2640
+      ],
+      "id": "1316e114-154e-4c2f-8e16-ddaa46b5b3a8",
+      "name": "Send Pre-litigation Email",
+      "webhookId": "5bc8744c-b542-4fcd-acab-5b01edf30d6d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wpZgKJF8vgkdygen",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ustawienia i logowanie początkowe\nconsole.log('Starting simplified and flattened output...');\nconst simplifiedClientOutputs = [];\n\n// Krok 1: Iteruj przez WSZYSTKIE grupy klientów\nfor (const item of $input.all()) {\n    const groupedData = item.json;\n    \n    // Sprawdzamy, czy w danych znajduje się klucz \"invoices\"\n    const invoices = groupedData?.invoices || [];\n\n    if (!Array.isArray(invoices) || invoices.length === 0) {\n        console.log('⚠️ WARNING: No invoices found for this client. Skipping.');\n        continue;\n    }\n\n    let faktury;\n    let fakturyHtml;\n\n    if (invoices.length === 1) {\n        // ✅ pojedyncza faktura jako obiekt + HTML\n        faktury = {\n            numer: invoices[0].number,\n            link: invoices[0].view_url\n        };\n\n        fakturyHtml = `\n            <table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n              <tr>\n                <th>Numer faktury</th>\n                <th>Link</th>\n              </tr>\n              <tr>\n                <td>${invoices[0].number}</td>\n                <td><a href=\"${invoices[0].view_url}\" target=\"_blank\">Pobierz</a></td>\n              </tr>\n            </table>\n        `;\n    } else {\n        // ✅ wiele faktur jako stringi + HTML\n        faktury = {\n            numer: invoices.map(inv => inv.number).join(', '),\n            link: invoices.map(inv => inv.view_url).join(', ')\n        };\n\n        const rows = invoices.map(inv => `\n              <tr>\n                <td>${inv.number}</td>\n                <td><a href=\"${inv.view_url}\" target=\"_blank\">Pobierz</a></td>\n              </tr>\n        `).join('');\n\n        fakturyHtml = `\n            <table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n              <tr>\n                <th>Numer faktury</th>\n                <th>Link</th>\n              </tr>\n              ${rows}\n            </table>\n        `;\n    }\n\n    // Krok 2: Stwórz nowy obiekt wyjściowy dla klienta\n    simplifiedClientOutputs.push({\n        json: {\n            \"klient\": groupedData.buyer_name,\n            \"id_klienta\": groupedData.client_id,\n            \"total_debt\": groupedData.total_debt_net,\n            \"faktury\": faktury,\n            \"faktury_html\": fakturyHtml.trim()\n        }\n    });\n}\n\nconsole.log(`✅ Generated ${simplifiedClientOutputs.length} simplified client items.`);\nreturn simplifiedClientOutputs;\n"
+      },
+      "id": "c7f22fd0-227a-4431-b674-b548a7163687",
+      "name": "Prepare PDF Downloads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        2640
+      ]
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        384,
+        1104
+      ],
+      "id": "affc8b56-b0d9-4330-b44c-e7e5a1bb90ab",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "sendTo": "Krystian.todoraszko@gmail.com",
+        "subject": "=Faktura {{ $json.number }} | {{ $json.buyer_email }}",
+        "message": "=<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333; line-height: 1.6;\">   <p style=\"font-size: 16px; color: #555; margin-bottom: 20px;\">     Szanowni Państwo,   </p>      <p style=\"font-size: 14px; color: #666; margin-bottom: 20px;\">     Zwracamy się z uprzejmą prośbą o sprawdzenie statusu poniższej faktury.   </p>      <div style=\"background: #f8f9ff; border-left: 4px solid #4a90e2; padding: 15px; margin: 20px 0; border-radius: 4px;\">     <p style=\"margin: 5px 0;\"><strong>Numer faktury:</strong> {{ $json.number }}</p>     <p style=\"margin: 5px 0;\"><strong>Data wystawienia:</strong> {{ $json.issue_date }}</p>     <p style=\"margin: 5px 0;\"><strong>Kwota:</strong> {{ $json.price_net }} {{ $json.currency }}</p>     <p style=\"margin: 5px 0;\"><strong>Termin płatności:</strong> {{ DateTime.fromISO($json.issue_date).plus({ days: 14 }).toFormat('dd-MM-yyyy') }}</p>   </div>      <div style=\"background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 12px; margin: 15px 0; font-size: 13px; color: #856404;\">     <strong>Uwaga:</strong> Jeśli płatność została już zrealizowana, prosimy o zignorowanie tej wiadomości.   </div>      <p style=\"font-size: 14px; color: #666; margin: 20px 0;\">     W przypadku jakichkolwiek pytań jesteśmy do Państwa dyspozycji.   </p>      <p style=\"font-size: 14px; color: #666; margin-top: 25px;\">     Dziękujemy za dotychczasową współpracę.   </p>      <div style=\"margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #888;\">     <p><strong>Zespół Finansowy</strong><br>     📧 {{ $json.seller_email }} | 📞 {{ $json.seller_phone }}</p>   </div> </div>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "=faktura"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        912
+      ],
+      "id": "70bb2575-3be5-4f5a-8507-57a1f0d4a84f",
+      "name": "Send a message",
+      "webhookId": "5bc8744c-b542-4fcd-acab-5b01edf30d6d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wpZgKJF8vgkdygen",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Switch').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=  {\n    \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n    \"invoice\": {\n      \"internal_note\": \"{{ $json.internal_note }}{{ $json.internal_note ? ', ' : '' }}, email2\"\n    }\n  }\n",
+        "options": {}
+      },
+      "id": "ff41909e-0d0c-4e27-94f0-30408cd27664",
+      "name": "Update Invoice Note1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1248,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $json.id }}.pdf?api_token=1p1Eim2e_yp2ZsDRqMi3",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "={{ $json.number }}"
+            }
+          }
+        }
+      },
+      "id": "ef8f742d-90ad-4545-b728-c39b903044d5",
+      "name": "Download Invoice PDF1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        864,
+        1488
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1680
+      ],
+      "id": "9656f9cd-cd1b-4b6a-847e-5409c68923b4",
+      "name": "Limit3"
+    },
+    {
+      "parameters": {
+        "sendTo": "Krystian.todoraszko@gmail.com",
+        "subject": "=Przypomnienie o fakturze {{ $json.number }}",
+        "message": "=<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333; line-height: 1.6;\">\n  <p style=\"font-size: 16px; color: #555; margin-bottom: 20px;\">\n    Szanowni Państwo,\n  </p>\n  \n  <p style=\"font-size: 14px; color: #666; margin-bottom: 20px;\">\n    Zwracamy się ponownie w sprawie nieuregulowanej faktury. \n  </p>\n  \n  <div style=\"background: #fff5f5; border-left: 4px solid #e53e3e; padding: 15px; margin: 20px 0; border-radius: 4px;\">\n    <p style=\"margin: 5px 0;\"><strong>Numer faktury:</strong> {{ $json.number }}</p>\n    <p style=\"margin: 5px 0;\"><strong>Data wystawienia:</strong> {{ $json.issue_date }}</p>\n    <p style=\"margin: 5px 0;\"><strong>Kwota:</strong> {{ $json.price_net }} {{ $json.currency }}</p>\n    <p style=\"margin: 5px 0;\"><strong>Pierwotny termin płatności:</strong> {{ DateTime.fromISO($json.issue_date).plus({ days: 14 }).toFormat('dd-MM-yyyy') }}</p>\n  </div>\n  \n  <div style=\"background: #fed7d7; border: 1px solid #fc8181; border-radius: 6px; padding: 12px; margin: 15px 0; font-size: 13px; color: #c53030;\">\n    <strong>⚠️ Pilne:</strong> Prosimy o niezwłoczne uregulowanie należności.\n  </div>\n\n  <p style=\"font-size: 14px; color: #666; margin: 15px 0;\">\n    <strong>Przypominamy, że opóźnienie w płatności może skutkować:</strong><br>\n    • Naliczeniem odsetek ustawowych<br>\n    • Przerwaniem świadczenia usług<br>\n  </p>\n  \n  <div style=\"background: #e6fffa; border: 1px solid #38b2ac; border-radius: 6px; padding: 12px; margin: 20px 0; font-size: 13px; color: #2d3748;\">\n    <strong>💡 Uwaga:</strong> Jeśli płatność została już przekazana, prosimy o przesłanie potwierdzenia przelewu w odpowiedzi do tej wiadomości e-mail.\n  </div>\n  \n  <p style=\"font-size: 14px; color: #666; margin-top: 25px;\">\n    Liczymy na szybkie wyjaśnienie tej sprawy i dalszą współpracę.\n  </p>\n  \n  <div style=\"margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #888;\">\n    <p><strong>Zespół Finansowy</strong><br>\n    📧 {{ $json.seller_email }} | 📞 {{ $json.seller_phone }}<br>\n    <em>Dostępni codziennie w godz. 8:00-16:00 dla pilnych spraw</em></p>\n  </div>\n</div>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ $json.number }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        1488
+      ],
+      "id": "84debdcb-4de7-4978-abea-95a0bb3b7a7d",
+      "name": "Send a message1",
+      "webhookId": "5bc8744c-b542-4fcd-acab-5b01edf30d6d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wpZgKJF8vgkdygen",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Switch').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "  {\n    \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n    \"invoice\": {\n      \"internal_note\": \"{{ $json.internal_note }}{{ $json.internal_note ? ', ' : '' }}, email3\"\n    }\n  }\n",
+        "options": {}
+      },
+      "id": "95ba4a50-1fc4-4a69-b381-d7590f117b2c",
+      "name": "Update Invoice Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        1488
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{$json.invoice_id}}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n  \"invoice\": {\n    \"internal_note\": \"email1, email2, no_sms2\"\n  }\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 500
+            }
+          }
+        }
+      },
+      "id": "6f289bac-aa9e-4c98-91a6-87382b02d85b",
+      "name": "Get Invoices by Page1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -592,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "maxItems": 2,
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        624,
+        2320
+      ],
+      "id": "9b1845f8-31ba-46c5-a7e4-f8039a491afa",
+      "name": "Limit4"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "845766608611556",
+        "recipientPhoneNumber": "48536214664",
+        "textBody": "tetetetete",
+        "additionalFields": {
+          "previewUrl": false
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        608,
+        1296
+      ],
+      "id": "942104c2-0afb-486b-aaf5-5d90ba0c12bc",
+      "name": "Send message2",
+      "webhookId": "6c741434-2d7b-41fa-acd4-9980127c7aac",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Funkcje pozostają te same\nfunction generateInvoiceRows(invoices) {\n    return invoices.map((invoice, index) => {\n        const bgColor = index % 2 === 1 ? ' style=\"background-color: #f9f9f9;\"' : '';\n        return `\n            <tr${bgColor}>\n                <td style=\"border: 1px solid #ddd; padding: 12px;\">${invoice.number}</td>\n                <td style=\"border: 1px solid #ddd; padding: 12px; text-align: center;\">\n                    <a href=\"${invoice.link}\" \n                       target=\"_blank\" \n                       style=\"background-color: #4a90e2; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 12px; display: inline-block;\">\n                        Pobierz\n                    </a>\n                </td>\n            </tr>\n        `;\n    }).join('');\n}\n\nfunction generateHTML(data) {\n    return `\n        <div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 8px;\">\n            <h2 style=\"font-size: 22px; color: #b30000; text-align: center; margin-bottom: 20px; text-transform: uppercase;\">\n                Przedsądowe Wezwanie do Zapłaty\n            </h2>\n            <hr style=\"border: 0; border-top: 1px solid #ccc; margin: 20px 0;\">\n            \n            <p style=\"font-size: 16px; color: #333; margin-bottom: 20px;\">\n                Szanowni Państwo,\n            </p>\n            \n            <p style=\"font-size: 14px; color: #555; margin-bottom: 20px;\">\n                Niniejszym wzywamy Państwa do natychmiastowej zapłaty zaległych należności wynikających z niżej wymienionych faktur. Pomimo wcześniejszych przypomnień, należności nie zostały uregulowane.\n            </p>\n            \n            <div style=\"background: #fff; border: 1px solid #4a90e2; padding: 20px; margin: 20px 0; border-radius: 4px;\">\n                <h4 style=\"margin: 0 0 15px; color: #4a90e2;\">Szczegóły zaległości:</h4>\n                \n                <table style=\"width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px;\">\n                    <thead>\n                        <tr style=\"background-color: #f8f9fa;\">\n                            <th style=\"border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold; width: 60%;\">\n                                Numer faktury\n                            </th>\n                            <th style=\"border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold; width: 40%;\">\n                                Link\n                            </th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        ${generateInvoiceRows(data.invoices)}\n                    </tbody>\n                </table>\n            </div>\n            \n            <div style=\"background: #e7f2ff; border: 1px solid #cce0ff; border-radius: 6px; padding: 15px; margin: 20px 0; font-size: 14px; color: #333;\">\n                <p style=\"margin: 0;\">\n                    <strong>Całkowita kwota zaległości:</strong> \n                    <span style=\"font-size: 18px; font-weight: bold; color: #b30000;\">${data.total_debt} EUR</span>\n                </p>\n            </div>\n            \n            <div style=\"background: #fff; border: 1px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 6px; font-size: 14px; color: #333;\">\n                <h4 style=\"margin: 0 0 15px; color: #333;\">Dane do przelewu:</h4>\n                <table style=\"width: 100%; border: none; font-family: 'Segoe UI', Arial, sans-serif;\">\n                    <tr>\n                        <td style=\"padding: 5px 0; font-weight: bold; width: 25%;\">Bank:</td>\n                        <td style=\"padding: 5px 0;\">BNP Paribas</td>\n                    </tr>\n                    <tr>\n                        <td style=\"padding: 5px 0; font-weight: bold;\">SWIFT:</td>\n                        <td style=\"padding: 5px 0;\">PPABPLPKXXX</td>\n                    </tr>\n                    <tr>\n                        <td style=\"padding: 5px 0; font-weight: bold;\">Konto:</td>\n                        <td style=\"padding: 5px 0;\">PL09 1600 1462 1806 8729 3000 0003</td>\n                    </tr>\n                    <tr>\n                        <td style=\"padding: 5px 0; font-weight: bold;\">Tytuł przelewu:</td>\n                        <td style=\"padding: 5px 0; font-weight: bold; color: #b30000;\">${data.client_name}</td>\n                    </tr>\n                </table>\n            </div>\n            \n            <p style=\"font-size: 14px; color: #555; margin-top: 20px;\">\n                Prosimy o uregulowanie powyższej kwoty w terminie <strong>7 dni</strong> od daty otrzymania niniejszego wezwania. Brak wpłaty w wyznaczonym terminie spowoduje skierowanie sprawy na drogę postępowania sądowego, co wiąże się z dodatkowymi kosztami postępowania, odsetkami oraz opłatami egzekucyjnymi, którymi zostaniecie Państwo obciążeni.\n            </p>\n            \n            <div style=\"margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #888;\">\n                <p style=\"margin: 0;\">\n                    Z poważaniem,<br>\n                    <strong>CBB-OFFICE GmbH</strong>\n                </p>\n                <p style=\"margin: 5px 0 0;\">\n                    poczta@cbb-office.pl | +48 76 871 3674\n                </p>\n                <p style=\"margin-top: 15px; font-size: 10px; color: #aaa;\">\n                    *Niniejsze wezwanie zostało wygenerowane automatycznie. Prosimy o nieodpowiadanie na tę wiadomość. Wszelką korespondencję prosimy kierować na adres: poczta@cbb-office.pl\n                </p>\n            </div>\n        </div>\n    `;\n}\n\n// ✅ POPRAWIONE - dla starej struktury danych:\nreturn items.map(item => {\n    const clientData = item.json;\n    \n    // Konwersja danych ze string'ów na array (stara struktura)\n    const invoiceNumbers = clientData.faktury.numer.split(', ');\n    const invoiceLinks = clientData.faktury.link.split(', ');\n\n    const invoices = invoiceNumbers.map((number, index) => ({\n        number: number,\n        link: invoiceLinks[index]\n    }));\n\n    const inputData = {\n        client_name: clientData.klient,\n        total_debt: clientData.total_debt,\n        currency: \"EUR\",\n        invoices: invoices\n    };\n\n    // Generuj HTML dla tego konkretnego item\n    const htmlContent = generateHTML(inputData);\n\n    // Zwróć przetworzone dane dla tego item\n    return {\n        json: {\n            ...clientData, // zachowaj oryginalne dane\n            to: \"default@email.com\", // ❌ BRAK EMAIL W TEJ STRUKTURZE\n            subject: `Wezwanie do zapłaty - ${clientData.klient} - ${clientData.total_debt} EUR`,\n            html: htmlContent,\n            text: `Wezwanie do zapłaty dla ${clientData.klient}. Całkowita kwota: ${clientData.total_debt} EUR.`\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        2640
+      ],
+      "id": "aa1fada0-85fe-4dc7-8a45-117e9bff1099",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Funkcje pomocnicze\nfunction calculateDelayDays(paymentDueDate) {\n    const today = new Date();\n    const dueDate = new Date(paymentDueDate);\n    const diffTime = today - dueDate;\n    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));\n    return diffDays > 0 ? diffDays : 0;\n}\n\nfunction formatDate(dateString) {\n    const date = new Date(dateString);\n    const day = String(date.getDate()).padStart(2, '0');\n    const month = String(date.getMonth() + 1).padStart(2, '0');\n    const year = date.getFullYear();\n    return `${day}.${month}.${year}`;\n}\n\n// Sprawdź czy mamy dane\nif (!items || items.length === 0) {\n    return [{ json: { error: \"Brak danych wejściowych\" } }];\n}\n\n// Rezultaty do zwrócenia\nconst results = [];\n\n// Przetwórz każdy element\nitems.forEach((item, index) => {\n    try {\n        const clientData = item.json;\n        \n        console.log(`Przetwarzanie elementu ${index}:`, clientData);\n        \n        // Sprawdź czy mamy wymagane dane\n        if (!clientData || !clientData.invoices || !Array.isArray(clientData.invoices)) {\n            console.log(`Element ${index}: Nieprawidłowe dane`, clientData);\n            results.push({ \n                json: { \n                    error: `Element ${index}: Nieprawidłowe dane klienta`,\n                    received_data: clientData \n                } \n            });\n            return;\n        }\n\n        console.log(`Element ${index}: Znaleziono ${clientData.invoices.length} faktur`);\n        \n        // Generuj wiersze tabeli na podstawie rzeczywistych faktur\n        const tableRows = clientData.invoices.map(invoice => {\n            const delayDays = calculateDelayDays(invoice.payment_to);\n            console.log(`Faktura ${invoice.number}: ${delayDays} dni zwłoki`);\n            \n            return `<tr>\n                <td>${invoice.number}</td>\n                <td>${formatDate(invoice.issue_date)}</td>\n                <td>${formatDate(invoice.payment_to)}</td>\n                <td>${invoice.price_gross} ${invoice.currency}</td>\n                <td>${delayDays}</td>\n            </tr>`;\n        }).join('');\n\n        // Odwołaj się do wcześniejszego node'a dla adresu - znajdź odpowiedni rekord\n        let postalAddress = null;\n        try {\n            const clientDataNode = $('Get Client Data for Pre-litigation');\n            const allClientData = clientDataNode.all();\n            \n            // Znajdź rekord dla aktualnego klienta\n            const matchingClient = allClientData.find(item => \n                item.json.id === clientData.client_id || \n                item.json.name === clientData.buyer_name\n            );\n            \n            if (matchingClient && matchingClient.json.postal_address) {\n                postalAddress = matchingClient.json.postal_address;\n                console.log(`Znaleziono postal_address dla klienta ${clientData.client_id}:`, postalAddress);\n            } else {\n                console.log(`Brak postal_address dla klienta ${clientData.client_id}`);\n            }\n        } catch (error) {\n            console.log('Nie można odwołać się do Get Client Data node:', error);\n        }\n\n        // Przygotowanie danych klienta\n        const clientName = clientData.buyer_name || 'Nazwa klienta';\n        const totalDebt = clientData.total_debt_net || clientData.total_debt || '0';\n        const currency = clientData.currency || 'EUR';\n\n        // Przygotuj adres klienta\n        let clientAddress = clientName;\n        if (postalAddress && postalAddress.street) {\n            clientAddress = `${clientName}<br>\n${postalAddress.street}<br>\n${postalAddress.post_code} ${postalAddress.city}, ${postalAddress.country}`;\n        } else {\n            // Fallback na buyer address z faktury\n            clientAddress = `${clientName}<br>\n${clientData.buyer_street || '[Brak ulicy]'}<br>\n${clientData.buyer_post_code || '[Kod]'} ${clientData.buyer_city || '[Miasto]'}, ${clientData.buyer_country || '[Kraj]'}`;\n        }\n        \n        console.log('Używany adres klienta:', clientAddress);\n\n        // Szablon HTML z dynamicznymi danymi\n        const htmlDocument = `<!DOCTYPE html>\n<html lang=\"pl\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Przedsądowe Wezwanie do Zapłaty</title>\n    <style>\n        body { \n            font-family: 'Times New Roman', serif; \n            font-size: 11pt; \n            margin: 1.5cm; \n            line-height: 1.3;\n        }\n        .header { \n            text-align: right; \n            margin-bottom: 25px; \n            font-size: 10pt;\n        }\n        .recipient { \n            margin: 25px 0; \n        }\n        .title { \n            text-align: center; \n            font-size: 14pt; \n            font-weight: bold; \n            text-transform: uppercase; \n            margin: 25px 0; \n            text-decoration: underline; \n        }\n        .content { \n            text-align: justify; \n            margin-bottom: 15px; \n            font-size: 11pt;\n        }\n        .invoice-table { \n            width: 100%; \n            border-collapse: collapse; \n            margin: 15px 0; \n            font-size: 9pt;\n        }\n        .invoice-table th, .invoice-table td { \n            border: 1px solid #000; \n            padding: 4px; \n            text-align: left; \n        }\n        .invoice-table th { \n            background-color: #f0f0f0; \n            font-weight: bold; \n            text-align: center; \n            font-size: 9pt;\n        }\n        .total-amount { \n            text-align: center; \n            font-size: 12pt; \n            font-weight: bold; \n            margin: 10px 0; \n            padding: 6px; \n            border: 2px solid #000; \n        }\n        .footer { \n            margin-top: 25px; \n            text-align: right; \n        }\n    </style>\n</head>\n<body>\n    <div class=\"header\">\n        <div>\n            <strong>CBB-OFFICE GmbH</strong><br>\n            Brunów 43, 59-140 Chocianów, Polska<br>\n            NIP PL5020122714<br>\n            poczta@cbb-office.pl<br>\n            https://cbb-office.pl<br>\n            Telefon: +48517765655\n        </div>\n    </div>\n    \n    <div class=\"recipient\">\n        ${clientAddress}\n    </div>\n    \n    <div class=\"title\">Przedsądowe Wezwanie do Zapłaty</div>\n    \n    <div class=\"content\">Szanowni Państwo,</div>\n    \n    <div class=\"content\">\n        Niniejszym wzywamy Państwa do natychmiastowej zapłaty zaległych należności \n        wynikających z niżej wymienionych faktur. Pomimo wcześniejszych przypomnień, \n        należności nie zostały uregulowane.\n    </div>\n    \n    <div class=\"content\"><strong>Szczegóły zaległości:</strong></div>\n    \n    <table class=\"invoice-table\">\n        <thead>\n            <tr>\n                <th>Numer faktury</th>\n                <th>Data wystawienia</th>\n                <th>Termin płatności</th>\n                <th>Kwota</th>\n                <th>Dni zwłoki</th>\n            </tr>\n        </thead>\n        <tbody>\n            ${tableRows}\n        </tbody>\n    </table>\n    \n    <div class=\"total-amount\">\n        CAŁKOWITA KWOTA ZALEGŁOŚCI: ${totalDebt} ${currency}\n    </div>\n    \n    <div class=\"content\">\n        Prosimy o uregulowanie powyższej kwoty w terminie <strong>30 dni</strong> \n        od daty otrzymania niniejszego wezwania. Brak wpłaty w wyznaczonym terminie \n        spowoduje skierowanie sprawy na drogę postępowania sądowego oraz wpis do \n        Krajowego Rejestru Dłużników, co wiąże się z dodatkowymi kosztami postępowania, \n        odsetkami oraz opłatami egzekucyjnymi, którymi zostaniecie Państwo obciążeni.\n    </div>\n    \n    <div class=\"content\">\n        Zgodnie z art. 4871 § 1 Kodeksu cywilnego, dłużnik pozostający w zwłoce \n        jest obowiązany do zapłaty odsetek ustawowych od dnia wymagalności świadczenia.\n    </div>\n    \n    <div class=\"content\">\n        Dane do przelewu:<br>\n        <strong>Bank:</strong> BNP Paribas<br>\n        <strong>SWIFT:</strong> PPABPLPKXXX<br>\n        <strong>Konto:</strong> PL09 1600 1462 1806 8729 3000 0003<br>\n        <strong>Tytuł przelewu:</strong> ${clientName}\n    </div>\n    \n    <div class=\"content\">\n        W przypadku uregulowania należności po wysłaniu niniejszego wezwania, \n        prosimy o poinformowanie nas o dokonaniu wpłaty.\n    </div>\n    \n    <div class=\"footer\">\n        Z poważaniem,<br><br>\n        CBB-OFFICE GmbH\n    </div>\n</body>\n</html>`;\n\n        // Escape cudzysłowów dla JSON PDFShift\n        const escapedHtml = htmlDocument.replace(/\"/g, '\\\\\"').replace(/\\n/g, '').replace(/\\s+/g, ' ');\n\n        // Dodaj do rezultatów - wszystko w jednym miejscu\n        results.push({\n            json: {\n                client_id: clientData.client_id,\n                buyer_name: clientName,\n                buyer_email: clientData.buyer_email,\n                total_debt: totalDebt,\n                currency: currency,\n                document_html: htmlDocument,\n                transfer_title: clientName,\n                invoices_count: clientData.invoices_count,\n                // Dla PDFShift\n                simple_pdf_source: htmlDocument,\n                pdfshift_raw_body: `{\"source\": \"${escapedHtml}\"}`\n            }\n        });\n\n    } catch (error) {\n        console.log(`Błąd przetwarzania elementu ${index}:`, error);\n        results.push({ \n            json: { \n                error: `Błąd przetwarzania elementu ${index}: ${error.message}`,\n                stack: error.stack\n            } \n        });\n    }\n});\n\nconsole.log(`Przetworzono ${results.length} elementów`);\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        2352
+      ],
+      "id": "9ba06379-cc48-40da-a1e8-bae2bb6366c1",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "sk_483e5feef78c2a046d296097aa5d5e86f08da129"
+            },
+            {
+              "name": "Content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.pdfshift_raw_body }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1744,
+        2352
+      ],
+      "id": "cbae8dcb-8cbc-435c-9462-caec8dd5cbb6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        864,
+        1872
+      ],
+      "id": "1edbff7d-6ea8-4362-a92d-7c87fad4a904",
+      "name": "Send message",
+      "webhookId": "6c741434-2d7b-41fa-acd4-9980127c7aac",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Limit').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n  \"invoice\": {\n    \"internal_note\": \"{{ $('Limit').item.json.internal_note || '' }}, sms2\"\n  }\n}",
+        "options": {}
+      },
+      "id": "c95d32d0-b62e-4f8a-85d0-2108579fde83",
+      "name": "Update Invoice Note2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1264,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Switch').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "  {\n    \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n    \"invoice\": {\n      \"internal_note\": \"{{ $json.internal_note }}{{ $json.internal_note ? ', ' : '' }}whatsapp2\"\n    }\n  }\n",
+        "options": {}
+      },
+      "id": "47027698-8695-4059-8068-43a608dbd323",
+      "name": "Update Invoice Note3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        1296
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Switch').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "  {\n    \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n    \"invoice\": {\n      \"internal_note\": \"{{ $json.internal_note }}{{ $json.internal_note ? ', ' : '' }}sms3\"\n    }\n  }\n",
+        "options": {}
+      },
+      "id": "8b3532f6-e43a-45f5-ad73-bee9e4939636",
+      "name": "Update Invoice Note4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        1584
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Switch').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "  {\n    \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n    \"invoice\": {\n      \"internal_note\": \"{{ $json.internal_note }}{{ $json.internal_note ? ', ' : '' }}whatsapp3\"\n    }\n  }\n",
+        "options": {}
+      },
+      "id": "6ce71225-2f69-4806-b5e8-a88d67894b6a",
+      "name": "Update Invoice Note5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1088,
+        1872
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDayOfMonth": 2,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -272,
+        432
+      ],
+      "id": "f33655b7-aeca-4fee-b78e-33c6de5750b3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api2.smsplanet.pl/sms",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer E3FRMkt5139036588f04427da887a166b48836e3"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Cbb-Office"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.telefon }}"
+            },
+            {
+              "name": "msg",
+              "value": "=Drogi kliencie, w dniu {{ $json.issue_date }} na Twoj Email wyslalismy fakture {{ $json.faktura }} na {{ $json.kwota }} {{ $json.waluta }}.\n\nCBB / Carebiuro"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bd5f10f7-f7e8-4bc5-a31d-c7dfda6e6c30",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        608
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api2.smsplanet.pl/sms",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer E3FRMkt5139036588f04427da887a166b48836e3"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Cbb-Office"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.buyer_phone }}"
+            },
+            {
+              "name": "msg",
+              "value": "=Drogi kliencie, w dniu {{ $json.issue_date }} na Twoj Email wyslalismy fakture {{ $json.number }} na {{ $json.price_net }} {{ $json.currency }}.\n\nCBB / Carebiuro"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cf7c4b87-213e-439e-8dab-cb4c33f49852",
+      "name": "Send SMS3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        1104
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api2.smsplanet.pl/sms",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer E3FRMkt5139036588f04427da887a166b48836e3"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Cbb-Office"
+            },
+            {
+              "name": "to",
+              "value": "48536214664"
+            },
+            {
+              "name": "msg",
+              "value": "=Faktura {{ $json.number }} ({{ $json.price_gross }} {{ $json.currency }}) z 2025-09-01 pozostaje nieoplacona. \n\nProsimy o uregulowanie zaleglosci, aby uniknac naliczania odsetek.  \n\nCBB / Carebiuro "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "18677c6a-a673-4c68-89dc-7c0b442b626d",
+      "name": "Send SMS4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        1680
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lista dozwolonych client_id\nconst allowedClientIds = [150721411, 152421340, 151996324, 152977519, 150243261];\n\n// Filtruj items ale zachowaj wszystkie oryginalne dane\nconst filteredItems = items.filter(item => {\n  const clientId = item.json.client_id;\n  \n  // Sprawdź czy client_id jest w dozwolonej liście\n  // Obsługuje zarówno stringi jak i liczby\n  return allowedClientIds.includes(Number(clientId)) || \n         allowedClientIds.includes(String(clientId));\n});\n\n// Zwróć przefiltrowane items z wszystkimi oryginalnymi polami\nreturn filteredItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        1312
+      ],
+      "id": "c9c4e4c2-e826-48a9-b818-33b8695d231d",
+      "name": "Code1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -272,
+        -96
+      ],
+      "id": "5658537f-daed-4259-b85c-3dc78d49e717",
+      "name": "Schedule Trigger2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lista dozwolonych client_id\nconst allowedClientIds = [150721411, 152421340, 151996324, 152977519, 150243261];\n\n// Filtruj items ale zachowaj wszystkie oryginalne dane\nconst filteredItems = items.filter(item => {\n  const clientId = item.json.client_id;\n  \n  // Sprawdź czy client_id jest w dozwolonej liście\n  // Obsługuje zarówno stringi jak i liczby\n  return allowedClientIds.includes(Number(clientId)) || \n         allowedClientIds.includes(String(clientId));\n});\n\n// Zwróć przefiltrowane items z wszystkimi oryginalnymi polami\nreturn filteredItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        1680
+      ],
+      "id": "a0acb369-bbc9-438f-b381-f6a1bfc8a0d4",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "52fce3e6-8de6-47c3-9189-32b45031bf54",
+              "leftValue": "={{ $json.issue_date }}",
+              "rightValue": "={{ $now.minus({ days: 1 }) }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        2320
+      ],
+      "id": "6157532b-56c6-4d76-bca7-7800e75af36d",
+      "name": "Filter4"
+    },
+    {
+      "parameters": {
+        "name": "={{$binary.data.fileName}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create folder').first().json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2416,
+        2352
+      ],
+      "id": "222c9ec5-a284-40d3-bf59-bbdd2621a475",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wCwzgKGOTEugAyJg",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map((item, index) => {\n  const newItem = { ...item };\n\n  if (newItem.binary?.data) {\n    // Nadpisujemy fileName metadanymi pod Google Drive\n    newItem.binary.data.fileName = `${index + 1}.pdf`;\n    console.log(`Plik nr ${index + 1}: ustawiono nazwę ${index + 1}.pdf`);\n  }\n\n  return newItem;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        2448
+      ],
+      "id": "bee9e8ce-5543-400e-8410-7d59ded8e4a3",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c",
+          "mode": "list",
+          "cachedResultName": "szablon_neolist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 229540797,
+          "mode": "list",
+          "cachedResultName": "Arkusz2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c/edit#gid=229540797"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Zwrot grzecznościowy": "Sz.P.",
+            "Envelo ID": "100000245",
+            "Nazwisko": "={{ $json.last_name }}",
+            "Imię": "={{ $json.first_name }}",
+            "Nazwa firmy": "={{ $json.name }}",
+            "Ulica lub skrytka pocztowa": "={{ $json.postal_address.street_name }}",
+            "Nr budynku": "={{ $json.postal_address.building_number }}",
+            "Nr lokalu": "={{ $json.postal_address.apartment_number }}",
+            "Kod pocztowy": "={{ $json.postal_address.post_code }}",
+            "Miasto": "={{ $json.postal_address.city }}",
+            "Kraj": "Polska",
+            "Typ produktu": "1",
+            "Przesyłka rejestrowana": "Y",
+            "ZPO": "Y",
+            "ID szablonu papeterii listu": "1",
+            "Kolor": "Y",
+            "Duplex": "S",
+            "Nadruk adresu na osobnej kartce": "Y",
+            "Generowanie strony adresowej": "Y",
+            "Tekst ZPO": "Test",
+            "Identyfikator insertu": "Ins_A",
+            "Identyfikator papieru": "Papier_1",
+            "Wskazanie nazwy pliku PDF": "={{ $json.pdf_filename }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Zwrot grzecznościowy",
+              "displayName": "Zwrot grzecznościowy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Envelo ID",
+              "displayName": "Envelo ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Imię",
+              "displayName": "Imię",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nazwisko",
+              "displayName": "Nazwisko",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nazwa firmy",
+              "displayName": "Nazwa firmy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ulica lub skrytka pocztowa",
+              "displayName": "Ulica lub skrytka pocztowa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nr budynku",
+              "displayName": "Nr budynku",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nr lokalu",
+              "displayName": "Nr lokalu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kod pocztowy",
+              "displayName": "Kod pocztowy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Miasto",
+              "displayName": "Miasto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kraj",
+              "displayName": "Kraj",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Typ produktu",
+              "displayName": "Typ produktu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Przesyłka rejestrowana",
+              "displayName": "Przesyłka rejestrowana",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Wycofane (Przesyłka priorytetowa)",
+              "displayName": "Wycofane (Przesyłka priorytetowa)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ZPO",
+              "displayName": "ZPO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID szablonu papeterii listu",
+              "displayName": "ID szablonu papeterii listu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID szablonu treści listu",
+              "displayName": "ID szablonu treści listu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Wskazanie nazwy pliku PDF",
+              "displayName": "Wskazanie nazwy pliku PDF",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kolor",
+              "displayName": "Kolor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Duplex",
+              "displayName": "Duplex",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nadruk adresu na osobnej kartce",
+              "displayName": "Nadruk adresu na osobnej kartce",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Generowanie strony adresowej",
+              "displayName": "Generowanie strony adresowej",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tekst ZPO",
+              "displayName": "Tekst ZPO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Identyfikator insertu",
+              "displayName": "Identyfikator insertu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Identyfikator papieru",
+              "displayName": "Identyfikator papieru",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pole informacyjne nadawcy",
+              "displayName": "Pole informacyjne nadawcy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1296,
+        2256
+      ],
+      "id": "1d798098-69be-48a2-8c24-50ae76d1a739",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Przetwórz każdy item i rozdziel imię, nazwisko, adres oraz dodaj indeks\nconst results = items.map((item, index) => {\n  const clientData = { ...item.json };\n  \n  // === DODAJ INDEKS (1-based) ===\n  const itemIndex = index + 1;\n  clientData.pdf_index = itemIndex;\n  clientData.pdf_filename = `${itemIndex}.pdf`;\n  \n  // === ROZDZIELENIE IMIENIA I NAZWISKA ===\n  const fullName = clientData.name || '';\n  \n  if (fullName.trim()) {\n    const nameParts = fullName.trim().split(/\\s+/);\n    \n    if (nameParts.length >= 2) {\n      clientData.first_name = nameParts[0];\n      clientData.last_name = nameParts[nameParts.length - 1];\n      \n      if (nameParts.length > 2) {\n        const middleNames = nameParts.slice(1, -1);\n        clientData.first_name = nameParts[0] + ' ' + middleNames.join(' ');\n      }\n      \n      console.log(`Element ${itemIndex}: \"${fullName}\" → Imię: \"${clientData.first_name}\", Nazwisko: \"${clientData.last_name}\"`);\n    } else {\n      clientData.first_name = nameParts[0];\n      clientData.last_name = '';\n      console.log(`Element ${itemIndex}: \"${fullName}\" → tylko imię: \"${clientData.first_name}\"`);\n    }\n  }\n  \n  // === ROZDZIELENIE ADRESU ===\n  function parseAddress(addressString) {\n    if (!addressString) return { street_name: '', building_number: '', apartment_number: '' };\n    \n    // Wzorce do rozpoznawania adresów:\n    // \"Burscheider Str.386\" → ulica: \"Burscheider Str.\", numer: \"386\"\n    // \"Skarbka z Gór 29/48\" → ulica: \"Skarbka z Gór\", numer: \"29\", lokal: \"48\"\n    // \"Kowalska 15A\" → ulica: \"Kowalska\", numer: \"15A\"\n    \n    const patterns = [\n      // Wzorzec: \"Nazwa ulicy NUMER/LOKAL\"\n      /^(.+?)\\s+(\\d+[A-Za-z]*)\\s*\\/\\s*(\\d+[A-Za-z]*)$/,\n      // Wzorzec: \"Nazwa ulicy NUMER\"\n      /^(.+?)\\s+(\\d+[A-Za-z]*)$/,\n      // Wzorzec: \"NazwaUlicy386\" (bez spacji)\n      /^([A-Za-z\\s.]+?)(\\d+[A-Za-z]*)$/\n    ];\n    \n    for (const pattern of patterns) {\n      const match = addressString.match(pattern);\n      if (match) {\n        return {\n          street_name: match[1].trim(),\n          building_number: match[2] || '',\n          apartment_number: match[3] || ''\n        };\n      }\n    }\n    \n    // Jeśli żaden wzorzec nie pasuje, zwróć całość jako nazwę ulicy\n    return {\n      street_name: addressString.trim(),\n      building_number: '',\n      apartment_number: ''\n    };\n  }\n  \n  // Parsuj główny adres\n  if (clientData.street) {\n    const mainAddress = parseAddress(clientData.street);\n    clientData.street_name = mainAddress.street_name;\n    clientData.building_number = mainAddress.building_number;\n    clientData.apartment_number = mainAddress.apartment_number;\n    \n    console.log(`Element ${itemIndex}: Adres \"${clientData.street}\" → Ulica: \"${mainAddress.street_name}\", Nr: \"${mainAddress.building_number}\", Lokal: \"${mainAddress.apartment_number}\"`);\n  }\n  \n  // Parsuj adres korespondencyjny (postal_address) jeśli istnieje\n  if (clientData.postal_address && clientData.postal_address.street) {\n    const postalAddress = parseAddress(clientData.postal_address.street);\n    clientData.postal_address.street_name = postalAddress.street_name;\n    clientData.postal_address.building_number = postalAddress.building_number;\n    clientData.postal_address.apartment_number = postalAddress.apartment_number;\n    \n    console.log(`Element ${itemIndex}: Postal adres \"${clientData.postal_address.street}\" → Ulica: \"${postalAddress.street_name}\", Nr: \"${postalAddress.building_number}\", Lokal: \"${postalAddress.apartment_number}\"`);\n  }\n  \n  console.log(`Element ${itemIndex}: PDF będzie nazywać się \"${clientData.pdf_filename}\"`);\n  \n  return {\n    json: clientData\n  };\n});\n\nconsole.log(`Przetworzono ${results.length} rekordów z indeksami 1-${results.length}`);\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        2160
+      ],
+      "id": "1641baac-9f0c-46dd-931b-93d5c305078b",
+      "name": "Code7"
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c",
+          "mode": "list",
+          "cachedResultName": "szablon_neolist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Arkusz1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c/edit#gid=0"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1296,
+        2064
+      ],
+      "id": "af83406b-6e9e-47b1-9bcb-48fbc2811559",
+      "name": "Clear sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c",
+          "mode": "list",
+          "cachedResultName": "szablon_neolist",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 229540797,
+          "mode": "list",
+          "cachedResultName": "Arkusz2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwqjYb9CO_8DdHdUjZSPzfNO_3EtLU-gMWS5YuWUr4c/edit#gid=229540797"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1504,
+        2064
+      ],
+      "id": "6b1cbd61-59ef-4d25-aff7-59750a824015",
+      "name": "Clear sheet1",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $now.toFormat('dd.MM.yyyy') }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "10ajXvuPdmHd-SiBY7zi2-8k1Q1qoeXoj",
+          "mode": "list",
+          "cachedResultName": "PDFy Envelo Poczta",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/10ajXvuPdmHd-SiBY7zi2-8k1Q1qoeXoj"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1968,
+        2256
+      ],
+      "id": "95f6f49e-8a5b-4bc9-88c7-b6f5fd21735e",
+      "name": "Create folder",
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wCwzgKGOTEugAyJg",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "useDataOfInput": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2192,
+        2352
+      ],
+      "id": "6e3e9bd2-ba97-43a0-887f-327b3179a26f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "## Windykacja 3-etapowa\n",
+        "height": 2032,
+        "width": 3008,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        816
+      ],
+      "id": "6bddcc54-69d2-495d-83a4-05ffedbb93dd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## SMS po pierwszym Email\n",
+        "height": 624,
+        "width": 3008,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        176
+      ],
+      "id": "6515a954-9fbf-44c6-89e3-8131689bab16",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Pobieranie wszystkich otwartych faktur\n \n",
+        "height": 368,
+        "width": 3008,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -208
+      ],
+      "id": "294bebf7-aecc-4ab8-ace8-a64076316a16",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Limit2').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n  \"invoice\": {\n    \"internal_note\": \"{{ $('Limit2').item.json.notatka || '' }}\n, sms1\"\n  }\n}",
+        "options": {}
+      },
+      "id": "8feaf289-1776-4ee4-a715-b178b67c6044",
+      "name": "Update Invoice Note6",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        608
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        384,
+        608
+      ],
+      "id": "ba34ec5f-4a9a-4676-ad44-860d1743fb33",
+      "name": "Limit2"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Limit').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n  \"invoice\": {\n    \"internal_note\": {{ $('Limit').item.json.internal_note }}, no_sms2\n  }\n}",
+        "options": {}
+      },
+      "id": "4f959a4d-c329-453b-8e70-87d1bb307ee9",
+      "name": "Update Invoice Note8",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1264,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://cbb-office.fakturownia.pl/invoices/{{ $('Limit2').item.json.id }}.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_token\": \"1p1Eim2e_yp2ZsDRqMi3\",\n  \"invoice\": {\n    \"internal_note\": no_sms3\n  }\n}",
+        "options": {}
+      },
+      "id": "aaf66b2b-26c0-426f-a7a4-8c8e76f973b7",
+      "name": "Update Invoice Note9",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        1776
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5bc83dae-135f-4dd9-bf46-f5269e9fdf86",
+              "leftValue": "={{ $json.errorCode }}",
+              "rightValue": "106",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        1104
+      ],
+      "id": "23c1c9d2-7c1d-4f4c-9c37-fb443f153f99",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a2a44ec4-e085-47f8-8af4-bdb6f87470b1",
+              "leftValue": "={{ $json.telefon }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        608
+      ],
+      "id": "dd16b812-a80f-4c60-aaa5-3b2670263e42",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
+      },
+      "id": "31cbd8e9-f188-41a9-af33-d058f6d48d4f",
+      "name": "Pobranie otwartych faktur1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate page URLs for pagination\nconst baseUrl = 'https://cbb-office.fakturownia.pl/invoices.json';\nconst apiToken = '1p1Eim2e_yp2ZsDRqMi3';\nconst maxPages = 15 // Adjust as needed\n\nconst pageUrls = [];\nfor (let page = 1; page <= maxPages; page++) {\n  pageUrls.push({\n    json: {\n      url: `${baseUrl}?status=issued&kind=all&period=this_month&per_page=100&page=${page}&api_token=${apiToken}`,\n      page: page\n    }\n  });\n}\n\nreturn pageUrls;"
+      },
+      "id": "46f6ac75-88e4-4627-9ea5-d3a6504bbcfb",
+      "name": "Generator URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        432
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "url": "=https://cbb-office.fakturownia.pl/clients/{{ $json.client_id }}.json?api_token=1p1Eim2e_yp2ZsDRqMi3",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 100
+            }
+          }
+        }
+      },
+      "id": "f1cdc550-41c7-4f4b-97af-2c93e229e3cb",
+      "name": "Get Client Data for Pre-litigation1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        432
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes",
+          "mode": "list",
+          "cachedResultName": "1 SMS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "client_id": "={{ $json.client_id }}",
+            "faktura": "={{ $json.number }}",
+            "sell_date": "={{ $json.sell_date }}",
+            "issue_date": "={{ $json.issue_date }}",
+            "klient": "={{ $json.buyer_name }}",
+            "kwota": "={{ $json.price_gross }}",
+            "waluta": "={{ $json.currency }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "client_id",
+              "displayName": "client_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faktura",
+              "displayName": "faktura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "issue_date",
+              "displayName": "issue_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sell_date",
+              "displayName": "sell_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "klient",
+              "displayName": "klient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "kwota",
+              "displayName": "kwota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "waluta",
+              "displayName": "waluta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telefon",
+              "displayName": "telefon",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        432
+      ],
+      "id": "ac00ca23-343b-4c60-bd4b-ca8121369ee3",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes",
+          "mode": "list",
+          "cachedResultName": "1 SMS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit#gid=0"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -48,
+        256
+      ],
+      "id": "2f7c1b78-3664-43ed-abf5-fa732d4674b3",
+      "name": "Clear sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes",
+          "mode": "list",
+          "cachedResultName": "1 SMS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -48,
+        608
+      ],
+      "id": "1cddeb43-b5d7-455a-a32d-278c8ab4f3d5",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes",
+          "mode": "list",
+          "cachedResultName": "1 SMS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WbCXx4VWwj5lOMBWlYBKqXQCc4Bjk43mUoxdZe83pes/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "client_id": "={{ $json.id }}",
+            "telefon": "={{ $json.mobile_phone }}"
+          },
+          "matchingColumns": [
+            "client_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "client_id",
+              "displayName": "client_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faktura",
+              "displayName": "faktura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "issue_date",
+              "displayName": "issue_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sell_date",
+              "displayName": "sell_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "klient",
+              "displayName": "klient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "kwota",
+              "displayName": "kwota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "waluta",
+              "displayName": "waluta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "telefon",
+              "displayName": "telefon",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        432
+      ],
+      "id": "5bddd715-4b41-4a32-b0fd-e02059c5d729",
+      "name": "Append or update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "52fce3e6-8de6-47c3-9189-32b45031bf54",
+              "leftValue": "={{ $json.issue_date }}",
+              "rightValue": "={{ $now.minus({ days: 30 }) }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        1680
+      ],
+      "id": "4234c806-359c-4b37-ac85-378af2b142c7",
+      "name": "30 dni"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "52fce3e6-8de6-47c3-9189-32b45031bf54",
+              "leftValue": "={{ $json.issue_date }}",
+              "rightValue": "={{ $now.minus({ days: 14 }) }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        1104
+      ],
+      "id": "25f1f443-5fff-43f2-a79e-76189656e5c6",
+      "name": "14 dni"
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q",
+          "mode": "list",
+          "cachedResultName": "Wszystkie faktury",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q/edit#gid=0"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -48,
+        -96
+      ],
+      "id": "27d86648-643d-4340-8281-28f7601541d5",
+      "name": "Clear sheet4",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate page URLs for pagination\nconst baseUrl = 'https://cbb-office.fakturownia.pl/invoices.json';\nconst apiToken = '1p1Eim2e_yp2ZsDRqMi3';\nconst maxPages = 125 // Adjust as needed\n\nconst pageUrls = [];\nfor (let page = 1; page <= maxPages; page++) {\n  pageUrls.push({\n    json: {\n      url: `${baseUrl}?status=issued&kind=all&period=all&per_page=100&page=${page}&api_token=${apiToken}`,\n      page: page\n    }\n  });\n}\n\nreturn pageUrls;"
+      },
+      "id": "e3e962be-662c-4b99-9bc5-40be63751276",
+      "name": "Generator URL2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -96
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q",
+          "mode": "list",
+          "cachedResultName": "Wszystkie faktury",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "app",
+              "displayName": "app",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "number",
+              "displayName": "number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "place",
+              "displayName": "place",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sell_date",
+              "displayName": "sell_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payment_type",
+              "displayName": "payment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price_net",
+              "displayName": "price_net",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price_gross",
+              "displayName": "price_gross",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_name",
+              "displayName": "seller_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_tax_no",
+              "displayName": "seller_tax_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_street",
+              "displayName": "seller_street",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_post_code",
+              "displayName": "seller_post_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_city",
+              "displayName": "seller_city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_country",
+              "displayName": "seller_country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_email",
+              "displayName": "seller_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_phone",
+              "displayName": "seller_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_fax",
+              "displayName": "seller_fax",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_www",
+              "displayName": "seller_www",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_person",
+              "displayName": "seller_person",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_bank",
+              "displayName": "seller_bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_bank_account",
+              "displayName": "seller_bank_account",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_name",
+              "displayName": "buyer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_tax_no",
+              "displayName": "buyer_tax_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_post_code",
+              "displayName": "buyer_post_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_city",
+              "displayName": "buyer_city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_street",
+              "displayName": "buyer_street",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_first_name",
+              "displayName": "buyer_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_country",
+              "displayName": "buyer_country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "token",
+              "displayName": "token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_email",
+              "displayName": "buyer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_www",
+              "displayName": "buyer_www",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_fax",
+              "displayName": "buyer_fax",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_phone",
+              "displayName": "buyer_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "kind",
+              "displayName": "kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pattern",
+              "displayName": "pattern",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pattern_nr",
+              "displayName": "pattern_nr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pattern_nr_m",
+              "displayName": "pattern_nr_m",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pattern_nr_d",
+              "displayName": "pattern_nr_d",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "client_id",
+              "displayName": "client_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payment_to",
+              "displayName": "payment_to",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "paid",
+              "displayName": "paid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_bank_account_id",
+              "displayName": "seller_bank_account_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lang",
+              "displayName": "lang",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "issue_date",
+              "displayName": "issue_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price_tax",
+              "displayName": "price_tax",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "department_id",
+              "displayName": "department_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correction",
+              "displayName": "correction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_note",
+              "displayName": "buyer_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "additional_info_desc",
+              "displayName": "additional_info_desc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "additional_info",
+              "displayName": "additional_info",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "product_cache",
+              "displayName": "product_cache",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_last_name",
+              "displayName": "buyer_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "from_invoice_id",
+              "displayName": "from_invoice_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "oid",
+              "displayName": "oid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "discount",
+              "displayName": "discount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "show_discount",
+              "displayName": "show_discount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sent_time",
+              "displayName": "sent_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "print_time",
+              "displayName": "print_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recurring_id",
+              "displayName": "recurring_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tax2_visible",
+              "displayName": "tax2_visible",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warehouse_id",
+              "displayName": "warehouse_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "paid_date",
+              "displayName": "paid_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "issue_year",
+              "displayName": "issue_year",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "internal_note",
+              "displayName": "internal_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invoice_id",
+              "displayName": "invoice_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invoice_template_id",
+              "displayName": "invoice_template_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_long",
+              "displayName": "description_long",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_tax_no_kind",
+              "displayName": "buyer_tax_no_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "seller_tax_no_kind",
+              "displayName": "seller_tax_no_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_footer",
+              "displayName": "description_footer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sell_date_kind",
+              "displayName": "sell_date_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payment_to_kind",
+              "displayName": "payment_to_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_currency",
+              "displayName": "exchange_currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "discount_kind",
+              "displayName": "discount_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "income",
+              "displayName": "income",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "from_api",
+              "displayName": "from_api",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category_id",
+              "displayName": "category_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warehouse_document_id",
+              "displayName": "warehouse_document_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_kind",
+              "displayName": "exchange_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_rate",
+              "displayName": "exchange_rate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "use_delivery_address",
+              "displayName": "use_delivery_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "delivery_address",
+              "displayName": "delivery_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting_kind",
+              "displayName": "accounting_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_person",
+              "displayName": "buyer_person",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_bank_account",
+              "displayName": "buyer_bank_account",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_bank",
+              "displayName": "buyer_bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_mass_payment_code",
+              "displayName": "buyer_mass_payment_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_note",
+              "displayName": "exchange_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_company",
+              "displayName": "buyer_company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "show_attachments",
+              "displayName": "show_attachments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_currency_rate",
+              "displayName": "exchange_currency_rate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "has_attachments",
+              "displayName": "has_attachments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_date",
+              "displayName": "exchange_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "attachments_count",
+              "displayName": "attachments_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "delivery_date",
+              "displayName": "delivery_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fiscal_status",
+              "displayName": "fiscal_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "use_moss",
+              "displayName": "use_moss",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "calculating_strategy",
+              "displayName": "calculating_strategy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email_status",
+              "displayName": "email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exclude_from_stock_level",
+              "displayName": "exclude_from_stock_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exclude_from_accounting",
+              "displayName": "exclude_from_accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_rate_den",
+              "displayName": "exchange_rate_den",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_currency_rate_den",
+              "displayName": "exchange_currency_rate_den",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting_scheme",
+              "displayName": "accounting_scheme",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "exchange_difference",
+              "displayName": "exchange_difference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "not_cost",
+              "displayName": "not_cost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reverse_charge",
+              "displayName": "reverse_charge",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "issuer",
+              "displayName": "issuer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "use_issuer",
+              "displayName": "use_issuer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "cancelled",
+              "displayName": "cancelled",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_id",
+              "displayName": "recipient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_name",
+              "displayName": "recipient_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "test",
+              "displayName": "test",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "discount_net",
+              "displayName": "discount_net",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "approval_status",
+              "displayName": "approval_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting_vat_tax_date",
+              "displayName": "accounting_vat_tax_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting_income_tax_date",
+              "displayName": "accounting_income_tax_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting_other_tax_date",
+              "displayName": "accounting_other_tax_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting_status",
+              "displayName": "accounting_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "normalized_number",
+              "displayName": "normalized_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "na_tax_kind",
+              "displayName": "na_tax_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "issued_to_receipt",
+              "displayName": "issued_to_receipt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gov_id",
+              "displayName": "gov_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gov_kind",
+              "displayName": "gov_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gov_status",
+              "displayName": "gov_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sales_code",
+              "displayName": "sales_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "additional_invoice_field",
+              "displayName": "additional_invoice_field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "products_margin",
+              "displayName": "products_margin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payment_url",
+              "displayName": "payment_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "view_url",
+              "displayName": "view_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "buyer_mobile_phone",
+              "displayName": "buyer_mobile_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "kind_text",
+              "displayName": "kind_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invoice_for_receipt_id",
+              "displayName": "invoice_for_receipt_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "receipt_for_invoice_id",
+              "displayName": "receipt_for_invoice_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_company",
+              "displayName": "recipient_company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_first_name",
+              "displayName": "recipient_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_last_name",
+              "displayName": "recipient_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_tax_no",
+              "displayName": "recipient_tax_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_street",
+              "displayName": "recipient_street",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_post_code",
+              "displayName": "recipient_post_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_city",
+              "displayName": "recipient_city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_country",
+              "displayName": "recipient_country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_email",
+              "displayName": "recipient_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_phone",
+              "displayName": "recipient_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recipient_note",
+              "displayName": "recipient_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "overdue?",
+              "displayName": "overdue?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "get_tax_name",
+              "displayName": "get_tax_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tax_visible?",
+              "displayName": "tax_visible?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tax_name_type",
+              "displayName": "tax_name_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "split_payment",
+              "displayName": "split_payment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gtu_codes",
+              "displayName": "gtu_codes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "procedure_designations",
+              "displayName": "procedure_designations",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "bbbb8da1-68ff-4070-bace-7096cb4c522c",
+      "name": "Append or update row in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 500
+            }
+          }
+        }
+      },
+      "id": "26bb3aa8-ded9-4280-8644-87c586862b32",
+      "name": "Pobranie otwartych faktur2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q",
+          "mode": "list",
+          "cachedResultName": "Wszystkie faktury",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VwaH4Q-km5PRfyLxr_6aLXWUObaTC0m3GNrBB7vPI5Q/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -32,
+        1680
+      ],
+      "id": "27987377-4ef5-4ba0-baec-64e1700df5b3",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FmuA9Wm6XfFN2Lcv",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download Invoice PDF": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Download Invoice PDF",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send SMS3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Invoice PDF1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit3": {
+      "main": [
+        [
+          {
+            "node": "Download Invoice PDF1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send SMS4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔧 TEST: Set 003 in Invoices": {
+      "main": [
+        [
+          {
+            "node": "Get Invoices by Page1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group Invoices by Client": {
+      "main": [
+        [
+          {
+            "node": "Limit4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Client Data for Pre-litigation": {
+      "main": [
+        [
+          {
+            "node": "Validate Client Total Debt",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Client Total Debt": {
+      "main": [
+        [
+          {
+            "node": "Calculate Real Total Debt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Real Total Debt": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare PDF Downloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare PDF Downloads": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit4": {
+      "main": [
+        [
+          {
+            "node": "Get Client Data for Pre-litigation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message2": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send Pre-litigation Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generator URL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Clear sheet2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS4": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Invoice Note9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS3": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger2": {
+      "main": [
+        [
+          {
+            "node": "Clear sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter4": {
+      "main": [
+        [
+          {
+            "node": "Group Invoices by Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Limit3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code7": {
+      "main": [
+        [
+          {
+            "node": "Clear sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear sheet": {
+      "main": [
+        [
+          {
+            "node": "Clear sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit2": {
+      "main": [
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice Note8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Invoice Note2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobranie otwartych faktur1": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generator URL": {
+      "main": [
+        [
+          {
+            "node": "Pobranie otwartych faktur1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get Client Data for Pre-litigation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Client Data for Pre-litigation1": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "30 dni": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "14 dni": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear sheet4": {
+      "main": [
+        [
+          {
+            "node": "Generator URL2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generator URL2": {
+      "main": [
+        [
+          {
+            "node": "Pobranie otwartych faktur2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobranie otwartych faktur2": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "30 dni",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "14 dni",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filter4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "956420be-c97f-4c19-b545-959033ef0095",
+  "meta": {
+    "instanceId": "fdbdaec3ffbc3a06dfc30bfa3474a23277e29d19ff8cf7e1f0210513b8c0e481"
+  },
+  "id": "tWRyxjolbWshALmW",
+  "tags": []
+}
