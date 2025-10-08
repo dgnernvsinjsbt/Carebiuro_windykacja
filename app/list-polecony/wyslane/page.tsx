@@ -38,25 +38,19 @@ async function getWyslaneClients() {
     return [];
   }
 
-  // Pobierz WSZYSTKIE faktury dla klientów z listem poleconym
-  const { data: allClientInvoices, error: invoicesError } = await supabase()
+  // Pobierz faktury z [LIST_POLECONY]true ORAZ [LIST_POLECONY_IGNORED]false
+  const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .in('client_id', clientIds);
+    .in('client_id', clientIds)
+    .like('internal_note', '%[LIST_POLECONY]true%')
+    .like('internal_note', '%[LIST_POLECONY_IGNORED]false%');
 
   if (invoicesError) {
     console.error('[ListPolecony Wysłane] Error fetching invoices:', invoicesError);
   }
 
-  console.log(`[ListPolecony Wysłane] Fetched ${allClientInvoices?.length || 0} total invoices`);
-
-  // Filtruj po stronie aplikacji - tylko faktury z LIST_POLECONY=true AND IGNORED=false
-  const clientInvoices = (allClientInvoices || []).filter(invoice => {
-    const flags = parseInvoiceFlags(invoice.internal_note);
-    return flags.listPolecony === true && flags.listPoleconyIgnored === false;
-  });
-
-  console.log(`[ListPolecony Wysłane] After filtering: ${clientInvoices.length} sent (not ignored) invoices`);
+  console.log(`[ListPolecony Wysłane] Fetched ${clientInvoices?.length || 0} invoices with sent list polecony`);
 
   // Grupuj faktury po client_id
   const clientInvoicesMap = new Map<number, any[]>();

@@ -38,27 +38,20 @@ async function getIgnorowaneClients() {
 
   console.log('[ListPolecony Ignorowane] Looking for invoices with client_ids:', clientIds);
 
-  // Pobierz WSZYSTKIE faktury dla zignorowanych klientów
-  const { data: allClientInvoices, error: invoicesError } = await supabase()
+  // Pobierz faktury z DOKŁADNIE [LIST_POLECONY_IGNORED]true
+  const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .in('client_id', clientIds);
+    .in('client_id', clientIds)
+    .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
   if (invoicesError) {
     console.error('[ListPolecony Ignorowane] Error fetching invoices:', invoicesError);
   }
 
-  console.log(`[ListPolecony Ignorowane] Fetched ${allClientInvoices?.length || 0} total invoices`);
+  console.log(`[ListPolecony Ignorowane] Fetched ${clientInvoices?.length || 0} ignored invoices`);
 
-  // Filtruj po stronie aplikacji - tylko faktury z IGNORED=true
-  const clientInvoices = (allClientInvoices || []).filter(invoice => {
-    const flags = parseInvoiceFlags(invoice.internal_note);
-    return flags.listPoleconyIgnored === true;
-  });
-
-  console.log(`[ListPolecony Ignorowane] After filtering: ${clientInvoices.length} ignored invoices`);
-
-  if (clientInvoices.length > 0) {
+  if (clientInvoices && clientInvoices.length > 0) {
     console.log('[ListPolecony Ignorowane] Example invoice:', {
       id: clientInvoices[0].id,
       client_id: clientInvoices[0].client_id,
