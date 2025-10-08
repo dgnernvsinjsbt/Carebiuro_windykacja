@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // supabase client already initialized in lib
 
     // Pobierz wszystkich klientów
-    const { data: clients, error: clientsError } = await supabase
+    const { data: clients, error: clientsError } = await supabase()
       .from('clients')
       .select('*')
       .order('name', { ascending: true });
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Pobierz wszystkie faktury
-    const { data: allInvoices, error: invoicesError } = await supabase
+    const { data: allInvoices, error: invoicesError } = await supabase()
       .from('invoices')
       .select('*');
 
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     for (const client of qualifiedClients) {
       if (client) {
         // Aktualizuj flagę w Supabase
-        await supabase
+        await supabase()
           .from('clients')
           .update({ list_polecony: true })
           .eq('id', client.id);

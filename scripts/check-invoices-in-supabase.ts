@@ -9,7 +9,7 @@ async function checkInvoices() {
 
   console.log('Checking invoices in Supabase...\n');
 
-  const { data: invoices, error } = await supabaseAdmin
+  const { data: invoices, error } = await supabaseAdmin()
     .from('invoices')
     .select('id, comment, list_polecony_sent_date, list_polecony_ignored_date')
     .in('id', invoiceIds);

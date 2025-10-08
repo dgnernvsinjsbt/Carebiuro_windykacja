@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     console.log(`[BackfillSingleClient] Starting backfill for client ${clientId}...`);
 
     // Pobierz faktury klienta
-    const { data: invoices, error: fetchError } = await supabaseAdmin
+    const { data: invoices, error: fetchError } = await supabaseAdmin()
       .from('invoices')
       .select('id, comment')
       .eq('client_id', clientId);
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     for (const invoice of invoices || []) {
       const hasThird = hasThirdReminder(invoice as any);
 
-      const { error: updateError } = await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin()
         .from('invoices')
         .update({ has_third_reminder: hasThird })
         .eq('id', invoice.id);

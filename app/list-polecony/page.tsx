@@ -18,7 +18,7 @@ async function getListPoleconyClients() {
   const supabase = supabaseAdmin;
 
   // OPTIMIZED: Pobierz TYLKO faktury z trzecim upomnieniem (has_third_reminder = true)
-  const { data: invoicesWithThirdReminder, error: invoicesError } = await supabase
+  const { data: invoicesWithThirdReminder, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .eq('has_third_reminder', true);
@@ -48,7 +48,7 @@ async function getListPoleconyClients() {
   console.log(`[ListPolecony] Found ${clientIds.size} unique clients with third reminder invoices`);
 
   // Pobierz TYLKO klientów którzy mają faktury z trzecim upomnieniem
-  const { data: clients, error: clientsError } = await supabase
+  const { data: clients, error: clientsError } = await supabase()
     .from('clients')
     .select('*')
     .in('id', Array.from(clientIds));

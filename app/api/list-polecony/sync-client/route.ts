@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     console.log(`[Sync Client] Client ${clientId} note from Fakturownia:`, fakturowniaClient.note);
 
     // 2. Aktualizuj klienta w Supabase
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin()
       .from('clients')
       .update({
         note: fakturowniaClient.note || '',
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Sync Client] Invoice ${invoice.id} flags:`, flags);
 
       // Aktualizuj fakturę w Supabase
-      const { error: invoiceError } = await supabaseAdmin
+      const { error: invoiceError } = await supabaseAdmin()
         .from('invoices')
         .update({
           comment: invoice.internal_note || '',

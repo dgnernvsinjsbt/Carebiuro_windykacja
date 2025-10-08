@@ -17,7 +17,7 @@ async function getWyslaneClients() {
 
   // OPTIMIZED: Pobierz TYLKO klientów z flagą [LIST_POLECONY]true w note
   // WYKLUCZAMY klientów zignorowanych (z flagą [LIST_POLECONY_IGNORED]true)
-  const { data: wyslaneClientsData, error: clientsError } = await supabase
+  const { data: wyslaneClientsData, error: clientsError } = await supabase()
     .from('clients')
     .select('*')
     .like('note', '%[LIST_POLECONY]true%')
@@ -38,7 +38,7 @@ async function getWyslaneClients() {
   }
 
   // Pobierz wszystkie faktury z flagą list_polecony = true
-  const { data: clientInvoices, error: invoicesError } = await supabase
+  const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .in('client_id', clientIds)

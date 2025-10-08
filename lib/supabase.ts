@@ -44,22 +44,10 @@ function getSupabaseAdmin(): SupabaseClient {
   return _supabaseAdmin;
 }
 
-// Export as Proxy for proper lazy initialization
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const client = getSupabase();
-    const value = (client as any)[prop];
-    return typeof value === 'function' ? value.bind(client) : value;
-  }
-});
-
-export const supabaseAdmin = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const client = getSupabaseAdmin();
-    const value = (client as any)[prop];
-    return typeof value === 'function' ? value.bind(client) : value;
-  }
-});
+// Export getter functions directly - callers must invoke them
+// This ensures lazy initialization while preserving Supabase query builder functionality
+export const supabase = getSupabase;
+export const supabaseAdmin = getSupabaseAdmin;
 
 /**
  * Database operations for Clients table

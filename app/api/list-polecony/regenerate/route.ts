@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     console.log(`[Regenerate] Regenerowanie dokumentów dla ${clientIds.length} klientów...`);
 
     // Pobierz dane klientów i faktur z Supabase
-    const { data: clients, error: clientsError } = await supabaseAdmin
+    const { data: clients, error: clientsError } = await supabaseAdmin()
       .from('clients')
       .select('*')
       .in('id', clientIds)
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: invoices, error: invoicesError } = await supabaseAdmin
+    const { data: invoices, error: invoicesError } = await supabaseAdmin()
       .from('invoices')
       .select('*')
       .in('client_id', clientIds);

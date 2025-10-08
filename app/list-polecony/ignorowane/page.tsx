@@ -16,7 +16,7 @@ async function getIgnorowaneClients() {
   const supabase = supabaseAdmin;
 
   // Pobierz TYLKO klientów z flagą [LIST_POLECONY_IGNORED]true w note
-  const { data: ignorowaneClientsData, error: clientsError } = await supabase
+  const { data: ignorowaneClientsData, error: clientsError } = await supabase()
     .from('clients')
     .select('*')
     .like('note', '%[LIST_POLECONY_IGNORED]true%');
@@ -36,7 +36,7 @@ async function getIgnorowaneClients() {
   }
 
   // Pobierz wszystkie faktury z flagą ignorowania dla klientów zignorowanych
-  const { data: clientInvoices, error: invoicesError } = await supabase
+  const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .in('client_id', clientIds)

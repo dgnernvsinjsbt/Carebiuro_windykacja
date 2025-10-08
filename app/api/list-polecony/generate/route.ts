@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     console.log(`Generowanie dokumentów dla ${clientIds.length} klientów...`);
 
     // Pobierz dane klientów i faktur z Supabase
-    const { data: clients, error: clientsError } = await supabaseAdmin
+    const { data: clients, error: clientsError } = await supabaseAdmin()
       .from('clients')
       .select('*')
       .in('id', clientIds)
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: invoices, error: invoicesError } = await supabaseAdmin
+    const { data: invoices, error: invoicesError } = await supabaseAdmin()
       .from('invoices')
       .select('*')
       .in('client_id', clientIds);
@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
           console.log(`[Update] Client ${client.id} - new note:`, updatedNote);
 
           // 1. Zaktualizuj w Supabase
-          const { data, error } = await supabaseAdmin
+          const { data, error } = await supabaseAdmin()
             .from('clients')
             .update({ note: updatedNote })
             .eq('id', client.id)
@@ -299,7 +299,7 @@ export async function POST(request: NextRequest) {
             console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
 
             // 1. Zaktualizuj w Supabase
-            const { error: supError } = await supabaseAdmin
+            const { error: supError } = await supabaseAdmin()
               .from('invoices')
               .update({
                 comment: updatedComment,

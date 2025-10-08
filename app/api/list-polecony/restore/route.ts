@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     console.log(`[ListPolecony Restore] Restoring ${clientIds.length} clients from ignored...`);
 
     // 1. Pobierz klientów
-    const { data: clients, error: clientsError } = await supabaseAdmin
+    const { data: clients, error: clientsError } = await supabaseAdmin()
       .from('clients')
       .select('*')
       .in('id', clientIds);
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       console.log(`[ListPolecony Restore] Client ${client.id} after:`, updatedNote);
 
       // Aktualizuj w Supabase
-      const { error: updateError } = await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin()
         .from('clients')
         .update({ note: updatedNote })
         .eq('id', client.id);
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         console.log(`[ListPolecony Restore] Restoring invoices with IGNORED flag for client ${client.id}...`);
 
         // Pobierz faktury z Supabase które mają IGNORED=true
-        const { data: ignoredInvoices } = await supabaseAdmin
+        const { data: ignoredInvoices } = await supabaseAdmin()
           .from('invoices')
           .select('*')
           .eq('client_id', client.id)
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
           const flags = parseInvoiceFlags(invoice.internal_note);
 
           // Aktualizuj fakturę w Supabase
-          const { error: invoiceError } = await supabaseAdmin
+          const { error: invoiceError } = await supabaseAdmin()
             .from('invoices')
             .update({
               comment: invoice.internal_note || '',

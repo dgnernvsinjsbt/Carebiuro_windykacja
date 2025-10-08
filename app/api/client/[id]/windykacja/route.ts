@@ -31,7 +31,7 @@ export async function PATCH(
     console.log(`[Windykacja] Updating client ${clientId}: windykacja_enabled=${windykacja_enabled}`);
 
     // 1. Pobierz aktualny note klienta z Supabase
-    const { data: client, error: fetchError } = await supabase
+    const { data: client, error: fetchError } = await supabase()
       .from('clients')
       .select('note')
       .eq('id', clientId)
@@ -91,7 +91,7 @@ export async function PATCH(
     console.log(`[Windykacja] ✓ Fakturownia updated`);
 
     // 4. Zaktualizuj note w Supabase
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabase()
       .from('clients')
       .update({
         note: updatedNote,

@@ -20,7 +20,7 @@ export async function POST() {
     console.log('[TEST] ✓ Zaktualizowano w Fakturowni');
 
     // 2. Aktualizuj w Supabase
-    const { error } = await supabaseAdmin
+    const { error } = await supabaseAdmin()
       .from('clients')
       .update({ note: newNote })
       .eq('id', clientId);

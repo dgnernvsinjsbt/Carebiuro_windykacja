@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // STEP 2: Update client in Supabase
     console.log(`[SyncClient] Updating client in Supabase...`);
-    const { error: clientUpdateError } = await supabase
+    const { error: clientUpdateError } = await supabase()
       .from('clients')
       .update({
         name: clientData.name || null,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // STEP 3: Delete all invoices for this client from Supabase
     console.log(`[SyncClient] Deleting existing invoices for client ${client_id}...`);
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabase()
       .from('invoices')
       .delete()
       .eq('client_id', client_id);

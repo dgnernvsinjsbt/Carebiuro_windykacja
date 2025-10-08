@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
     console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...');
 
     // Fetch all invoices grouped by client_id
-    const { data: allInvoices, error: fetchError } = await supabase
+    const { data: allInvoices, error: fetchError } = await supabase()
       .from('invoices')
       .select('client_id, total');
 
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Sync] ✓ Calculated totals for ${clientTotalsMap.size} clients, updating...`);
 
       // Fetch existing clients to preserve their data
-      const { data: existingClients } = await supabase
+      const { data: existingClients } = await supabase()
         .from('clients')
         .select('*');
 

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     // Use SQL to update all invoices at once
     // This parses the comment field and checks for EMAIL_3/SMS_3/WHATSAPP_3 = true
-    const { error } = await supabaseAdmin.rpc('update_has_third_reminder');
+    const { error } = await supabaseAdmin().rpc('update_has_third_reminder');
 
     if (error) {
       console.error('[Backfill SQL] Error:', error);

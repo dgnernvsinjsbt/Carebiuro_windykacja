@@ -26,7 +26,7 @@ async function getKaczmarskiClients() {
   // - list_polecony = true (list polecony został wysłany)
   // - list_polecony_sent_date <= 31 dni temu
   // - status != 'paid' (otwarte)
-  const { data: qualifyingInvoices, error: invoicesError } = await supabase
+  const { data: qualifyingInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .eq('list_polecony', true)
@@ -47,7 +47,7 @@ async function getKaczmarskiClients() {
   // KROK 2: Pobierz unikalnych klientów dla tych faktur
   const clientIds = Array.from(new Set(qualifyingInvoices.map(inv => inv.client_id).filter(Boolean))) as number[];
 
-  const { data: clients, error: clientsError } = await supabase
+  const { data: clients, error: clientsError } = await supabase()
     .from('clients')
     .select('*')
     .in('id', clientIds);

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     console.log(`[CollectiveInvoice] Creating collective invoice for ${invoice_ids.length} invoices`);
 
     // Fetch invoice details from Supabase
-    const { data: invoices, error } = await supabase
+    const { data: invoices, error } = await supabase()
       .from('invoices')
       .select('id, number, total, paid')
       .in('id', invoice_ids);

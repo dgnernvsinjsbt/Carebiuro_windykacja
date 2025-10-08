@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     console.log(`[SyncClientNotes] Fetched ${fakturowniaClients.length} clients from Fakturownia`);
 
     // Pobierz wszystkich klientów z Supabase
-    const { data: supabaseClients, error: supabaseError } = await supabaseAdmin
+    const { data: supabaseClients, error: supabaseError } = await supabaseAdmin()
       .from('clients')
       .select('id, note');
 
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Zaktualizuj notatkę w Supabase
-      const { error: updateError } = await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin()
         .from('clients')
         .update({ note: fakturowniaNote })
         .eq('id', client.id);

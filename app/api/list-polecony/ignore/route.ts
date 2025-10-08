@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     console.log(`[ListPolecony Ignore] Ignorowanie ${clientIds.length} klientów...`);
 
     // Pobierz klientów z Supabase
-    const { data: clients, error: clientsError } = await supabaseAdmin
+    const { data: clients, error: clientsError } = await supabaseAdmin()
       .from('clients')
       .select('*')
       .in('id', clientIds);
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Pobierz faktury z list_polecony = true dla tych klientów (czyli te które były wysłane)
-    const { data: invoices, error: invoicesError } = await supabaseAdmin
+    const { data: invoices, error: invoicesError } = await supabaseAdmin()
       .from('invoices')
       .select('*')
       .in('client_id', clientIds)
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Update Client] ${client.id} - updated note:`, updatedNote);
 
         // 1. Zaktualizuj w Supabase
-        const { error: supabaseError } = await supabaseAdmin
+        const { error: supabaseError } = await supabaseAdmin()
           .from('clients')
           .update({ note: updatedNote })
           .eq('id', client.id);
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
 
         // 1. Zaktualizuj w Supabase
-        const { error: supabaseError } = await supabaseAdmin
+        const { error: supabaseError } = await supabaseAdmin()
           .from('invoices')
           .update({
             comment: updatedComment,

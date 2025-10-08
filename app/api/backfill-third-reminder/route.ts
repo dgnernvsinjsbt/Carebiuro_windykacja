@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const pageSize = 1000;
 
     while (true) {
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin()
         .from('invoices')
         .select('id, comment')
         .range(page * pageSize, (page + 1) * pageSize - 1);
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       // Aktualizuj batch
       for (const update of updates) {
-        const { error: updateError } = await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin()
           .from('invoices')
           .update({ has_third_reminder: update.has_third_reminder })
           .eq('id', update.id);
