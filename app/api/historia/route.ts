@@ -71,9 +71,10 @@ export async function GET(request: NextRequest) {
           const sentDate = (fiscalSync as any)[dateKey];
 
           if (wasSent && sentDate) {
-            // Filter by date range if specified
-            if (filters.startDate && sentDate < filters.startDate) continue;
-            if (filters.endDate && sentDate > filters.endDate) continue;
+            // Filter by date range if specified (extract date part from ISO timestamp)
+            const sentDateOnly = sentDate.split('T')[0]; // Extract YYYY-MM-DD
+            if (filters.startDate && sentDateOnly < filters.startDate) continue;
+            if (filters.endDate && sentDateOnly > filters.endDate) continue;
 
             allMessages.push({
               invoice_id: invoice.id,
