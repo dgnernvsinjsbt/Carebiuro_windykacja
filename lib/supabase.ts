@@ -428,7 +428,7 @@ export const commentsDb = {
       .from('invoice_comments')
       .insert({
         invoice_id: invoiceId,
-        comment: `[${action.toUpperCase()}] ${details || ''}`,
+        body: `[${action.toUpperCase()}] ${details || ''}`,
         created_at: new Date().toISOString(),
       })
       .select()
