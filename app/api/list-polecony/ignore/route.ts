@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       try {
         // Dodaj flagę [LIST_POLECONY_IGNORED]true + datę do komentarza
         const todayStr = today.toISOString().split('T')[0];
-        const updatedComment = setListPoleconyIgnoredOnInvoice(invoice.comment || '', todayStr);
+        const updatedComment = setListPoleconyIgnoredOnInvoice(invoice.internal_note || '', todayStr);
 
         console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
 
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
         const { error: supabaseError } = await supabaseAdmin()
           .from('invoices')
           .update({
-            comment: updatedComment,
+            internal_note: updatedComment,
             list_polecony_ignored: true, // boolean flag
             list_polecony_ignored_date: today.toISOString() // zachowaj datę dla historii
           })

@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           .eq('list_polecony_ignored', true);
 
         for (const invoice of ignoredInvoices || []) {
-          const updatedComment = removeListPoleconyIgnoredFromInvoice(invoice.comment);
+          const updatedComment = removeListPoleconyIgnoredFromInvoice(invoice.internal_note);
 
           // Aktualizuj w Fakturowni NAJPIERW
           try {
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
           const { error: invoiceError } = await supabaseAdmin()
             .from('invoices')
             .update({
-              comment: invoice.internal_note || '',
+              internal_note: invoice.internal_note || '',
               list_polecony: flags.listPolecony,
               list_polecony_sent_date: flags.listPoleconySentDate,
               list_polecony_ignored: flags.listPoleconyIgnored,

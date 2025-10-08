@@ -15,7 +15,7 @@ import { parseFiscalSync } from './fiscal-sync-parser';
  * Sprawdza czy faktura ma wysłane trzecie upomnienie
  */
 export function hasThirdReminder(invoice: Invoice): boolean {
-  const fiscalSync = parseFiscalSync(invoice.comment);
+  const fiscalSync = parseFiscalSync(invoice.internal_note);
 
   if (!fiscalSync) return false;
 

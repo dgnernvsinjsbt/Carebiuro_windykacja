@@ -333,12 +333,12 @@ export const invoicesDb = {
   },
 
   /**
-   * Update invoice comment
+   * Update invoice internal_note
    */
-  async updateComment(id: number, comment: string) {
+  async updateComment(id: number, internal_note: string) {
     const { data, error } = await getSupabaseAdmin()
       .from('invoices')
-      .update({ comment, updated_at: new Date().toISOString() })
+      .update({ internal_note, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();

@@ -44,7 +44,7 @@ export default async function ClientDetailPage({
     const fakturowniaData = fakturowniaMap.get(invoice.id);
 
     const initializedComment = initializeFromEmailStatus(
-      invoice.comment,
+      invoice.internal_note,
       fakturowniaData?.email_status || invoice.email_status,
       fakturowniaData?.sent_time || invoice.sent_time
     );

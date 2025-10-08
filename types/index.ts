@@ -21,7 +21,7 @@ export interface Invoice {
   number: string | null;
   total: number | null;
   status: string | null;
-  comment: string | null;
+  internal_note: string | null; // Renamed from comment - maps to Fakturownia internal_note
   email_status: string | null;
   sent_time: string | null;
   updated_at: string | null;

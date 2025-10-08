@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
       const invoices: Invoice[] = pageInvoices.map((fi: FakturowniaInvoice) => {
         // Parse fiscal sync to check for third reminder
-        const tempInvoice = { comment: fi.internal_note || null } as Invoice;
+        const tempInvoice = { internal_note: fi.internal_note || null } as Invoice;
         const hasThird = hasThirdReminder(tempInvoice);
 
         return {
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         number: fi.number,
         total: parseFloat(fi.price_gross) || 0,
         status: fi.status,
-        comment: fi.internal_note || null,
+        internal_note: fi.internal_note || null,
         email_status: fi.email_status || null,
         sent_time: fi.sent_time || null,
         updated_at: fi.updated_at,
@@ -283,7 +283,7 @@ export async function GET(request: NextRequest) {
       const { hasThirdReminder } = await import('@/lib/list-polecony-logic');
 
       const invoices: Invoice[] = recentInvoices.map((fi: FakturowniaInvoice) => {
-        const tempInvoice = { comment: fi.internal_note || null } as Invoice;
+        const tempInvoice = { internal_note: fi.internal_note || null } as Invoice;
         const hasThird = hasThirdReminder(tempInvoice);
 
         return {
@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
         number: fi.number,
         total: parseFloat(fi.price_gross) || 0,
         status: fi.status,
-        comment: fi.internal_note || null,
+        internal_note: fi.internal_note || null,
         email_status: fi.email_status || null,
         sent_time: fi.sent_time || null,
         updated_at: fi.updated_at,

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         number: inv.number,
         total: parseFloat(inv.price_gross) || 0,
         status: inv.status,
-        comment: inv.internal_note || null,
+        internal_note: inv.internal_note || null,
         email_status: inv.email_status || null,
         sent_time: inv.sent_time || null,
         updated_at: inv.updated_at,

@@ -293,16 +293,16 @@ export async function POST(request: NextRequest) {
         for (const invoice of invoicesWithThirdReminder) {
           try {
             // Dodaj flagę [LIST_POLECONY_SENT]data do komentarza
-            const updatedComment = setListPoleconyDate(invoice.comment || '', today);
+            const updatedComment = setListPoleconyDate(invoice.internal_note || '', today);
 
-            console.log(`[Update Invoice] ${invoice.id} - old comment:`, invoice.comment);
+            console.log(`[Update Invoice] ${invoice.id} - old comment:`, invoice.internal_note);
             console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
 
             // 1. Zaktualizuj w Supabase
             const { error: supError } = await supabaseAdmin()
               .from('invoices')
               .update({
-                comment: updatedComment,
+                internal_note: updatedComment,
                 list_polecony_sent_date: today.toISOString()
               })
               .eq('id', invoice.id);

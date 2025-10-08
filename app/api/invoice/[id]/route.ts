@@ -89,8 +89,8 @@ export async function PATCH(
       );
     }
 
-    // 2. Update Fiscal Sync comment
-    const updatedComment = updateFiscalSync(invoice.comment, 'STOP', stop);
+    // 2. Update Fiscal Sync internal_note
+    const updatedComment = updateFiscalSync(invoice.internal_note, 'STOP', stop);
 
     // 3. Update in Fakturownia
     await fakturowniaApi.updateInvoiceComment(invoiceId, updatedComment);

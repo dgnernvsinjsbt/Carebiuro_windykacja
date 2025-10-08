@@ -190,18 +190,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Update Fiscal Sync comment in Fakturownia with current date
+    // 3. Update Fiscal Sync in Fakturownia with current timestamp
     const fieldName = `${type.toUpperCase()}_${level}` as any;
     const currentDate = new Date().toISOString();
-    const updatedComment = updateFiscalSync(invoice.comment, fieldName, true, currentDate);
+    const updatedInternalNote = updateFiscalSync(invoice.internal_note, fieldName, true, currentDate);
 
     const updatedInvoice = await fakturowniaApi.updateInvoiceComment(
       invoice_id,
-      updatedComment
+      updatedInternalNote
     );
 
     // 4. Update invoice in Supabase
-    await invoicesDb.updateComment(invoice_id, updatedComment);
+    await invoicesDb.updateComment(invoice_id, updatedInternalNote);
 
     // 5. Log action to comments
     await commentsDb.logAction(
