@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
         : 'nieznana';
 
       // Calculate unpaid balance (total - paid)
-      const balance = parseFloat(invoice.total || '0') - parseFloat(invoice.paid || '0');
+      const total = typeof invoice.total === 'string' ? invoice.total : String(invoice.total || '0');
+      const paid = typeof invoice.paid === 'string' ? invoice.paid : String(invoice.paid || '0');
+      const balance = parseFloat(total) - parseFloat(paid);
       const balanceFormatted = balance.toFixed(2);
 
       const message = `Drogi kliencie, w dniu ${issueDate} na Twoj Email wyslalismy fakture ${invoice.number} na ${balanceFormatted} ${invoice.currency || 'EUR'}.\n\nCBB / Carebiuro`;
@@ -209,20 +211,27 @@ export async function POST(request: NextRequest) {
 
     // 6. Log message to history
     try {
-      await messageHistoryDb.logMessage({
-        client_id: invoice.client_id,
-        invoice_id: invoice.id,
-        invoice_number: invoice.number,
-        client_name: invoice.buyer_name || 'Unknown',
-        message_type: type,
-        level: level as 1 | 2 | 3,
-        status: 'sent',
-        sent_by: 'manual',
-        is_auto_initial: false,
-        invoice_total: invoice.total,
-        invoice_currency: invoice.currency || 'EUR',
-      });
-      console.log(`[Reminder] Message logged to history`);
+      if (!invoice.client_id) {
+        console.warn('[Reminder] Cannot log message - missing client_id for invoice:', invoice.id);
+      } else {
+        await messageHistoryDb.logMessage({
+          client_id: invoice.client_id,
+          invoice_id: invoice.id,
+          message_type: type,
+          status: 'sent',
+          message: `${type.toUpperCase()} reminder level ${level} sent`,
+          metadata: {
+            invoice_number: invoice.number,
+            client_name: invoice.buyer_name || 'Unknown',
+            level: level as 1 | 2 | 3,
+            sent_by: 'manual',
+            is_auto_initial: false,
+            invoice_total: invoice.total,
+            invoice_currency: invoice.currency || 'EUR',
+          },
+        });
+        console.log(`[Reminder] Message logged to history`);
+      }
     } catch (historyError) {
       console.error('[Reminder] Failed to log message to history:', historyError);
       // Don't fail the request if history logging fails
