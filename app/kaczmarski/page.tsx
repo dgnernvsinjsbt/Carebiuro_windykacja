@@ -39,9 +39,9 @@ async function getKaczmarskiClients() {
   // Filtruj faktury: tylko te wysłane ≥31 dni temu
   const qualifyingInvoices = (allInvoices || []).filter(inv => {
     const flags = parseInvoiceFlags(inv.internal_note);
-    if (!flags.listPoleconySentDate) return false;
+    if (!flags.listPoleconyStatusDate) return false;
 
-    const sentDate = new Date(flags.listPoleconySentDate);
+    const sentDate = new Date(flags.listPoleconyStatusDate);
     return sentDate <= thirtyOneDaysAgo;
   });
 
@@ -89,8 +89,8 @@ async function getKaczmarskiClients() {
     // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)
     const earliestSentDate = invoices.reduce((earliest, inv) => {
       const flags = parseInvoiceFlags(inv.internal_note);
-      if (!flags.listPoleconySentDate) return earliest;
-      const invDate = new Date(flags.listPoleconySentDate);
+      if (!flags.listPoleconyStatusDate) return earliest;
+      const invDate = new Date(flags.listPoleconyStatusDate);
       return !earliest || invDate < earliest ? invDate : earliest;
     }, null as Date | null);
 
