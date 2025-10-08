@@ -50,7 +50,16 @@ export async function GET(request: NextRequest) {
 
     for (const invoice of invoices || []) {
       const fiscalSync = parseFiscalSync(invoice.internal_note);
-      if (!fiscalSync) continue;
+      if (!fiscalSync) {
+        console.log(`[Historia] Invoice ${invoice.id} has no FISCAL_SYNC`);
+        continue;
+      }
+      console.log(`[Historia] Invoice ${invoice.id} FISCAL_SYNC:`, {
+        SMS_1: fiscalSync.SMS_1,
+        SMS_1_DATE: fiscalSync.SMS_1_DATE,
+        SMS_2: fiscalSync.SMS_2,
+        SMS_2_DATE: fiscalSync.SMS_2_DATE,
+      });
 
       // Check each message type and level
       const messageTypes = [
@@ -73,6 +82,14 @@ export async function GET(request: NextRequest) {
           if (wasSent && sentDate) {
             // Filter by date range if specified (extract date part from ISO timestamp)
             const sentDateOnly = sentDate.split('T')[0]; // Extract YYYY-MM-DD
+            console.log(`[Historia] Message ${type}_${level} on invoice ${invoice.id}:`, {
+              sentDate,
+              sentDateOnly,
+              startDate: filters.startDate,
+              endDate: filters.endDate,
+              passesStartFilter: !filters.startDate || sentDateOnly >= filters.startDate,
+              passesEndFilter: !filters.endDate || sentDateOnly <= filters.endDate,
+            });
             if (filters.startDate && sentDateOnly < filters.startDate) continue;
             if (filters.endDate && sentDateOnly > filters.endDate) continue;
 
