@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
           status: 'sent',
           sent_by: 'manual',
           is_auto_initial: false,
-          invoice_total: invoice.total,
+          invoice_total: invoice.total ?? 0,
           invoice_currency: invoice.currency || 'EUR',
         });
         console.log(`[Reminder] Message logged to history`);
