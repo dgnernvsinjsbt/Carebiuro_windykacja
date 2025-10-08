@@ -9,6 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ListPoleconyTable from '@/components/ListPoleconyTable';
 import Link from 'next/link';
+import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,12 +38,12 @@ async function getWyslaneClients() {
     return [];
   }
 
-  // Pobierz wszystkie faktury z flagą list_polecony = true
+  // Pobierz wszystkie faktury z flagą [LIST_POLECONY]true w internal_note
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
     .in('client_id', clientIds)
-    .eq('list_polecony', true);
+    .like('internal_note', '%[LIST_POLECONY]true%');
 
   if (invoicesError) {
     console.error('[ListPolecony Wysłane] Error fetching invoices:', invoicesError);
@@ -71,10 +72,11 @@ async function getWyslaneClients() {
       return sum + balance;
     }, 0);
 
-    // Znajdź najwcześniejszą datę wysłania
+    // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)
     const earliestSentDate = invoices.reduce((earliest, inv) => {
-      if (!inv.list_polecony_sent_date) return earliest;
-      const invDate = new Date(inv.list_polecony_sent_date);
+      const flags = parseInvoiceFlags(inv.internal_note);
+      if (!flags.listPoleconySentDate) return earliest;
+      const invDate = new Date(flags.listPoleconySentDate);
       return !earliest || invDate < earliest ? invDate : earliest;
     }, null as Date | null);
 

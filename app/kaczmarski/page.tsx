@@ -10,6 +10,7 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import KaczmarskiTable from '@/components/KaczmarskiTable';
+import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,21 +23,27 @@ async function getKaczmarskiClients() {
 
   console.log(`[Kaczmarski] Szukam faktur wysłanych przed: ${thirtyOneDaysAgo.toISOString()}`);
 
-  // KROK 1: Pobierz faktury spełniające warunki:
-  // - list_polecony = true (list polecony został wysłany)
-  // - list_polecony_sent_date <= 31 dni temu
-  // - status != 'paid' (otwarte)
-  const { data: qualifyingInvoices, error: invoicesError } = await supabase()
+  // KROK 1: Pobierz wszystkie faktury z [LIST_POLECONY]true w internal_note
+  // (potem filtrujemy po dacie w kodzie)
+  const { data: allInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .eq('list_polecony', true)
-    .lte('list_polecony_sent_date', thirtyOneDaysAgo.toISOString())
+    .like('internal_note', '%[LIST_POLECONY]true%')
     .neq('status', 'paid');
 
   if (invoicesError) {
     console.error('[Kaczmarski] Error fetching invoices:', invoicesError);
     return [];
   }
+
+  // Filtruj faktury: tylko te wysłane ≥31 dni temu
+  const qualifyingInvoices = (allInvoices || []).filter(inv => {
+    const flags = parseInvoiceFlags(inv.internal_note);
+    if (!flags.listPoleconySentDate) return false;
+
+    const sentDate = new Date(flags.listPoleconySentDate);
+    return sentDate <= thirtyOneDaysAgo;
+  });
 
   console.log(`[Kaczmarski] Znaleziono ${qualifyingInvoices?.length || 0} faktur spełniających warunki`);
 
@@ -80,10 +87,11 @@ async function getKaczmarskiClients() {
       return sum + outstanding;
     }, 0);
 
-    // Znajdź najwcześniejszą datę wysłania (dla informacji)
+    // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)
     const earliestSentDate = invoices.reduce((earliest, inv) => {
-      if (!inv.list_polecony_sent_date) return earliest;
-      const invDate = new Date(inv.list_polecony_sent_date);
+      const flags = parseInvoiceFlags(inv.internal_note);
+      if (!flags.listPoleconySentDate) return earliest;
+      const invDate = new Date(flags.listPoleconySentDate);
       return !earliest || invDate < earliest ? invDate : earliest;
     }, null as Date | null);
 
