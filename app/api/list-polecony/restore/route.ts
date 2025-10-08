@@ -7,8 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { setListPoleconyIgnored } from '@/lib/client-flags';
-import { clearListPoleconyStatus, parseInvoiceFlags } from '@/lib/invoice-flags';
+import { setListPoleconyStatusSent, parseInvoiceFlags } from '@/lib/invoice-flags';
 import { fakturowniaApi } from '@/lib/fakturownia';
 
 // Force dynamic rendering - don't evaluate at build time
@@ -46,13 +45,15 @@ export async function POST(request: NextRequest) {
 
     let totalInvoicesRestored = 0;
 
-    // 2. Dla każdego klienta: usuń flagę IGNORED z klienta i faktur
+    // 2. Dla każdego klienta: zmień status ignore → sent
+    const today = new Date().toISOString().split('T')[0];
+
     for (const client of clients || []) {
       console.log(`[ListPolecony Restore] Processing client ${client.id}...`);
 
-      // Usuń flagę z klienta
-      const updatedNote = setListPoleconyIgnored(client.note, false);
-      console.log(`[ListPolecony Restore] Client ${client.id} note updated`);
+      // Zmień status ignore → sent (zachowaj oryginalną datę wysłania)
+      const updatedNote = setListPoleconyStatusSent(client.note || '', today);
+      console.log(`[ListPolecony Restore] Client ${client.id} note: ignore → sent`);
 
       // Aktualizuj klienta w Supabase
       const { error: updateError } = await supabaseAdmin()
@@ -82,9 +83,13 @@ export async function POST(request: NextRequest) {
 
       console.log(`[ListPolecony Restore] Found ${ignoredInvoices?.length || 0} ignored invoices for client ${client.id}`);
 
-      // Usuń flagę STATUS z każdej faktury (ustaw na null = brak statusu)
+      // Zmień status ignore → sent na każdej fakturze (zachowaj oryginalną datę)
       for (const invoice of ignoredInvoices || []) {
-        const updatedInternalNote = clearListPoleconyStatus(invoice.internal_note);
+        // Parsuj oryginalną datę wysłania
+        const flags = parseInvoiceFlags(invoice.internal_note);
+        const originalDate = flags.listPoleconyStatusDate || today;
+
+        const updatedInternalNote = setListPoleconyStatusSent(invoice.internal_note, originalDate);
 
         // Aktualizuj w Supabase
         const { error: invoiceError } = await supabaseAdmin()
@@ -93,7 +98,7 @@ export async function POST(request: NextRequest) {
             internal_note: updatedInternalNote,
             list_polecony_ignored: false,
             list_polecony_ignored_date: null,
-            list_polecony_sent_date: null
+            list_polecony_sent_date: originalDate
           })
           .eq('id', invoice.id);
 
