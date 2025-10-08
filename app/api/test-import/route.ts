@@ -28,16 +28,48 @@ export async function POST(request: NextRequest) {
 
     // Transform to our schema
     const clients: Client[] = fakturowniaClients.map((fc: FakturowniaClient) => ({
+      // Fakturownia fields (1:1 mapping)
       id: fc.id,
-      name: fc.name,
-      first_name: null,
-      last_name: null,
-      email: fc.email,
-      phone: fc.phone,
+      name: fc.name || null,
+      first_name: fc.first_name || null,
+      last_name: fc.last_name || null,
+      tax_no: fc.tax_no || null,
+      post_code: fc.post_code || null,
+      city: fc.city || null,
+      street: fc.street || null,
+      street_no: fc.street_no || null,
+      country: fc.country || null,
+      email: fc.email || null,
+      phone: fc.phone || null,
+      mobile_phone: fc.mobile_phone || null,
+      www: fc.www || null,
+      fax: fc.fax || null,
       note: fc.note || null,
+      bank: fc.bank || null,
+      bank_account: fc.bank_account || null,
+      shortcut: fc.shortcut || null,
+      kind: fc.kind || null,
+      token: fc.token || null,
+      discount: fc.discount || null,
+      payment_to_kind: fc.payment_to_kind || null,
+      category_id: fc.category_id || null,
+      use_delivery_address: fc.use_delivery_address || false,
+      delivery_address: fc.delivery_address || null,
+      person: fc.person || null,
+      use_mass_payment: fc.use_mass_payment || false,
+      mass_payment_code: fc.mass_payment_code || null,
+      external_id: fc.external_id || null,
+      company: fc.company || false,
+      title: fc.title || null,
+      register_number: fc.register_number || null,
+      tax_no_check: fc.tax_no_check || null,
+      disable_auto_reminders: fc.disable_auto_reminders || false,
+      created_at: fc.created_at || null,
+      updated_at: fc.updated_at || new Date().toISOString(),
+
+      // Our custom fields
       list_polecony: null,
       total_unpaid: 0, // Will calculate from invoices
-      updated_at: new Date().toISOString(),
     }));
 
     // Step 2: Save clients to Supabase
