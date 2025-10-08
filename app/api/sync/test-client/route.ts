@@ -27,16 +27,48 @@ export async function POST(request: NextRequest) {
       console.log(`[TestSync] Found client: ${clientData.name}`);
 
       await clientsDb.bulkUpsert([{
+        // Fakturownia fields (1:1 mapping)
         id: clientData.id,
         name: clientData.name || null,
-        first_name: null,
-        last_name: null,
+        first_name: clientData.first_name || null,
+        last_name: clientData.last_name || null,
+        tax_no: clientData.tax_no || null,
+        post_code: clientData.post_code || null,
+        city: clientData.city || null,
+        street: clientData.street || null,
+        street_no: clientData.street_no || null,
+        country: clientData.country || null,
         email: clientData.email || null,
         phone: clientData.phone || null,
+        mobile_phone: clientData.mobile_phone || null,
+        www: clientData.www || null,
+        fax: clientData.fax || null,
         note: clientData.note || null,
+        bank: clientData.bank || null,
+        bank_account: clientData.bank_account || null,
+        shortcut: clientData.shortcut || null,
+        kind: clientData.kind || null,
+        token: clientData.token || null,
+        discount: clientData.discount || null,
+        payment_to_kind: clientData.payment_to_kind || null,
+        category_id: clientData.category_id || null,
+        use_delivery_address: clientData.use_delivery_address || false,
+        delivery_address: clientData.delivery_address || null,
+        person: clientData.person || null,
+        use_mass_payment: clientData.use_mass_payment || false,
+        mass_payment_code: clientData.mass_payment_code || null,
+        external_id: clientData.external_id || null,
+        company: clientData.company || false,
+        title: clientData.title || null,
+        register_number: clientData.register_number || null,
+        tax_no_check: clientData.tax_no_check || null,
+        disable_auto_reminders: clientData.disable_auto_reminders || false,
+        created_at: clientData.created_at || null,
+        updated_at: clientData.updated_at || new Date().toISOString(),
+
+        // Our custom fields
         list_polecony: false,
         total_unpaid: 0,
-        updated_at: new Date().toISOString(),
       }]);
 
       console.log(`[TestSync] Client ${client_id} synced successfully via bulkUpsert`);

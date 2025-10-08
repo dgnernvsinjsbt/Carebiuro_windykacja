@@ -1,18 +1,52 @@
-// Database types (Supabase)
+// Database types (Supabase) - Maps 1:1 with Fakturownia Client fields + our custom fields
 export interface Client {
+  // Fakturownia fields (exact mapping)
   id: number;
   name: string | null;
-  first_name: string | null; // Imię klienta z Fakturowni
-  last_name: string | null; // Nazwisko klienta z Fakturowni
+  first_name: string | null;
+  last_name: string | null;
+  tax_no: string | null;
+  post_code: string | null;
+  city: string | null;
+  street: string | null;
+  street_no: string | null;
+  country: string | null;
   email: string | null;
   phone: string | null;
-  total_unpaid: number | null;
-  note: string | null; // Komentarz z Fakturowni zawierający [WINDYKACJA] i [LIST_POLECONY]
-  list_polecony: boolean | null; // Flaga oznaczająca klienta kwalifikującego się do listu poleconego
+  mobile_phone: string | null;
+  www: string | null;
+  fax: string | null;
+  note: string | null; // Komentarz z Fakturowni zawierający [WINDYKACJA]
+  bank: string | null;
+  bank_account: string | null;
+  shortcut: string | null;
+  kind: string | null;
+  token: string | null;
+  discount: number | null;
+  payment_to_kind: string | null;
+  category_id: number | null;
+  use_delivery_address: boolean | null;
+  delivery_address: string | null;
+  person: string | null;
+  use_mass_payment: boolean | null;
+  mass_payment_code: string | null;
+  external_id: string | null;
+  company: boolean | null;
+  title: string | null;
+  register_number: string | null;
+  tax_no_check: string | null;
+  disable_auto_reminders: boolean | null;
+  created_at: string | null;
   updated_at: string | null;
-  invoice_count?: number; // Added dynamically in UI
-  total_debt?: number; // Added dynamically for list polecony
-  qualifies_for_list_polecony?: boolean; // Added dynamically for list polecony
+
+  // Our custom fields
+  total_unpaid: number | null; // Calculated from unpaid invoices
+  list_polecony: boolean | null; // Flaga oznaczająca klienta kwalifikującego się do listu poleconego
+
+  // UI dynamic fields (not in database)
+  invoice_count?: number;
+  total_debt?: number;
+  qualifies_for_list_polecony?: boolean;
 }
 
 export interface Invoice {
@@ -126,14 +160,41 @@ export interface FakturowniaInvoice {
 export interface FakturowniaClient {
   id: number;
   name: string;
+  first_name: string;
+  last_name: string;
+  tax_no: string;
+  post_code: string;
+  city: string;
+  street: string;
+  street_no: string | null;
+  country: string;
   email: string;
   phone: string;
-  tax_no: string;
-  street: string;
-  city: string;
-  post_code: string;
-  country: string;
+  mobile_phone: string;
+  www: string | null;
+  fax: string | null;
   note: string; // Komentarz klienta - używamy do [WINDYKACJA]
+  bank: string | null;
+  bank_account: string | null;
+  shortcut: string;
+  kind: string;
+  token: string;
+  discount: number | null;
+  payment_to_kind: string | null;
+  category_id: number | null;
+  use_delivery_address: boolean;
+  delivery_address: string;
+  person: string | null;
+  use_mass_payment: boolean;
+  mass_payment_code: string | null;
+  external_id: string | null;
+  company: boolean;
+  title: string | null;
+  register_number: string | null;
+  tax_no_check: string;
+  disable_auto_reminders: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // Fiscal Sync structure
