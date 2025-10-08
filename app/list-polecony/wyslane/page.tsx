@@ -16,33 +16,22 @@ export const dynamic = 'force-dynamic';
 async function getWyslaneClients() {
   const supabase = supabaseAdmin;
 
-  // OPTIMIZED: Pobierz TYLKO klientów z flagą [LIST_POLECONY]true w note
-  // WYKLUCZAMY klientów zignorowanych (z flagą [LIST_POLECONY_IGNORED]true)
-  const { data: wyslaneClientsData, error: clientsError } = await supabase()
+  // Pobierz WSZYSTKICH klientów (filtrowanie po fakturach, nie po kliencie)
+  const { data: allClients, error: clientsError } = await supabase()
     .from('clients')
-    .select('*')
-    .like('note', '%[LIST_POLECONY]true%')
-    .not('note', 'like', '%[LIST_POLECONY_IGNORED]true%');
+    .select('*');
 
   if (clientsError) {
     console.error('[ListPolecony Wysłane] Error fetching clients:', clientsError);
     return [];
   }
 
-  console.log(`[ListPolecony Wysłane] Fetched ${wyslaneClientsData?.length || 0} clients with [LIST_POLECONY]true`);
+  console.log(`[ListPolecony Wysłane] Fetched ${allClients?.length || 0} total clients`);
 
-  // Pobierz client_ids
-  const clientIds = wyslaneClientsData?.map(c => c.id) || [];
-
-  if (clientIds.length === 0) {
-    return [];
-  }
-
-  // Pobierz faktury z [LIST_POLECONY]true ORAZ [LIST_POLECONY_IGNORED]false
+  // Pobierz WSZYSTKIE faktury z [LIST_POLECONY]true i [LIST_POLECONY_IGNORED]false
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .in('client_id', clientIds)
     .like('internal_note', '%[LIST_POLECONY]true%')
     .like('internal_note', '%[LIST_POLECONY_IGNORED]false%');
 
@@ -62,6 +51,12 @@ async function getWyslaneClients() {
     }
     clientInvoicesMap.get(invoice.client_id)!.push(invoice);
   }
+
+  // Filtruj klientów - tylko ci którzy mają faktury
+  const clientIdsWithInvoices = Array.from(clientInvoicesMap.keys());
+  const wyslaneClientsData = allClients?.filter(c => clientIdsWithInvoices.includes(c.id)) || [];
+
+  console.log(`[ListPolecony Wysłane] ${wyslaneClientsData.length} clients have invoices with LIST_POLECONY=true and IGNORED=false`);
 
   // Oblicz statystyki dla każdego klienta
   const wyslaneClients = wyslaneClientsData.map((client) => {

@@ -16,33 +16,22 @@ export const dynamic = 'force-dynamic';
 async function getIgnorowaneClients() {
   const supabase = supabaseAdmin;
 
-  // Pobierz TYLKO klientów z flagą [LIST_POLECONY_IGNORED]true w note
-  const { data: ignorowaneClientsData, error: clientsError } = await supabase()
+  // Pobierz WSZYSTKICH klientów (filtrowanie po fakturach, nie po kliencie)
+  const { data: allClients, error: clientsError } = await supabase()
     .from('clients')
-    .select('*')
-    .like('note', '%[LIST_POLECONY_IGNORED]true%');
+    .select('*');
 
   if (clientsError) {
     console.error('[ListPolecony Ignorowane] Error fetching clients:', clientsError);
     return [];
   }
 
-  console.log(`[ListPolecony Ignorowane] Fetched ${ignorowaneClientsData?.length || 0} ignored clients`);
+  console.log(`[ListPolecony Ignorowane] Fetched ${allClients?.length || 0} total clients`);
 
-  // Pobierz client_ids
-  const clientIds = ignorowaneClientsData?.map(c => c.id) || [];
-
-  if (clientIds.length === 0) {
-    return [];
-  }
-
-  console.log('[ListPolecony Ignorowane] Looking for invoices with client_ids:', clientIds);
-
-  // Pobierz faktury z DOKŁADNIE [LIST_POLECONY_IGNORED]true
+  // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_IGNORED]true
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .in('client_id', clientIds)
     .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
   if (invoicesError) {
@@ -70,6 +59,12 @@ async function getIgnorowaneClients() {
     }
     clientInvoicesMap.get(invoice.client_id)!.push(invoice);
   }
+
+  // Filtruj klientów - tylko ci którzy mają faktury
+  const clientIdsWithInvoices = Array.from(clientInvoicesMap.keys());
+  const ignorowaneClientsData = allClients?.filter(c => clientIdsWithInvoices.includes(c.id)) || [];
+
+  console.log(`[ListPolecony Ignorowane] ${ignorowaneClientsData.length} clients have invoices with IGNORED=true`);
 
   // Oblicz statystyki dla każdego klienta
   const ignorowaneClients = ignorowaneClientsData.map((client) => {
