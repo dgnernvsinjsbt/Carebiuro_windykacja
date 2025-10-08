@@ -64,11 +64,11 @@ export async function GET(request: NextRequest) {
         if (filters.messageType && type !== filters.messageType) continue;
 
         for (const level of levels) {
-          const flagKey = `${type.toUpperCase()}_${level}` as any;
-          const dateKey = `${type.toUpperCase()}_${level}_DATE` as any;
+          const flagKey = `${type.toUpperCase()}_${level}`;
+          const dateKey = `${type.toUpperCase()}_${level}_DATE`;
 
-          const wasSent = fiscalSync[flagKey];
-          const sentDate = fiscalSync[dateKey];
+          const wasSent = (fiscalSync as any)[flagKey];
+          const sentDate = (fiscalSync as any)[dateKey];
 
           if (wasSent && sentDate) {
             // Filter by date range if specified
