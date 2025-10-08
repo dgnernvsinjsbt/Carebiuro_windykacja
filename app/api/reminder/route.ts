@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
         await messageHistoryDb.logMessage({
           client_id: invoice.client_id,
           invoice_id: invoice.id,
-          invoice_number: invoice.number,
+          invoice_number: invoice.number || `INV-${invoice.id}`,
           client_name: invoice.buyer_name || 'Unknown',
           message_type: type,
           level: level as 1 | 2 | 3,
