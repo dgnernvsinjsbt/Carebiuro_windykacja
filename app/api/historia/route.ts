@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
 
 /**
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     console.log('[Historia] Fetching invoices with FISCAL_SYNC flags:', filters);
 
     // Fetch invoices with internal_note (contains FISCAL_SYNC from Fakturownia)
-    let query = supabase()
+    let query = supabaseAdmin()
       .from('invoices')
       .select('id, number, client_id, internal_note, total, currency, buyer_name, issue_date')
       .not('internal_note', 'is', null);
