@@ -87,7 +87,7 @@ export const clientsDb = {
     const { data, error } = await getSupabase()
       .from('clients')
       .select('*')
-      .eq('fakturownia_id', fakturowniaId)
+      .eq('id', fakturowniaId)
       .single();
 
     if (error) throw error;
@@ -235,14 +235,15 @@ export const invoicesDb = {
    * Get invoice by ID
    */
   async getById(id: number) {
+    // Use limit(1) instead of single() to handle potential duplicates gracefully
     const { data, error } = await getSupabase()
       .from('invoices')
       .select('*')
       .eq('id', id)
-      .single();
+      .limit(1);
 
     if (error) throw error;
-    return data as Invoice;
+    return data && data.length > 0 ? (data[0] as Invoice) : null;
   },
 
   /**
@@ -252,7 +253,7 @@ export const invoicesDb = {
     const { data, error } = await getSupabase()
       .from('invoices')
       .select('*')
-      .eq('fakturownia_id', fakturowniaId)
+      .eq('id', fakturowniaId)
       .single();
 
     if (error) throw error;
@@ -354,7 +355,7 @@ export const invoicesDb = {
     const { data, error } = await getSupabaseAdmin()
       .from('invoices')
       .upsert(invoices, {
-        onConflict: 'fakturownia_id',
+        onConflict: 'id',
         ignoreDuplicates: false,
       })
       .select();
