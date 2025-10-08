@@ -239,15 +239,15 @@ export async function POST(request: NextRequest) {
 
       console.log('Usunięto pliki tymczasowe');
 
-      // Aktualizuj flagę [LIST_POLECONY]true dla wygenerowanych klientów
-      console.log('Aktualizowanie flag [LIST_POLECONY] dla klientów...');
-      const { setListPolecony } = await import('@/lib/client-flags');
+      // Aktualizuj flagę [LIST_POLECONY_STATUS]sent dla wygenerowanych klientów
+      console.log('Aktualizowanie flag [LIST_POLECONY_STATUS]sent dla klientów...');
+      const { setListPoleconyStatusSent: setClientStatus } = await import('@/lib/client-flags-v2');
       const { fakturowniaApi } = await import('@/lib/fakturownia');
 
       const updatePromises = clients.map(async (client) => {
         try {
-          // Zaktualizuj note z flagą (wszystkie 3 flagi w jednej linii)
-          const updatedNote = setListPolecony(client.note, true);
+          // Zaktualizuj note z flagą status=sent
+          const updatedNote = setClientStatus(client.note, today);
           console.log(`[Update] Client ${client.id} - old note:`, client.note);
           console.log(`[Update] Client ${client.id} - new note:`, updatedNote);
 
