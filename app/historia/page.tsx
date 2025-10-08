@@ -431,7 +431,7 @@ function MessageBadge({ message }: { message: Message }) {
       <span>{getLabel()}</span>
       {message.status === 'failed' && <AlertCircle className="w-3 h-3" />}
       {message.status === 'sent' && <CheckCircle className="w-3 h-3" />}
-      {message.is_auto_initial && <span className="ml-1 text-[10px]">🤖</span>}
+      {message.is_auto_initial && message.level !== 1 && <span className="ml-1 text-[10px]">🤖</span>}
       <span className="text-[10px] opacity-70">{time}</span>
     </div>
   );

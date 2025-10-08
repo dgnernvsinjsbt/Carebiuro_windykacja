@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { setListPoleconyIgnored } from '@/lib/client-flags';
-import { setListPoleconyIgnoredOnInvoice } from '@/lib/invoice-flags';
+import { setListPoleconyIgnoredOnInvoice, parseInvoiceFlags } from '@/lib/invoice-flags';
 
 // Force dynamic rendering - don't evaluate at build time
 export const dynamic = 'force-dynamic';
@@ -59,12 +59,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Pobierz faktury z list_polecony = true dla tych klientów (czyli te które były wysłane)
+    // Pobierz faktury z [LIST_POLECONY]true w internal_note dla tych klientów (czyli te które były wysłane)
     const { data: invoices, error: invoicesError } = await supabaseAdmin()
       .from('invoices')
       .select('*')
       .in('client_id', clientIds)
-      .eq('list_polecony', true);
+      .like('internal_note', '%[LIST_POLECONY]true%');
 
     if (invoicesError) {
       console.error('[ListPolecony Ignore] Error fetching invoices:', invoicesError);
@@ -117,7 +117,12 @@ export async function POST(request: NextRequest) {
         const todayStr = today.toISOString().split('T')[0];
         const updatedComment = setListPoleconyIgnoredOnInvoice(invoice.internal_note || '', todayStr);
 
+        // Parsuj datę wysłania z internal_note
+        const flags = parseInvoiceFlags(invoice.internal_note);
+        const sentDate = flags.listPoleconySentDate || todayStr;
+
         console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
+        console.log(`[Update Invoice] ${invoice.id} - sent_date:`, sentDate);
 
         // 1. Zaktualizuj w Supabase
         const { error: supabaseError } = await supabaseAdmin()
@@ -125,7 +130,8 @@ export async function POST(request: NextRequest) {
           .update({
             internal_note: updatedComment,
             list_polecony_ignored: true, // boolean flag
-            list_polecony_ignored_date: today.toISOString() // zachowaj datę dla historii
+            list_polecony_ignored_date: today.toISOString(), // zachowaj datę dla historii
+            list_polecony_sent_date: sentDate // data wysłania listu
           })
           .eq('id', invoice.id);
 

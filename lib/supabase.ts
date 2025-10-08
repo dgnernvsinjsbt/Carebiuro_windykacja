@@ -539,7 +539,7 @@ export const messageHistoryDb = {
     messageType?: 'email' | 'sms' | 'whatsapp';
     limit?: number;
   }) {
-    let query = getSupabase()
+    let query = getSupabaseAdmin()
       .from('message_history')
       .select('*')
       .order('sent_at', { ascending: false });
