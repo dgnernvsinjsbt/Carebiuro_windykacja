@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
         invoice_id,
         type,
         level,
-        updated_comment: updatedComment,
+        updated_internal_note: updatedInternalNote,
       },
     });
   } catch (error: any) {
