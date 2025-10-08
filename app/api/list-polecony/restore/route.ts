@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { setListPoleconyIgnored } from '@/lib/client-flags';
-import { setListPoleconyIgnoredToFalse, parseInvoiceFlags } from '@/lib/invoice-flags';
+import { clearListPoleconyStatus, parseInvoiceFlags } from '@/lib/invoice-flags';
 import { fakturowniaApi } from '@/lib/fakturownia';
 
 // Force dynamic rendering - don't evaluate at build time
@@ -73,23 +73,18 @@ export async function POST(request: NextRequest) {
         console.error(`[ListPolecony Restore] Error updating client ${client.id} in Fakturownia:`, apiError);
       }
 
-      // Pobierz faktury z flagą IGNORED dla tego klienta
-      // PostgreSQL LIKE ma problem z [] - filtrujemy po stronie aplikacji
-      const { data: allInvoices } = await supabaseAdmin()
+      // Pobierz faktury ze status=ignore dla tego klienta
+      const { data: ignoredInvoices } = await supabaseAdmin()
         .from('invoices')
         .select('*')
         .eq('client_id', client.id)
-        .not('internal_note', 'is', null);
-
-      const ignoredInvoices = allInvoices?.filter(inv =>
-        inv.internal_note?.includes('[LIST_POLECONY_IGNORED]true')
-      );
+        .like('internal_note', '%[LIST_POLECONY_STATUS]ignore%');
 
       console.log(`[ListPolecony Restore] Found ${ignoredInvoices?.length || 0} ignored invoices for client ${client.id}`);
 
-      // Usuń flagę IGNORED z każdej faktury
+      // Usuń flagę STATUS z każdej faktury (ustaw na null = brak statusu)
       for (const invoice of ignoredInvoices || []) {
-        const updatedInternalNote = setListPoleconyIgnoredToFalse(invoice.internal_note);
+        const updatedInternalNote = clearListPoleconyStatus(invoice.internal_note);
 
         // Aktualizuj w Supabase
         const { error: invoiceError } = await supabaseAdmin()
@@ -97,7 +92,8 @@ export async function POST(request: NextRequest) {
           .update({
             internal_note: updatedInternalNote,
             list_polecony_ignored: false,
-            list_polecony_ignored_date: null
+            list_polecony_ignored_date: null,
+            list_polecony_sent_date: null
           })
           .eq('id', invoice.id);
 

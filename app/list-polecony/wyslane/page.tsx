@@ -28,12 +28,11 @@ async function getWyslaneClients() {
 
   console.log(`[ListPolecony Wysłane] Fetched ${allClients?.length || 0} total clients`);
 
-  // Pobierz WSZYSTKIE faktury z [LIST_POLECONY]true i [LIST_POLECONY_IGNORED]false
+  // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_STATUS]sent
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[LIST_POLECONY]true%')
-    .like('internal_note', '%[LIST_POLECONY_IGNORED]false%');
+    .like('internal_note', '%[LIST_POLECONY_STATUS]sent%');
 
   if (invoicesError) {
     console.error('[ListPolecony Wysłane] Error fetching invoices:', invoicesError);
@@ -56,7 +55,7 @@ async function getWyslaneClients() {
   const clientIdsWithInvoices = Array.from(clientInvoicesMap.keys());
   const wyslaneClientsData = allClients?.filter(c => clientIdsWithInvoices.includes(c.id)) || [];
 
-  console.log(`[ListPolecony Wysłane] ${wyslaneClientsData.length} clients have invoices with LIST_POLECONY=true and IGNORED=false`);
+  console.log(`[ListPolecony Wysłane] ${wyslaneClientsData.length} clients have invoices with STATUS=sent`);
 
   // Oblicz statystyki dla każdego klienta
   const wyslaneClients = wyslaneClientsData.map((client) => {
@@ -70,8 +69,8 @@ async function getWyslaneClients() {
     // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)
     const earliestSentDate = invoices.reduce((earliest, inv) => {
       const flags = parseInvoiceFlags(inv.internal_note);
-      if (!flags.listPoleconySentDate) return earliest;
-      const invDate = new Date(flags.listPoleconySentDate);
+      if (!flags.listPoleconyStatusDate) return earliest;
+      const invDate = new Date(flags.listPoleconyStatusDate);
       return !earliest || invDate < earliest ? invDate : earliest;
     }, null as Date | null);
 

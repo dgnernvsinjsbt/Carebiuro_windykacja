@@ -2,17 +2,16 @@
  * Funkcje do zarządzania flagami faktur w internal_note
  *
  * Flagi są zapisywane w formacie:
- * [LIST_POLECONY]true[/LIST_POLECONY]
- * [LIST_POLECONY_SENT_DATE]2025-09-01[/LIST_POLECONY_SENT_DATE]
- * [LIST_POLECONY_IGNORED]true[/LIST_POLECONY_IGNORED]
- * [LIST_POLECONY_IGNORED_DATE]2025-09-01[/LIST_POLECONY_IGNORED_DATE]
+ * [LIST_POLECONY_STATUS]sent[/LIST_POLECONY_STATUS] - wysłany list polecony
+ * [LIST_POLECONY_STATUS]ignore[/LIST_POLECONY_STATUS] - zignorowany
+ * [LIST_POLECONY_STATUS_DATE]2025-09-01[/LIST_POLECONY_STATUS_DATE]
  */
 
+export type ListPoleconyStatus = 'sent' | 'ignore' | null;
+
 export interface InvoiceFlags {
-  listPolecony: boolean;
-  listPoleconySentDate: string | null;
-  listPoleconyIgnored: boolean;
-  listPoleconyIgnoredDate: string | null;
+  listPoleconyStatus: ListPoleconyStatus;
+  listPoleconyStatusDate: string | null;
 }
 
 /**
@@ -21,27 +20,17 @@ export interface InvoiceFlags {
 export function parseInvoiceFlags(internalNote: string | null | undefined): InvoiceFlags {
   const note = internalNote || '';
 
-  // Parsuj flagę LIST_POLECONY (czytaj rzeczywistą wartość true/false)
-  const listPoleconyMatch = note.match(/\[LIST_POLECONY\](true|false)\[\/LIST_POLECONY\]/);
-  const listPolecony = listPoleconyMatch ? listPoleconyMatch[1] === 'true' : false;
+  // Parsuj status LIST_POLECONY (sent/ignore)
+  const statusMatch = note.match(/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]/);
+  const listPoleconyStatus: ListPoleconyStatus = statusMatch ? (statusMatch[1] as ListPoleconyStatus) : null;
 
-  // Parsuj datę wysłania
-  const sentDateMatch = note.match(/\[LIST_POLECONY_SENT_DATE\](.*?)\[\/LIST_POLECONY_SENT_DATE\]/);
-  const listPoleconySentDate = sentDateMatch && sentDateMatch[1] ? sentDateMatch[1] : null;
-
-  // Parsuj flagę IGNORED (czytaj rzeczywistą wartość true/false)
-  const listPoleconyIgnoredMatch = note.match(/\[LIST_POLECONY_IGNORED\](true|false)\[\/LIST_POLECONY_IGNORED\]/);
-  const listPoleconyIgnored = listPoleconyIgnoredMatch ? listPoleconyIgnoredMatch[1] === 'true' : false;
-
-  // Parsuj datę ignorowania
-  const ignoredDateMatch = note.match(/\[LIST_POLECONY_IGNORED_DATE\](.*?)\[\/LIST_POLECONY_IGNORED_DATE\]/);
-  const listPoleconyIgnoredDate = ignoredDateMatch && ignoredDateMatch[1] ? ignoredDateMatch[1] : null;
+  // Parsuj datę
+  const dateMatch = note.match(/\[LIST_POLECONY_STATUS_DATE\](.*?)\[\/LIST_POLECONY_STATUS_DATE\]/);
+  const listPoleconyStatusDate = dateMatch && dateMatch[1] ? dateMatch[1] : null;
 
   return {
-    listPolecony,
-    listPoleconySentDate,
-    listPoleconyIgnored,
-    listPoleconyIgnoredDate,
+    listPoleconyStatus,
+    listPoleconyStatusDate,
   };
 }
 
@@ -55,50 +44,36 @@ export function updateInvoiceFlags(
 ): string {
   let note = internalNote || '';
 
-  // Aktualizuj TYLKO przekazane flagi, nie dotykaj innych!
+  // 1. LIST_POLECONY_STATUS
+  if (updates.listPoleconyStatus !== undefined) {
+    // Usuń stare tagi (dla migracji ze starego formatu)
+    note = note.replace(/\[LIST_POLECONY\](true|false)\[\/LIST_POLECONY\]\n?/g, '');
+    note = note.replace(/\[LIST_POLECONY_IGNORED\](true|false)\[\/LIST_POLECONY_IGNORED\]\n?/g, '');
+    note = note.replace(/\[LIST_POLECONY_SENT_DATE\].*?\[\/LIST_POLECONY_SENT_DATE\]\n?/g, '');
+    note = note.replace(/\[LIST_POLECONY_IGNORED_DATE\].*?\[\/LIST_POLECONY_IGNORED_DATE\]\n?/g, '');
 
-  // 1. LIST_POLECONY
-  if (updates.listPolecony !== undefined) {
-    if (/\[LIST_POLECONY\](true|false)\[\/LIST_POLECONY\]/.test(note)) {
-      note = note.replace(/\[LIST_POLECONY\](true|false)\[\/LIST_POLECONY\]/, `[LIST_POLECONY]${updates.listPolecony}[/LIST_POLECONY]`);
-    } else {
-      note = `[LIST_POLECONY]${updates.listPolecony}[/LIST_POLECONY]\n${note}`;
-    }
-  }
-
-  // 2. LIST_POLECONY_SENT_DATE
-  if (updates.listPoleconySentDate !== undefined) {
-    if (updates.listPoleconySentDate === null) {
+    if (updates.listPoleconyStatus === null) {
       // Usuń tag jeśli null
-      note = note.replace(/\[LIST_POLECONY_SENT_DATE\].*?\[\/LIST_POLECONY_SENT_DATE\]\n?/g, '');
+      note = note.replace(/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]\n?/g, '');
     } else {
-      if (/\[LIST_POLECONY_SENT_DATE\]/.test(note)) {
-        note = note.replace(/\[LIST_POLECONY_SENT_DATE\].*?\[\/LIST_POLECONY_SENT_DATE\]/, `[LIST_POLECONY_SENT_DATE]${updates.listPoleconySentDate}[/LIST_POLECONY_SENT_DATE]`);
+      if (/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]/.test(note)) {
+        note = note.replace(/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]/, `[LIST_POLECONY_STATUS]${updates.listPoleconyStatus}[/LIST_POLECONY_STATUS]`);
       } else {
-        note = `[LIST_POLECONY_SENT_DATE]${updates.listPoleconySentDate}[/LIST_POLECONY_SENT_DATE]\n${note}`;
+        note = `[LIST_POLECONY_STATUS]${updates.listPoleconyStatus}[/LIST_POLECONY_STATUS]\n${note}`;
       }
     }
   }
 
-  // 3. LIST_POLECONY_IGNORED
-  if (updates.listPoleconyIgnored !== undefined) {
-    if (/\[LIST_POLECONY_IGNORED\](true|false)\[\/LIST_POLECONY_IGNORED\]/.test(note)) {
-      note = note.replace(/\[LIST_POLECONY_IGNORED\](true|false)\[\/LIST_POLECONY_IGNORED\]/, `[LIST_POLECONY_IGNORED]${updates.listPoleconyIgnored}[/LIST_POLECONY_IGNORED]`);
-    } else {
-      note = `[LIST_POLECONY_IGNORED]${updates.listPoleconyIgnored}[/LIST_POLECONY_IGNORED]\n${note}`;
-    }
-  }
-
-  // 4. LIST_POLECONY_IGNORED_DATE
-  if (updates.listPoleconyIgnoredDate !== undefined) {
-    if (updates.listPoleconyIgnoredDate === null) {
+  // 2. LIST_POLECONY_STATUS_DATE
+  if (updates.listPoleconyStatusDate !== undefined) {
+    if (updates.listPoleconyStatusDate === null) {
       // Usuń tag jeśli null
-      note = note.replace(/\[LIST_POLECONY_IGNORED_DATE\].*?\[\/LIST_POLECONY_IGNORED_DATE\]\n?/g, '');
+      note = note.replace(/\[LIST_POLECONY_STATUS_DATE\].*?\[\/LIST_POLECONY_STATUS_DATE\]\n?/g, '');
     } else {
-      if (/\[LIST_POLECONY_IGNORED_DATE\]/.test(note)) {
-        note = note.replace(/\[LIST_POLECONY_IGNORED_DATE\].*?\[\/LIST_POLECONY_IGNORED_DATE\]/, `[LIST_POLECONY_IGNORED_DATE]${updates.listPoleconyIgnoredDate}[/LIST_POLECONY_IGNORED_DATE]`);
+      if (/\[LIST_POLECONY_STATUS_DATE\]/.test(note)) {
+        note = note.replace(/\[LIST_POLECONY_STATUS_DATE\].*?\[\/LIST_POLECONY_STATUS_DATE\]/, `[LIST_POLECONY_STATUS_DATE]${updates.listPoleconyStatusDate}[/LIST_POLECONY_STATUS_DATE]`);
       } else {
-        note = `[LIST_POLECONY_IGNORED_DATE]${updates.listPoleconyIgnoredDate}[/LIST_POLECONY_IGNORED_DATE]\n${note}`;
+        note = `[LIST_POLECONY_STATUS_DATE]${updates.listPoleconyStatusDate}[/LIST_POLECONY_STATUS_DATE]\n${note}`;
       }
     }
   }
@@ -110,48 +85,39 @@ export function updateInvoiceFlags(
 }
 
 /**
- * Ustawia flagę LIST_POLECONY i datę wysłania
+ * Ustawia status=sent (list polecony został wysłany)
  */
-export function setListPoleconyOnInvoice(
+export function setListPoleconyStatusSent(
   internalNote: string | null | undefined,
   sentDate: string
 ): string {
   return updateInvoiceFlags(internalNote, {
-    listPolecony: true,
-    listPoleconySentDate: sentDate,
+    listPoleconyStatus: 'sent',
+    listPoleconyStatusDate: sentDate,
   });
 }
 
 /**
- * Ustawia flagę LIST_POLECONY_IGNORED i datę ignorowania
+ * Ustawia status=ignore (klient zignorowany)
  */
-export function setListPoleconyIgnoredOnInvoice(
+export function setListPoleconyStatusIgnore(
   internalNote: string | null | undefined,
   ignoredDate: string
 ): string {
   return updateInvoiceFlags(internalNote, {
-    listPoleconyIgnored: true,
-    listPoleconyIgnoredDate: ignoredDate,
+    listPoleconyStatus: 'ignore',
+    listPoleconyStatusDate: ignoredDate,
   });
 }
 
 /**
- * Ustawia flagę IGNORED na false (przywraca fakturę)
+ * Usuwa status (przywraca do stanu początkowego)
  */
-export function setListPoleconyIgnoredToFalse(
+export function clearListPoleconyStatus(
   internalNote: string | null | undefined
 ): string {
   return updateInvoiceFlags(internalNote, {
-    listPoleconyIgnored: false,
-    listPoleconyIgnoredDate: null,
+    listPoleconyStatus: null,
+    listPoleconyStatusDate: null,
   });
-}
-
-/**
- * @deprecated Użyj setListPoleconyIgnoredToFalse() - nazwa jest bardziej jasna
- */
-export function removeListPoleconyIgnoredFromInvoice(
-  internalNote: string | null | undefined
-): string {
-  return setListPoleconyIgnoredToFalse(internalNote);
 }

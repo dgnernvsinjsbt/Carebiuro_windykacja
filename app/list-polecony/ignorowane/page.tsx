@@ -28,11 +28,11 @@ async function getIgnorowaneClients() {
 
   console.log(`[ListPolecony Ignorowane] Fetched ${allClients?.length || 0} total clients`);
 
-  // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_IGNORED]true
+  // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_STATUS]ignore
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
+    .like('internal_note', '%[LIST_POLECONY_STATUS]ignore%');
 
   if (invoicesError) {
     console.error('[ListPolecony Ignorowane] Error fetching invoices:', invoicesError);
@@ -64,7 +64,7 @@ async function getIgnorowaneClients() {
   const clientIdsWithInvoices = Array.from(clientInvoicesMap.keys());
   const ignorowaneClientsData = allClients?.filter(c => clientIdsWithInvoices.includes(c.id)) || [];
 
-  console.log(`[ListPolecony Ignorowane] ${ignorowaneClientsData.length} clients have invoices with IGNORED=true`);
+  console.log(`[ListPolecony Ignorowane] ${ignorowaneClientsData.length} clients have invoices with STATUS=ignore`);
 
   // Oblicz statystyki dla każdego klienta
   const ignorowaneClients = ignorowaneClientsData.map((client) => {
@@ -75,11 +75,11 @@ async function getIgnorowaneClients() {
       return sum + (inv.outstanding || 0);
     }, 0);
 
-    // Znajdź najwcześniejszą datę WYSŁANIA (parsuj z internal_note)
+    // Znajdź najwcześniejszą datę IGNOROWANIA (parsuj z internal_note)
     const earliestSentDate = invoices.reduce((earliest, inv) => {
       const flags = parseInvoiceFlags(inv.internal_note);
-      if (!flags.listPoleconySentDate) return earliest;
-      const invDate = new Date(flags.listPoleconySentDate);
+      if (!flags.listPoleconyStatusDate) return earliest;
+      const invDate = new Date(flags.listPoleconyStatusDate);
       return !earliest || invDate < earliest ? invDate : earliest;
     }, null as Date | null);
 

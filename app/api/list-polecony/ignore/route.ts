@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { setListPoleconyIgnored } from '@/lib/client-flags';
-import { setListPoleconyIgnoredOnInvoice, parseInvoiceFlags } from '@/lib/invoice-flags';
+import { setListPoleconyStatusIgnore, parseInvoiceFlags } from '@/lib/invoice-flags';
 
 // Force dynamic rendering - don't evaluate at build time
 export const dynamic = 'force-dynamic';
@@ -59,18 +59,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Pobierz faktury z [LIST_POLECONY]true w internal_note dla tych klientów (czyli te które były wysłane)
+    // Pobierz faktury z [LIST_POLECONY_STATUS]sent w internal_note dla tych klientów (czyli te które były wysłane)
     const { data: invoices, error: invoicesError } = await supabaseAdmin()
       .from('invoices')
       .select('*')
       .in('client_id', clientIds)
-      .like('internal_note', '%[LIST_POLECONY]true%');
+      .like('internal_note', '%[LIST_POLECONY_STATUS]sent%');
 
     if (invoicesError) {
       console.error('[ListPolecony Ignore] Error fetching invoices:', invoicesError);
     }
 
-    console.log(`[ListPolecony Ignore] Znaleziono ${invoices?.length || 0} faktur z [LIST_POLECONY]true`);
+    console.log(`[ListPolecony Ignore] Znaleziono ${invoices?.length || 0} faktur z [LIST_POLECONY_STATUS]sent`);
 
     if (invoices && invoices.length > 0) {
       console.log('[ListPolecony Ignore] Przykładowa faktura przed aktualizacją:', {
@@ -128,30 +128,30 @@ export async function POST(request: NextRequest) {
     await Promise.all(updateClientPromises);
     console.log('Zakończono aktualizację flag klientów');
 
-    // Zaktualizuj flagę [LIST_POLECONY_IGNORED]true na fakturach z trzecim upomnieniem
-    console.log('[ListPolecony Ignore] Aktualizowanie flag na fakturach...');
+    // Zaktualizuj status=ignore na fakturach
+    console.log('[ListPolecony Ignore] Aktualizowanie status=ignore na fakturach...');
 
     const invoiceUpdatePromises = (invoices || []).map(async (invoice) => {
       try {
-        // Dodaj flagę [LIST_POLECONY_IGNORED]true + datę do komentarza
+        // Ustaw status=ignore + datę
         const todayStr = today.toISOString().split('T')[0];
-        const updatedComment = setListPoleconyIgnoredOnInvoice(invoice.internal_note || '', todayStr);
+        const updatedInternalNote = setListPoleconyStatusIgnore(invoice.internal_note || '', todayStr);
 
-        // Parsuj datę wysłania z internal_note
+        // Parsuj datę z internal_note
         const flags = parseInvoiceFlags(invoice.internal_note);
-        const sentDate = flags.listPoleconySentDate || todayStr;
+        const statusDate = flags.listPoleconyStatusDate || todayStr;
 
-        console.log(`[Update Invoice] ${invoice.id} - new comment:`, updatedComment);
-        console.log(`[Update Invoice] ${invoice.id} - sent_date:`, sentDate);
+        console.log(`[Update Invoice] ${invoice.id} - new internal_note:`, updatedInternalNote);
+        console.log(`[Update Invoice] ${invoice.id} - status_date:`, statusDate);
 
         // 1. Zaktualizuj w Supabase
         const { error: supabaseError } = await supabaseAdmin()
           .from('invoices')
           .update({
-            internal_note: updatedComment,
-            list_polecony_ignored: true, // boolean flag
+            internal_note: updatedInternalNote,
+            list_polecony_ignored: true, // boolean flag (stary format dla kompatybilności)
             list_polecony_ignored_date: today.toISOString(), // zachowaj datę dla historii
-            list_polecony_sent_date: sentDate // data wysłania listu
+            list_polecony_sent_date: statusDate // data
           })
           .eq('id', invoice.id);
 
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
 
         // 2. Zaktualizuj w Fakturowni
         await fakturowniaApi.updateInvoice(invoice.id, {
-          internal_note: updatedComment
+          internal_note: updatedInternalNote
         });
         console.log(`✓ Fakturownia zaktualizowana: invoice ${invoice.id}`);
       } catch (err) {
