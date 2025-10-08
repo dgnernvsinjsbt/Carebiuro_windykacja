@@ -1,12 +1,40 @@
 import { FakturowniaInvoice, FakturowniaClient } from '@/types';
 
-const API_TOKEN = process.env.FAKTUROWNIA_API_TOKEN!;
-const ACCOUNT = process.env.FAKTUROWNIA_ACCOUNT!;
-const BASE_URL = `https://${ACCOUNT}.fakturownia.pl`;
+// Lazy initialization - only validate when actually used
+let _apiToken: string | null = null;
+let _account: string | null = null;
+let _baseUrl: string | null = null;
 
-if (!API_TOKEN || !ACCOUNT) {
-  throw new Error('Missing Fakturownia environment variables');
+function getApiToken(): string {
+  if (!_apiToken) {
+    _apiToken = process.env.FAKTUROWNIA_API_TOKEN || '';
+    if (!_apiToken) {
+      throw new Error('Missing FAKTUROWNIA_API_TOKEN environment variable');
+    }
+  }
+  return _apiToken;
 }
+
+function getAccount(): string {
+  if (!_account) {
+    _account = process.env.FAKTUROWNIA_ACCOUNT || '';
+    if (!_account) {
+      throw new Error('Missing FAKTUROWNIA_ACCOUNT environment variable');
+    }
+  }
+  return _account;
+}
+
+function getBaseUrl(): string {
+  if (!_baseUrl) {
+    _baseUrl = `https://${getAccount()}.fakturownia.pl`;
+  }
+  return _baseUrl;
+}
+
+const API_TOKEN = getApiToken;
+const ACCOUNT = getAccount;
+const BASE_URL = getBaseUrl;
 
 /**
  * Rate limiter for Fakturownia API
@@ -94,7 +122,7 @@ async function fakturowniaRequest<T>(
   // Rate limiting
   await rateLimiter.wait();
 
-  const url = `${BASE_URL}${endpoint}${endpoint.includes('?') ? '&' : '?'}api_token=${API_TOKEN}`;
+  const url = `${BASE_URL()}${endpoint}${endpoint.includes('?') ? '&' : '?'}api_token=${API_TOKEN()}`;
 
   console.log(`[Fakturownia] ${options.method || 'GET'} ${endpoint}`);
 
