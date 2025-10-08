@@ -2,13 +2,13 @@
  * API Route: Restore Ignored Clients
  *
  * Usuwa flagi [LIST_POLECONY_IGNORED] z klientów i faktur,
- * przywracając ich do zakładki "Do wysłania"
+ * przywracając ich do zakładki "Wysłane"
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { setListPoleconyIgnored } from '@/lib/client-flags';
-import { removeListPoleconyIgnoredFromInvoice, parseInvoiceFlags } from '@/lib/invoice-flags';
+import { setListPoleconyIgnoredToFalse, parseInvoiceFlags } from '@/lib/invoice-flags';
 import { fakturowniaApi } from '@/lib/fakturownia';
 
 // Force dynamic rendering - don't evaluate at build time
@@ -44,15 +44,17 @@ export async function POST(request: NextRequest) {
 
     console.log(`[ListPolecony Restore] Found ${clients?.length || 0} clients to restore`);
 
-    let totalInvoicesSynced = 0;
+    let totalInvoicesRestored = 0;
 
-    // 3. Aktualizuj klientów + zsynchronizuj wszystkie faktury z Fakturowni
+    // 2. Dla każdego klienta: usuń flagę IGNORED z klienta i faktur
     for (const client of clients || []) {
-      console.log(`[ListPolecony Restore] Client ${client.id} before:`, client.note);
-      const updatedNote = setListPoleconyIgnored(client.note, false);
-      console.log(`[ListPolecony Restore] Client ${client.id} after:`, updatedNote);
+      console.log(`[ListPolecony Restore] Processing client ${client.id}...`);
 
-      // Aktualizuj w Supabase
+      // Usuń flagę z klienta
+      const updatedNote = setListPoleconyIgnored(client.note, false);
+      console.log(`[ListPolecony Restore] Client ${client.id} note updated`);
+
+      // Aktualizuj klienta w Supabase
       const { error: updateError } = await supabaseAdmin()
         .from('clients')
         .update({ note: updatedNote })
@@ -63,86 +65,62 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Aktualizuj w Fakturowni
+      // Aktualizuj klienta w Fakturowni
       try {
         await fakturowniaApi.updateClient(client.id, { note: updatedNote });
-        console.log(`[ListPolecony Restore] ✓ Restored client ${client.id}`);
+        console.log(`[ListPolecony Restore] ✓ Client ${client.id} restored in Fakturownia`);
       } catch (apiError) {
         console.error(`[ListPolecony Restore] Error updating client ${client.id} in Fakturownia:`, apiError);
       }
 
-      // PEŁNA SYNCHRONIZACJA FAKTUR z Fakturowni
-      // KROK 1: Najpierw ustaw IGNORED=false w Fakturowni dla faktur z flagą
-      try {
-        console.log(`[ListPolecony Restore] Restoring invoices with IGNORED flag for client ${client.id}...`);
+      // Pobierz faktury z flagą IGNORED dla tego klienta
+      const { data: ignoredInvoices } = await supabaseAdmin()
+        .from('invoices')
+        .select('*')
+        .eq('client_id', client.id)
+        .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
-        // Pobierz faktury z Supabase które mają IGNORED=true w internal_note
-        const { data: ignoredInvoices } = await supabaseAdmin()
+      console.log(`[ListPolecony Restore] Found ${ignoredInvoices?.length || 0} ignored invoices for client ${client.id}`);
+
+      // Usuń flagę IGNORED z każdej faktury
+      for (const invoice of ignoredInvoices || []) {
+        const updatedInternalNote = setListPoleconyIgnoredToFalse(invoice.internal_note);
+
+        // Aktualizuj w Supabase
+        const { error: invoiceError } = await supabaseAdmin()
           .from('invoices')
-          .select('*')
-          .eq('client_id', client.id)
-          .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
+          .update({
+            internal_note: updatedInternalNote,
+            list_polecony_ignored: false,
+            list_polecony_ignored_date: null
+          })
+          .eq('id', invoice.id);
 
-        for (const invoice of ignoredInvoices || []) {
-          const updatedComment = removeListPoleconyIgnoredFromInvoice(invoice.internal_note);
-
-          // Aktualizuj w Fakturowni NAJPIERW
-          try {
-            await fakturowniaApi.updateInvoice(invoice.id, {
-              internal_note: updatedComment,
-            });
-            console.log(`[ListPolecony Restore] ✓ Restored invoice ${invoice.id} in Fakturownia`);
-          } catch (apiError) {
-            console.error(`[ListPolecony Restore] Error updating invoice ${invoice.id} in Fakturownia:`, apiError);
-          }
-        }
-      } catch (error) {
-        console.error(`[ListPolecony Restore] Error restoring invoices in Fakturownia:`, error);
-      }
-
-      // KROK 2: Teraz zsynchronizuj wszystkie faktury z Fakturowni do Supabase
-      try {
-        console.log(`[ListPolecony Restore] Syncing all invoices for client ${client.id}...`);
-        const fakturowniaInvoices = await fakturowniaApi.getInvoicesByClientId(client.id);
-        console.log(`[ListPolecony Restore] Fetched ${fakturowniaInvoices.length} invoices for client ${client.id}`);
-
-        for (const invoice of fakturowniaInvoices) {
-          // Parsuj flagi z internal_note (teraz już zaktualizowane w Fakturowni)
-          const flags = parseInvoiceFlags(invoice.internal_note);
-
-          // Aktualizuj fakturę w Supabase
-          const { error: invoiceError } = await supabaseAdmin()
-            .from('invoices')
-            .update({
-              internal_note: invoice.internal_note || '',
-              list_polecony: flags.listPolecony,
-              list_polecony_sent_date: flags.listPoleconySentDate,
-              list_polecony_ignored: flags.listPoleconyIgnored,
-              list_polecony_ignored_date: flags.listPoleconyIgnoredDate,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', invoice.id);
-
-          if (invoiceError) {
-            console.error(`[ListPolecony Restore] Error updating invoice ${invoice.id}:`, invoiceError);
-          } else {
-            totalInvoicesSynced++;
-          }
+        if (invoiceError) {
+          console.error(`[ListPolecony Restore] Error updating invoice ${invoice.id} in Supabase:`, invoiceError);
+          continue;
         }
 
-        console.log(`[ListPolecony Restore] ✓ Synced ${fakturowniaInvoices.length} invoices for client ${client.id}`);
-      } catch (syncError) {
-        console.error(`[ListPolecony Restore] Error syncing invoices for client ${client.id}:`, syncError);
+        // Aktualizuj w Fakturowni
+        try {
+          await fakturowniaApi.updateInvoice(invoice.id, {
+            internal_note: updatedInternalNote
+          });
+          console.log(`[ListPolecony Restore] ✓ Invoice ${invoice.id} restored in Fakturownia`);
+          totalInvoicesRestored++;
+        } catch (apiError) {
+          console.error(`[ListPolecony Restore] Error updating invoice ${invoice.id} in Fakturownia:`, apiError);
+        }
       }
     }
 
-    console.log(`[ListPolecony Restore] ✓ Restoration complete - ${clients?.length || 0} clients, ${totalInvoicesSynced} invoices synced`);
+    console.log(`[ListPolecony Restore] ✓ Restoration complete - ${clients?.length || 0} clients, ${totalInvoicesRestored} invoices`);
 
     return NextResponse.json({
       success: true,
       message: `Przywrócono ${clients?.length || 0} klientów`,
       clients_restored: clients?.length || 0,
-      invoices_synced: totalInvoicesSynced,
+      invoices_restored: totalInvoicesRestored,
     });
   } catch (error: any) {
     console.error('[ListPolecony Restore] Error:', error);
