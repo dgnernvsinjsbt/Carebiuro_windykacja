@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { supabaseAdmin } from '@/lib/supabase';
+import { clientsDb, supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -26,32 +26,26 @@ export async function POST(request: NextRequest) {
       const clientData = await fakturowniaApi.getClient(client_id);
       console.log(`[TestSync] Found client: ${clientData.name}`);
 
-      const { error: clientError } = await supabaseAdmin()
-        .from('clients')
-        .upsert({
-          id: clientData.id,
-          name: clientData.name || null,
-          first_name: null,
-          last_name: null,
-          email: clientData.email || null,
-          phone: clientData.phone || null,
-          note: clientData.note || null,
-          list_polecony: false,
-          total_unpaid: 0,
-          updated_at: new Date().toISOString(),
-        });
+      await clientsDb.bulkUpsert([{
+        id: clientData.id,
+        name: clientData.name || null,
+        first_name: null,
+        last_name: null,
+        email: clientData.email || null,
+        phone: clientData.phone || null,
+        note: clientData.note || null,
+        list_polecony: false,
+        total_unpaid: 0,
+        updated_at: new Date().toISOString(),
+      }]);
 
-      if (clientError) {
-        console.error(`[TestSync] Error upserting client:`, clientError);
-        return NextResponse.json(
-          { success: false, error: `Client upsert failed: ${clientError.message}` },
-          { status: 500 }
-        );
-      } else {
-        console.log(`[TestSync] Client ${client_id} synced successfully`);
-      }
-    } catch (clientErr) {
+      console.log(`[TestSync] Client ${client_id} synced successfully via bulkUpsert`);
+    } catch (clientErr: any) {
       console.error(`[TestSync] Failed to sync client:`, clientErr);
+      return NextResponse.json(
+        { success: false, error: `Client sync failed: ${clientErr.message}` },
+        { status: 500 }
+      );
     }
 
     // Fetch invoices from Fakturownia
