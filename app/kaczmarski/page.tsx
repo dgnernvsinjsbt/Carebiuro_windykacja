@@ -81,10 +81,9 @@ async function getKaczmarskiClients() {
   const kaczmarskiClients = clients.map((client) => {
     const invoices = clientInvoicesMap.get(client.id) || [];
 
-    // Oblicz zadłużenie (suma outstanding = total - paid dla każdej faktury)
+    // Oblicz zadłużenie (suma outstanding z kolumny outstanding)
     const totalDebt = invoices.reduce((sum, invoice) => {
-      const outstanding = (invoice.total || 0) - (invoice.paid || 0);
-      return sum + outstanding;
+      return sum + (invoice.outstanding || 0);
     }, 0);
 
     // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)

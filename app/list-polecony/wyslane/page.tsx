@@ -66,10 +66,9 @@ async function getWyslaneClients() {
   const wyslaneClients = wyslaneClientsData.map((client) => {
     const invoices = clientInvoicesMap.get(client.id) || [];
 
-    // Oblicz zadłużenie (suma balance = total - paid ze wszystkich faktur z list_polecony)
+    // Oblicz zadłużenie (suma outstanding ze wszystkich faktur z list_polecony)
     const totalDebt = invoices.reduce((sum, inv) => {
-      const balance = (inv.total || 0) - (inv.paid || 0);
-      return sum + balance;
+      return sum + (inv.outstanding || 0);
     }, 0);
 
     // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)

@@ -64,10 +64,9 @@ async function getIgnorowaneClients() {
   const ignorowaneClients = ignorowaneClientsData.map((client) => {
     const invoices = clientInvoicesMap.get(client.id) || [];
 
-    // Oblicz zadłużenie (suma balance = total - paid ze wszystkich faktur zignorowanych)
+    // Oblicz zadłużenie (suma outstanding ze wszystkich faktur zignorowanych)
     const totalDebt = invoices.reduce((sum, inv) => {
-      const balance = (inv.total || 0) - (inv.paid || 0);
-      return sum + balance;
+      return sum + (inv.outstanding || 0);
     }, 0);
 
     // Znajdź najwcześniejszą datę WYSŁANIA (parsuj z internal_note)
