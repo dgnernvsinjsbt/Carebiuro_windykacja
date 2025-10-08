@@ -43,6 +43,10 @@ export async function POST(request: NextRequest) {
 
       if (clientError) {
         console.error(`[TestSync] Error upserting client:`, clientError);
+        return NextResponse.json(
+          { success: false, error: `Client upsert failed: ${clientError.message}` },
+          { status: 500 }
+        );
       } else {
         console.log(`[TestSync] Client ${client_id} synced successfully`);
       }
