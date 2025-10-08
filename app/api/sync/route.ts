@@ -9,6 +9,10 @@ import { Client, Invoice, FakturowniaInvoice, FakturowniaClient } from '@/types'
  * PROTECTED: Only accessible via cron job with secret header
  * Runs daily at midnight (00:00)
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     // Security: Verify cron secret

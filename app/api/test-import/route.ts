@@ -8,6 +8,10 @@ import { Client, Invoice, FakturowniaInvoice, FakturowniaClient } from '@/types'
  * Safe test import: 10 clients + their invoices
  * With rate limiting protection
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[Test Import] Starting safe import of 10 clients...');

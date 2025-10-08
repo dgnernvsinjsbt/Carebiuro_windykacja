@@ -13,6 +13,10 @@ import { fakturowniaApi } from '@/lib/fakturownia';
 import { setListPoleconyIgnored } from '@/lib/client-flags';
 import { setListPoleconyIgnoredOnInvoice } from '@/lib/invoice-flags';
 
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     let clientIds: number[] = [];

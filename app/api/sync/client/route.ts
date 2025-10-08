@@ -12,6 +12,10 @@ import { Invoice, FakturowniaInvoice } from '@/types';
  * 4. Fetch all invoices for this client from Fakturownia
  * 5. Insert fresh invoice data into Supabase
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

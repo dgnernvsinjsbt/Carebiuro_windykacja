@@ -3,6 +3,10 @@ import { fakturowniaApi } from '@/lib/fakturownia';
 import { supabase, invoicesDb } from '@/lib/supabase';
 import { Invoice, FakturowniaInvoice } from '@/types';
 
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

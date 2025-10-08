@@ -18,6 +18,10 @@ import { messageHistoryDb } from '@/lib/supabase';
  *
  * This endpoint should be called by a cron job at 8:00 AM daily
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     // Security: Verify cron secret

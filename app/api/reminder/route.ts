@@ -23,6 +23,10 @@ const ReminderSchema = z.object({
  * 5. Update invoice in Supabase
  * 6. Log action to invoice_comments
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

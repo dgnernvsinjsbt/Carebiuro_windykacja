@@ -10,6 +10,10 @@ import { messageHistoryDb } from '@/lib/supabase';
  * - endDate: ISO date string
  * - days: number of days to look back (default 30)
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

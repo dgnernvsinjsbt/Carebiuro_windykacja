@@ -12,6 +12,10 @@ const ToggleStopSchema = z.object({
  * GET /api/invoice/[id]
  * Get invoice details with client info and fiscal sync data
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

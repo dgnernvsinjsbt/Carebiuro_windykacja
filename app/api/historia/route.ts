@@ -12,6 +12,10 @@ import { messageHistoryDb } from '@/lib/supabase';
  * - messageType: 'email' | 'sms' | 'whatsapp'
  * - limit: number (default 100)
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

@@ -11,6 +11,10 @@ import { supabase } from '@/lib/supabase';
 import { qualifiesForListPolecony, calculateTotalDebt, getInvoicesWithThirdReminder } from '@/lib/list-polecony-logic';
 import { updateListPolecony } from '@/lib/list-polecony-parser';
 
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     // supabase client already initialized in lib

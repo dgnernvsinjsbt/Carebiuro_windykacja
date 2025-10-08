@@ -8,6 +8,10 @@ import { setWindykacja } from '@/lib/client-flags';
  *
  * Aktualizuje pole "note" klienta w Fakturowni dodając/zmieniając tag [WINDYKACJA]true/false[/WINDYKACJA]
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }

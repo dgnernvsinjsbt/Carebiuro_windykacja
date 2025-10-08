@@ -14,6 +14,10 @@ import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
  * - SMS_1 not sent yet
  * - Has unpaid balance (total - paid > 0)
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const { client_id } = await request.json();

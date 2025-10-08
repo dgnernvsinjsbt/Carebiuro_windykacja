@@ -10,6 +10,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const { clientId } = await request.json();

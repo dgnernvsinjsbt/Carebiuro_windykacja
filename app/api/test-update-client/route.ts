@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST() {
   try {
     const clientId = 211779362;

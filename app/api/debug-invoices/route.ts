@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { fakturowniaApi } from '@/lib/fakturownia';
 
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
     const clientId = 211779362;

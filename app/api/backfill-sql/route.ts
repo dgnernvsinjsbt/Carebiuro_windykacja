@@ -7,6 +7,10 @@ import { supabaseAdmin } from '@/lib/supabase';
  * Fast backfill using SQL function instead of row-by-row updates
  * Parses [FISCAL_SYNC] tags and updates has_third_reminder for ALL invoices
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[Backfill SQL] Starting SQL-based backfill...');

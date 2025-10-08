@@ -6,6 +6,10 @@ import { fakturowniaApi } from '@/lib/fakturownia';
  * Fetch client details (email, phone) from Fakturownia
  * Used for lazy loading on client detail page
  */
+// Force dynamic rendering - don't evaluate at build time
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
