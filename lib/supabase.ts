@@ -44,24 +44,22 @@ function getSupabaseAdmin(): SupabaseClient {
   return _supabaseAdmin;
 }
 
-// Export as getters that call functions lazily
-export const supabase = {
-  get from() { return getSupabase().from.bind(getSupabase()); },
-  get auth() { return getSupabase().auth; },
-  get storage() { return getSupabase().storage; },
-  get functions() { return getSupabase().functions; },
-  get channel() { return getSupabase().channel.bind(getSupabase()); },
-  get rpc() { return getSupabase().rpc.bind(getSupabase()); },
-} as SupabaseClient;
+// Export as Proxy for proper lazy initialization
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabase();
+    const value = (client as any)[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  }
+});
 
-export const supabaseAdmin = {
-  get from() { return getSupabaseAdmin().from.bind(getSupabaseAdmin()); },
-  get auth() { return getSupabaseAdmin().auth; },
-  get storage() { return getSupabaseAdmin().storage; },
-  get functions() { return getSupabaseAdmin().functions; },
-  get channel() { return getSupabaseAdmin().channel.bind(getSupabaseAdmin()); },
-  get rpc() { return getSupabaseAdmin().rpc.bind(getSupabaseAdmin()); },
-} as SupabaseClient;
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabaseAdmin();
+    const value = (client as any)[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  }
+});
 
 /**
  * Database operations for Clients table
