@@ -8,9 +8,8 @@ import { Invoice, FakturowniaInvoice } from '@/types';
  * Sync data for a specific client:
  * 1. Fetch client data from Fakturownia (including note with WINDYKACJA tag)
  * 2. Update client in Supabase
- * 3. Delete all invoices for this client from Supabase
- * 4. Fetch all invoices for this client from Fakturownia
- * 5. Insert fresh invoice data into Supabase
+ * 3. Fetch all invoices for this client from Fakturownia
+ * 4. Upsert invoice data into Supabase (update existing, insert new)
  */
 // Force dynamic rendering - don't evaluate at build time
 export const dynamic = 'force-dynamic';
@@ -60,29 +59,12 @@ export async function POST(request: NextRequest) {
       console.log('[SyncClient] ✓ Client updated');
     }
 
-    // STEP 3: Delete all invoices for this client from Supabase
-    console.log(`[SyncClient] Deleting existing invoices for client ${client_id}...`);
-    const { error: deleteError } = await supabase()
-      .from('invoices')
-      .delete()
-      .eq('client_id', client_id);
-
-    if (deleteError) {
-      console.error('[SyncClient] Error deleting invoices:', deleteError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to delete existing invoices' },
-        { status: 500 }
-      );
-    }
-
-    console.log('[SyncClient] ✓ Deleted existing invoices');
-
-    // STEP 2: Fetch all invoices for this client from Fakturownia
+    // STEP 3: Fetch all invoices for this client from Fakturownia
     console.log(`[SyncClient] Fetching invoices from Fakturownia for client ${client_id}...`);
     const clientInvoices = await fakturowniaApi.getInvoicesByClientId(client_id, 1000);
     console.log(`[SyncClient] Fetched ${clientInvoices.length} invoices from Fakturownia`);
 
-    // STEP 3: Transform and insert into Supabase
+    // STEP 4: Transform and upsert into Supabase
     const invoicesToSync: Invoice[] = clientInvoices.map((fi: FakturowniaInvoice) => ({
       id: fi.id,
       client_id: fi.client_id,

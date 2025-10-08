@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   number TEXT,
   total NUMERIC,
   status TEXT,
-  comment TEXT, -- internal_note z Fakturowni (zawiera [FISCAL_SYNC])
+  internal_note TEXT, -- Komentarz wewnętrzny z Fakturowni (zawiera [FISCAL_SYNC])
   email_status TEXT,
   sent_time TIMESTAMP,
   updated_at TIMESTAMP DEFAULT now(),
