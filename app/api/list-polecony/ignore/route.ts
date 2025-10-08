@@ -10,7 +10,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { setListPoleconyIgnored } from '@/lib/client-flags';
 import { setListPoleconyStatusIgnore, parseInvoiceFlags } from '@/lib/invoice-flags';
 
 // Force dynamic rendering - don't evaluate at build time
@@ -92,15 +91,16 @@ export async function POST(request: NextRequest) {
       })));
     }
 
-    // Zaktualizuj flagę [LIST_POLECONY_IGNORED]true dla klientów
+    // Zaktualizuj flagę [LIST_POLECONY_STATUS]ignore dla klientów
     console.log('[ListPolecony Ignore] Aktualizowanie flag klientów...');
     const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
 
     const updateClientPromises = clients.map(async (client) => {
       try {
-        // Zaktualizuj note z flagą IGNORED=true (wszystkie 3 flagi w jednej linii)
+        // Użyj nowego formatu [LIST_POLECONY_STATUS]ignore
         console.log(`[Update Client] ${client.id} - current note:`, client.note);
-        const updatedNote = setListPoleconyIgnored(client.note, true);
+        const updatedNote = setListPoleconyStatusIgnore(client.note || '', todayStr);
         console.log(`[Update Client] ${client.id} - updated note:`, updatedNote);
 
         // 1. Zaktualizuj w Supabase
