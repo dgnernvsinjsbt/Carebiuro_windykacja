@@ -13,6 +13,7 @@ import KaczmarskiTable from '@/components/KaczmarskiTable';
 import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getKaczmarskiClients() {
   const supabase = supabaseAdmin;
@@ -23,12 +24,12 @@ async function getKaczmarskiClients() {
 
   console.log(`[Kaczmarski] Szukam faktur wysłanych przed: ${thirtyOneDaysAgo.toISOString()}`);
 
-  // KROK 1: Pobierz wszystkie faktury z [LIST_POLECONY]true w internal_note
+  // KROK 1: Pobierz wszystkie faktury z [LIST_POLECONY_STATUS]sent w internal_note
   // (potem filtrujemy po dacie w kodzie)
   const { data: allInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[LIST_POLECONY]true%')
+    .like('internal_note', '%[LIST_POLECONY_STATUS]sent%')
     .neq('status', 'paid');
 
   if (invoicesError) {
@@ -36,11 +37,17 @@ async function getKaczmarskiClients() {
     return [];
   }
 
-  // Filtruj faktury: tylko te wysłane ≥31 dni temu
+  // Filtruj faktury: tylko te ze status=sent i datą ≥31 dni temu
   const qualifyingInvoices = (allInvoices || []).filter(inv => {
     const flags = parseInvoiceFlags(inv.internal_note);
+
+    // Musi mieć status=sent
+    if (flags.listPoleconyStatus !== 'sent') return false;
+
+    // Musi mieć datę
     if (!flags.listPoleconyStatusDate) return false;
 
+    // Data musi być ≥31 dni temu
     const sentDate = new Date(flags.listPoleconyStatusDate);
     return sentDate <= thirtyOneDaysAgo;
   });
