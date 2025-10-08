@@ -84,16 +84,48 @@ export async function POST(request: NextRequest) {
         const newClients: Client[] = newClientIds.map(clientId => {
           const invoiceData = clientDataMap.get(clientId)!;
           return {
+            // Fakturownia fields (minimal from invoice data)
             id: clientId,
             name: invoiceData.buyer_name || `Client ${clientId}`,
             first_name: null,
             last_name: null,
+            tax_no: invoiceData.buyer_tax_no || null,
+            post_code: invoiceData.buyer_post_code || null,
+            city: invoiceData.buyer_city || null,
+            street: invoiceData.buyer_street || null,
+            street_no: null,
+            country: invoiceData.buyer_country || null,
             email: invoiceData.buyer_email || null,
             phone: invoiceData.buyer_phone || null,
-            total_unpaid: 0, // Will be calculated at the end from Supabase
+            mobile_phone: null,
+            www: null,
+            fax: null,
             note: null,
-            list_polecony: null,
+            bank: null,
+            bank_account: null,
+            shortcut: null,
+            kind: null,
+            token: null,
+            discount: null,
+            payment_to_kind: null,
+            category_id: null,
+            use_delivery_address: null,
+            delivery_address: null,
+            person: null,
+            use_mass_payment: null,
+            mass_payment_code: null,
+            external_id: null,
+            company: null,
+            title: null,
+            register_number: null,
+            tax_no_check: null,
+            disable_auto_reminders: null,
+            created_at: null,
             updated_at: new Date().toISOString(),
+
+            // Our custom fields
+            total_unpaid: 0,
+            list_polecony: null,
           };
         });
 
@@ -225,15 +257,9 @@ export async function POST(request: NextRequest) {
         .select('*');
 
       const clientsToUpdate: Client[] = (existingClients || []).map(client => ({
-        id: client.id,
-        name: client.name,
-        first_name: client.first_name,
-        last_name: client.last_name,
-        email: client.email,
-        phone: client.phone,
+        ...client, // Keep all existing fields
         note: clientNotesMap.get(client.id) || client.note || null, // Update note from Fakturownia
-        list_polecony: client.list_polecony,
-        total_unpaid: clientTotalsMap.get(client.id) || 0,
+        total_unpaid: clientTotalsMap.get(client.id) || 0, // Update calculated total
         updated_at: new Date().toISOString(),
       }));
 
