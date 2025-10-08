@@ -36,6 +36,8 @@ async function getIgnorowaneClients() {
     return [];
   }
 
+  console.log('[ListPolecony Ignorowane] Looking for invoices with client_ids:', clientIds);
+
   // Pobierz faktury z flagą [LIST_POLECONY_IGNORED]true dla klientów zignorowanych
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
@@ -48,6 +50,30 @@ async function getIgnorowaneClients() {
   }
 
   console.log(`[ListPolecony Ignorowane] Fetched ${clientInvoices?.length || 0} ignored invoices`);
+
+  if (clientInvoices && clientInvoices.length > 0) {
+    console.log('[ListPolecony Ignorowane] Example invoice:', {
+      id: clientInvoices[0].id,
+      client_id: clientInvoices[0].client_id,
+      outstanding: clientInvoices[0].outstanding,
+      internal_note_preview: clientInvoices[0].internal_note?.substring(0, 150)
+    });
+  } else {
+    // Debug: sprawdź czy są JAKIEKOLWIEK faktury dla tych klientów
+    const { data: allInvoices } = await supabase()
+      .from('invoices')
+      .select('id, client_id, outstanding, internal_note')
+      .in('client_id', clientIds)
+      .limit(3);
+    console.log('[ListPolecony Ignorowane] DEBUG - All invoices for these clients (max 3):', allInvoices?.map(i => ({
+      id: i.id,
+      client_id: i.client_id,
+      outstanding: i.outstanding,
+      has_internal_note: !!i.internal_note,
+      has_ignored_flag: i.internal_note?.includes('[LIST_POLECONY_IGNORED]true'),
+      internal_note_start: i.internal_note?.substring(0, 100)
+    })));
+  }
 
   // Grupuj faktury po client_id
   const clientInvoicesMap = new Map<number, any[]>();
