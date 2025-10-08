@@ -506,7 +506,8 @@ export default function ListPoleconyTable({ clients, hideGenerateButton = false,
                   key={client.id}
                   onClick={(e) => {
                     // Don't navigate if clicking checkbox
-                    if ((e.target as HTMLElement).type === 'checkbox') return;
+                    const target = e.target as HTMLElement;
+                    if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox') return;
                     router.push(`/client/${client.id}`);
                   }}
                   className={`hover:bg-gray-50 transition-colors cursor-pointer ${
