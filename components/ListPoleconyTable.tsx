@@ -517,10 +517,15 @@ export default function ListPoleconyTable({ clients, hideGenerateButton = false,
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-900">
-                      {client.name || 'Brak nazwy'}
-                    </div>
-                    <div className="text-xs text-gray-500">ID: {client.id}</div>
+                    <button
+                      onClick={() => router.push(`/client/${client.id}`)}
+                      className="text-left hover:text-teal-600 transition-colors"
+                    >
+                      <div className="text-sm font-medium text-gray-900 hover:underline">
+                        {client.name || 'Brak nazwy'}
+                      </div>
+                      <div className="text-xs text-gray-500">ID: {client.id}</div>
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className="text-sm text-gray-600">
