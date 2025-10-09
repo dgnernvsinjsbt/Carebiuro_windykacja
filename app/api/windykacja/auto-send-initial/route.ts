@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fakturowniaApi } from '@/lib/fakturownia';
 import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
-import { messageHistoryDb } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Auto-send E1, S1, W1 (initial informational messages) for newly issued invoices
@@ -13,10 +12,11 @@ import { messageHistoryDb } from '@/lib/supabase';
  * - Issued in last 3 days (based on issue_date)
  * - Not paid (status != 'paid')
  * - Not canceled (kind != 'canceled')
- * - E1, S1, or W1 not sent yet (respective flag is false)
+ * - E1, S1, or W1 not sent yet (respective flag is false in [FISCAL_SYNC])
  * - Has unpaid balance (total - paid > 0)
  *
- * This endpoint should be called by a cron job at 8:00 AM daily
+ * Data source: Supabase (already synced by /api/sync full sync at midnight)
+ * This endpoint is called by Vercel Cron at 8:00 AM daily (vercel.json)
  */
 // Force dynamic rendering - don't evaluate at build time
 export const dynamic = 'force-dynamic';
@@ -44,19 +44,26 @@ export async function POST(request: NextRequest) {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     threeDaysAgo.setHours(0, 0, 0, 0);
+    const threeDaysAgoIso = threeDaysAgo.toISOString();
 
-    console.log(`[AutoSendInitial] Looking for invoices issued after ${threeDaysAgo.toISOString()}`);
+    console.log(`[AutoSendInitial] Looking for invoices issued after ${threeDaysAgoIso}`);
 
-    // Fetch recent invoices from Fakturownia (last 7 days to be safe)
-    // We'll filter down to 3 days in code
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const dateFilter = sevenDaysAgo.toISOString().split('T')[0]; // YYYY-MM-DD
+    // Fetch recent invoices from Supabase (already synced by full sync at midnight)
+    console.log('[AutoSendInitial] Fetching invoices from Supabase...');
 
-    console.log('[AutoSendInitial] Fetching invoices from Fakturownia...');
+    const { data: allInvoices, error } = await supabase()
+      .from('invoices')
+      .select('*')
+      .gte('issue_date', threeDaysAgoIso)
+      .order('issue_date', { ascending: false });
 
-    // Fetch all invoices (we'll filter by date in code since Fakturownia API is limited)
-    const allInvoices = await fakturowniaApi.getAllInvoices(500);
+    if (error) {
+      console.error('[AutoSendInitial] Error fetching invoices:', error);
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch invoices from database' },
+        { status: 500 }
+      );
+    }
 
     if (!allInvoices || allInvoices.length === 0) {
       console.log('[AutoSendInitial] No invoices found');
@@ -67,7 +74,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`[AutoSendInitial] Found ${allInvoices.length} total invoices, filtering...`);
+    console.log(`[AutoSendInitial] Found ${allInvoices.length} total invoices from last 3 days, filtering...`);
 
     // Filter invoices eligible for E1/S1/W1 auto-send
     const eligibleInvoices = allInvoices.filter((invoice) => {
@@ -81,23 +88,21 @@ export async function POST(request: NextRequest) {
         return false;
       }
 
-      // Skip if no unpaid balance
-      const balance = parseFloat(invoice.price_gross || '0') - parseFloat(invoice.paid || '0');
+      // Skip if no unpaid balance (using 'total' and 'paid' from Supabase schema)
+      const total = invoice.total || 0;
+      const paid = invoice.paid || 0;
+      const balance = total - paid;
       if (balance <= 0) {
         return false;
       }
 
-      // Check if invoice was issued in last 3 days
+      // Issue date already filtered by SQL query (.gte('issue_date', threeDaysAgoIso))
+      // But we keep this check for safety
       if (!invoice.issue_date) {
         return false;
       }
 
-      const issueDate = new Date(invoice.issue_date);
-      if (issueDate < threeDaysAgo) {
-        return false;
-      }
-
-      // Parse fiscal sync data
+      // Parse fiscal sync data from internal_note
       const fiscalSync = parseFiscalSync(invoice.internal_note);
 
       // Check if any of E1, S1, W1 need to be sent
