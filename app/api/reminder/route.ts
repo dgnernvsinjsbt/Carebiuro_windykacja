@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (type === 'email') {
       // Send email directly via Mailgun
-      console.log(`[Reminder] Sending email via Mailgun for ${fieldName}`);
+      console.log(`[Reminder] Sending email via Mailgun for EMAIL_${level}`);
 
       const emailData = {
         client_name: invoice.buyer_name || invoice.buyer_company || 'Klient',
