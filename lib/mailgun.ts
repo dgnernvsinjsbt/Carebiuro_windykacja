@@ -22,7 +22,7 @@ function replacePlaceholders(template: string, data: EmailData): string {
 async function downloadInvoicePdf(invoiceId: number): Promise<Buffer | null> {
   try {
     const token = process.env.FAKTUROWNIA_API_TOKEN;
-    const accountName = process.env.FAKTUROWNIA_ACCOUNT_NAME;
+    const accountName = process.env.FAKTUROWNIA_ACCOUNT;
 
     if (!token || !accountName) {
       console.error('[Mailgun] Missing Fakturownia credentials');
