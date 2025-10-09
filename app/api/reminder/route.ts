@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Reminder] Sending email via Mailgun for EMAIL_${level}`);
 
       const emailData = {
-        client_name: invoice.buyer_name || invoice.buyer_company || 'Klient',
+        client_name: invoice.buyer_name || 'Klient',
         invoice_number: invoice.number || `#${invoice.id}`,
         amount: `€${((invoice.total || 0) - (invoice.paid || 0)).toFixed(2)}`,
         due_date: invoice.payment_to
