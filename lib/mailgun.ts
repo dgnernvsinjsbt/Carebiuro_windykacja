@@ -116,9 +116,12 @@ export async function sendEmailReminder(
 
     // Załącz PDF jeśli dostępny
     if (pdfBuffer) {
-      // Konwertuj Buffer na Blob i dodaj jako attachment
-      const pdfBlob = new Blob([pdfBuffer.buffer], { type: 'application/pdf' });
-      formData.append('attachment', pdfBlob, `faktura_${emailData.invoice_number}.pdf`);
+      // Konwertuj Buffer na File przez Uint8Array (type-safe dla Web API)
+      const uint8Array = new Uint8Array(pdfBuffer);
+      const pdfFile = new File([uint8Array], `faktura_${emailData.invoice_number}.pdf`, {
+        type: 'application/pdf'
+      });
+      formData.append('attachment', pdfFile);
       console.log(`[Mailgun] Attached PDF: faktura_${emailData.invoice_number}.pdf`);
     }
 
