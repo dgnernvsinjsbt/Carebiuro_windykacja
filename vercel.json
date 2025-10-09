@@ -7,14 +7,6 @@
     {
       "path": "/api/sync",
       "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/",
-      "schedule": "* 7-22 * * *"
-    },
-    {
-      "path": "/",
-      "schedule": "*/5 23,0-6 * * *"
     }
   ]
 }

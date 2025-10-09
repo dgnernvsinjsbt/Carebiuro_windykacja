@@ -6,6 +6,13 @@ import { Client } from '@/types';
 import { parseWindykacja } from '@/lib/windykacja-parser';
 import WindykacjaToggle from './WindykacjaToggle';
 
+// Warm cache on component mount
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    fetch('/', { method: 'HEAD' }).catch(() => {});
+  }, 100);
+}
+
 interface ClientsTableProps {
   clients: Client[];
 }
