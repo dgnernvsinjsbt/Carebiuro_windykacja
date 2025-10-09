@@ -32,12 +32,13 @@ export function plainTextToHtml(plainText: string): string {
     html = html.replace(/\bOSTATECZNE przypomnienie\b/gi, '<strong style="color: #d32f2f;">OSTATECZNE przypomnienie</strong>');
     html = html.replace(/\bDrugie przypomnienie\b/gi, '<strong>Drugie przypomnienie</strong>');
 
-    // INLINE STYLES dla każdego paragrafu (zamiast <style> tag - kompatybilność z Gmail/Outlook)
-    return `<p style="margin: 0 0 1.5em 0; padding: 0;">${html}</p>`;
+    // Użyj DIV zamiast P - Gmail lepiej respektuje
+    return `<div style="margin-bottom: 20px;">${html}</div>`;
   });
 
   // Owinięcie w HTML z profesjonalnym stylingiem
-  return `<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">${htmlParagraphs.join('')}</body></html>`;
+  // Dodaj także spacing przez <br> między paragrafami jako backup
+  return `<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">${htmlParagraphs.join('<br>')}</body></html>`;
 }
 
 /**
