@@ -17,12 +17,16 @@ export async function POST(request: Request) {
     const { id, subject, body_plain } = UpdateTemplateSchema.parse(body);
 
     console.log(`[UpdateTemplate] Updating template ${id}`);
+    console.log(`[UpdateTemplate] Input body_plain length: ${body_plain.length}`);
+    console.log(`[UpdateTemplate] Input body_plain:`, body_plain.substring(0, 200));
 
     // Konwertuj plain text na HTML i text fallback
     const body_html = plainTextToHtml(body_plain);
     const body_text = plainTextToText(body_plain);
 
     console.log(`[UpdateTemplate] Converted plain text to HTML (${body_html.length} chars)`);
+    console.log(`[UpdateTemplate] HTML preview:`, body_html.substring(0, 300));
+    console.log(`[UpdateTemplate] Has inline styles:`, body_html.includes('style="margin:'));
 
     // Update template in Supabase
     const { data, error } = await supabaseAdmin()
