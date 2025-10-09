@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
 import { updateFiscalSync } from '@/lib/fiscal-sync-parser';
+import { sendEmailReminder } from '@/lib/mailgun';
 
 // Validation schema
 const ReminderSchema = z.object({
@@ -166,8 +167,37 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    } else {
-      // Send webhook to n8n for email/whatsapp (if configured)
+    } else if (type === 'email') {
+      // Send email directly via Mailgun
+      console.log(`[Reminder] Sending email via Mailgun for ${fieldName}`);
+
+      const emailData = {
+        client_name: invoice.buyer_name || invoice.buyer_company || 'Klient',
+        invoice_number: invoice.number || `#${invoice.id}`,
+        amount: `€${((invoice.total || 0) - (invoice.paid || 0)).toFixed(2)}`,
+        due_date: invoice.payment_to
+          ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+          : 'brak',
+      };
+
+      const templateId = `EMAIL_${level}` as 'EMAIL_1' | 'EMAIL_2' | 'EMAIL_3';
+      const result = await sendEmailReminder(
+        templateId,
+        invoice.buyer_email || 'brak@email.com',
+        emailData
+      );
+
+      if (!result.success) {
+        console.error(`[Reminder] Email send failed: ${result.error}`);
+        return NextResponse.json(
+          { success: false, error: `Email send failed: ${result.error}` },
+          { status: 500 }
+        );
+      }
+
+      console.log(`[Reminder] Email sent successfully: ${result.mailgunId}`);
+    } else if (type === 'whatsapp') {
+      // Send webhook to n8n for whatsapp (if configured)
       const webhookUrl = getWebhookUrl(type);
       if (webhookUrl) {
         try {
@@ -183,7 +213,7 @@ export async function POST(request: NextRequest) {
               timestamp: new Date().toISOString(),
             }),
           });
-          console.log(`[Reminder] Webhook sent to n8n for ${type}`);
+          console.log(`[Reminder] Webhook sent to n8n for whatsapp`);
         } catch (webhookError) {
           console.error('[Reminder] Webhook error:', webhookError);
           // Continue even if webhook fails
