@@ -32,9 +32,16 @@ export function plainTextToHtml(plainText: string): string {
     html = html.replace(/\bOSTATECZNE przypomnienie\b/gi, '<strong style="color: #d32f2f;">OSTATECZNE przypomnienie</strong>');
     html = html.replace(/\bDrugie przypomnienie\b/gi, '<strong>Drugie przypomnienie</strong>');
 
-    // Table row dla każdego paragrafu - najbardziej kompatybilna metoda
-    // Padding-bottom: 12px daje sensowny odstęp między paragrafami
-    const paddingBottom = index < paragraphs.length - 1 ? '12px' : '0';
+    // Spacing logic:
+    // - Normalny spacing między paragrafami: 12px
+    // - Przed ostatnim paragrafem (podpis): 24px - wizualnie oddziela podpis od treści
+    // - Ostatni paragraf: 0px
+    let paddingBottom = '12px';
+    if (index === paragraphs.length - 1) {
+      paddingBottom = '0'; // Ostatni - bez spacing
+    } else if (index === paragraphs.length - 2) {
+      paddingBottom = '24px'; // Przedostatni - podwójny spacing przed podpisem
+    }
 
     return `<tr>
       <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #444444; padding-bottom: ${paddingBottom};">
