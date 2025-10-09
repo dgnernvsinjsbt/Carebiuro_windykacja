@@ -183,17 +183,43 @@ APP_URL=http://localhost:3000
 
 ## 📅 Harmonogram
 
-### Automatyczny cron:
-```cron
-0 0 * * * /workspaces/Carebiuro_windykacja/scripts/sync-cron.sh
+### Na Vercel (produkcja) - ZAUTOMATYZOWANE:
+
+Konfiguracja w `vercel.json`:
+```json
+{
+  "crons": [
+    {
+      "path": "/api/sync",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
 ```
 
-**Kiedy**: Codziennie o **00:00** (północ)
+**Kiedy**: Codziennie o **00:00** (północ UTC)
 
-**Instalacja**:
+**Wymagane**:
+- `CRON_SECRET` w Vercel Environment Variables
+- Vercel automatycznie doda header `X-Cron-Secret` do requestu
+
+**Logi**: Vercel Dashboard → Cron Jobs → `/api/sync`
+
+---
+
+### Lokalnie (development):
+
+Dla testów lokalnych, użyj skryptów bash:
+
 ```bash
+# Instalacja cron job (jednorazowo)
 ./scripts/setup-cron.sh
+
+# Ręczne uruchomienie
+./scripts/sync-cron.sh
 ```
+
+**Uwaga**: Skrypty bash działają tylko lokalnie. W Vercel używaj `vercel.json`.
 
 ---
 
