@@ -2,8 +2,9 @@ import { clientsDb, supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ClientsTable from '@/components/ClientsTable';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Cache for 60 seconds - much faster!
+// Will be revalidated on-demand when data changes (via revalidatePath)
+export const revalidate = 60;
 
 /**
  * Fetch all clients in batches (parallel-optimized)

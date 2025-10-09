@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { supabase, invoicesDb } from '@/lib/supabase';
 import { Invoice, FakturowniaInvoice } from '@/types';
@@ -118,6 +119,10 @@ export async function POST(request: NextRequest) {
 
     await invoicesDb.bulkUpsert(invoicesToSync);
     console.log(`[SyncClient] ✓ Synced ${invoicesToSync.length} invoices to Supabase`);
+
+    // Revalidate pages to show fresh data immediately
+    revalidatePath('/'); // Home page
+    revalidatePath(`/client/${client_id}`); // Client detail page
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
@@ -226,6 +227,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[Reminder] Successfully processed ${type}_${level} for invoice ${invoice_id}`);
+
+    // Revalidate pages to show fresh data immediately
+    revalidatePath('/'); // Home page
+    revalidatePath(`/client/${invoice.client_id}`); // Client detail page
 
     return NextResponse.json({
       success: true,
