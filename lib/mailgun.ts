@@ -116,10 +116,11 @@ export async function sendEmailReminder(
 
     // Załącz PDF jeśli dostępny
     if (pdfBuffer) {
-      // FormData w Node.js akceptuje Buffer bezpośrednio jako File
-      formData.append('attachment', new File([pdfBuffer], `faktura_${emailData.invoice_number}.pdf`, {
-        type: 'application/pdf'
-      }));
+      // Mailgun API akceptuje Buffer bezpośrednio jako attachment z nazwą pliku
+      formData.append('attachment', pdfBuffer, {
+        filename: `faktura_${emailData.invoice_number}.pdf`,
+        contentType: 'application/pdf',
+      } as any);
       console.log(`[Mailgun] Attached PDF: faktura_${emailData.invoice_number}.pdf`);
     }
 
