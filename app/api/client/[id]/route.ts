@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fakturowniaApi } from '@/lib/fakturownia';
+import { clientsDb } from '@/lib/supabase';
 
 /**
  * GET /api/client/[id]
- * Fetch client details (email, phone) from Fakturownia
+ * Fetch client details (email, phone) from Supabase
  * Used for lazy loading on client detail page
  */
 // Force dynamic rendering - don't evaluate at build time
@@ -26,8 +26,15 @@ export async function GET(
 
     console.log(`[API] Fetching client details for ID: ${clientId}`);
 
-    // Fetch client from Fakturownia
-    const client = await fakturowniaApi.getClient(clientId);
+    // Fetch client from Supabase (synced from Fakturownia)
+    const client = await clientsDb.getById(clientId);
+
+    if (!client) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       id: client.id,
