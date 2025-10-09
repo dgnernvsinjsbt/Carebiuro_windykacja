@@ -32,12 +32,12 @@ export function plainTextToHtml(plainText: string): string {
     html = html.replace(/\bOSTATECZNE przypomnienie\b/gi, '<strong style="color: #d32f2f;">OSTATECZNE przypomnienie</strong>');
     html = html.replace(/\bDrugie przypomnienie\b/gi, '<strong>Drugie przypomnienie</strong>');
 
-    return `<p>${html}</p>`;
+    // INLINE STYLES dla każdego paragrafu (zamiast <style> tag - kompatybilność z Gmail/Outlook)
+    return `<p style="margin: 0 0 1.5em 0; padding: 0;">${html}</p>`;
   });
 
   // Owinięcie w HTML z profesjonalnym stylingiem
-  // Dodaj margin-bottom do <p> żeby akapity były widocznie oddzielone
-  return `<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;"><style>p { margin: 0 0 1em 0; }</style>${htmlParagraphs.join('')}</body></html>`;
+  return `<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">${htmlParagraphs.join('')}</body></html>`;
 }
 
 /**
