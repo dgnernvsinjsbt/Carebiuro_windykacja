@@ -9,6 +9,7 @@ interface Template {
   subject: string;
   body_html: string;
   body_text: string;
+  body_plain: string;
   placeholders: string[];
 }
 
@@ -19,8 +20,7 @@ interface EmailTemplateEditorProps {
 export default function EmailTemplateEditor({ template }: EmailTemplateEditorProps) {
   const router = useRouter();
   const [subject, setSubject] = useState(template.subject);
-  const [bodyHtml, setBodyHtml] = useState(template.body_html);
-  const [bodyText, setBodyText] = useState(template.body_text);
+  const [bodyPlain, setBodyPlain] = useState(template.body_plain || template.body_text);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,8 +35,7 @@ export default function EmailTemplateEditor({ template }: EmailTemplateEditorPro
         body: JSON.stringify({
           id: template.id,
           subject,
-          body_html: bodyHtml,
-          body_text: bodyText,
+          body_plain: bodyPlain,
         }),
       });
 
@@ -87,33 +86,26 @@ export default function EmailTemplateEditor({ template }: EmailTemplateEditorPro
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Treść HTML
+            Treść wiadomości
           </label>
           <textarea
-            value={bodyHtml}
-            onChange={(e) => setBodyHtml(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            rows={16}
-            placeholder="<html><body>...</body></html>"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            HTML z podstawowym stylingiem - będzie wyświetlany w kliencie e-mail
-          </p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Treść tekstowa (fallback)
-          </label>
-          <textarea
-            value={bodyText}
-            onChange={(e) => setBodyText(e.target.value)}
+            value={bodyPlain}
+            onChange={(e) => setBodyPlain(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            rows={8}
-            placeholder="Dzień dobry {{client_name}}..."
+            rows={12}
+            placeholder="Dzień dobry {{client_name}},
+
+Uprzejmie przypominamy o płatności za fakturę {{invoice_number}} na kwotę {{amount}}.
+
+Termin płatności: {{due_date}}
+
+Prosimy o jak najszybszą regulację należności.
+
+Pozdrawiamy,
+Carebiuro"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Plain text - dla klientów e-mail bez obsługi HTML
+            Pisz zwykły tekst - automatycznie przekonwertujemy go na profesjonalny HTML email
           </p>
         </div>
 

@@ -1,4 +1,4 @@
--- Tabela przechowująca szablony e-maili dla przypominań
+-- Tabela przechowująca edytowalne szablony e-maili dla przypominań o płatnościach
 CREATE TABLE IF NOT EXISTS email_templates (
   id TEXT PRIMARY KEY,                    -- 'EMAIL_1', 'EMAIL_2', 'EMAIL_3'
   name TEXT NOT NULL,                     -- 'Email przypomnienie 1'

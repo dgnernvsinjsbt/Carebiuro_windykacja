@@ -2,27 +2,34 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { plainTextToHtml, plainTextToText } from '@/lib/email-formatter';
 
 // Validation schema
 const UpdateTemplateSchema = z.object({
   id: z.string(),
   subject: z.string().min(1, 'Temat nie może być pusty'),
-  body_html: z.string().min(1, 'Treść HTML nie może być pusta'),
-  body_text: z.string().min(1, 'Treść tekstowa nie może być pusta'),
+  body_plain: z.string().min(1, 'Treść wiadomości nie może być pusta'),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, subject, body_html, body_text } = UpdateTemplateSchema.parse(body);
+    const { id, subject, body_plain } = UpdateTemplateSchema.parse(body);
 
     console.log(`[UpdateTemplate] Updating template ${id}`);
+
+    // Konwertuj plain text na HTML i text fallback
+    const body_html = plainTextToHtml(body_plain);
+    const body_text = plainTextToText(body_plain);
+
+    console.log(`[UpdateTemplate] Converted plain text to HTML (${body_html.length} chars)`);
 
     // Update template in Supabase
     const { data, error } = await supabaseAdmin()
       .from('email_templates')
       .update({
         subject,
+        body_plain,
         body_html,
         body_text,
         updated_at: new Date().toISOString(),
