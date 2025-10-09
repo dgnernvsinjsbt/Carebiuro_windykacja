@@ -17,17 +17,51 @@ function replacePlaceholders(template: string, data: EmailData): string {
 }
 
 /**
+ * Pobiera PDF faktury z Fakturowni
+ */
+async function downloadInvoicePdf(invoiceId: number): Promise<Buffer | null> {
+  try {
+    const token = process.env.FAKTUROWNIA_API_TOKEN;
+    const accountName = process.env.FAKTUROWNIA_ACCOUNT_NAME;
+
+    if (!token || !accountName) {
+      console.error('[Mailgun] Missing Fakturownia credentials');
+      return null;
+    }
+
+    const url = `https://${accountName}.fakturownia.pl/invoices/${invoiceId}.pdf?api_token=${token}`;
+
+    console.log(`[Mailgun] Downloading PDF for invoice ${invoiceId}`);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.error(`[Mailgun] Failed to download PDF: ${response.status}`);
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error: any) {
+    console.error(`[Mailgun] Error downloading PDF:`, error);
+    return null;
+  }
+}
+
+/**
  * Wysyła email przez Mailgun
  *
  * @param templateId - ID template'u ('EMAIL_1', 'EMAIL_2', 'EMAIL_3')
  * @param recipientEmail - Email odbiorcy
  * @param emailData - Dane do podstawienia w template
+ * @param invoiceId - ID faktury (opcjonalnie, do załączenia PDF)
  * @returns { success: true, mailgunId } lub { success: false, error }
  */
 export async function sendEmailReminder(
   templateId: 'EMAIL_1' | 'EMAIL_2' | 'EMAIL_3',
   recipientEmail: string,
-  emailData: EmailData
+  emailData: EmailData,
+  invoiceId?: number
 ): Promise<{ success: boolean; mailgunId?: string; error?: string }> {
   const isSandbox = process.env.EMAIL_MODE === 'sandbox';
 
@@ -63,13 +97,29 @@ export async function sendEmailReminder(
       bodyHtmlLength: bodyHtml.length,
     });
 
-    // 3. Wyślij przez Mailgun API
+    // 3. Pobierz PDF faktury (jeśli podano invoiceId)
+    let pdfBuffer: Buffer | null = null;
+    if (invoiceId) {
+      pdfBuffer = await downloadInvoicePdf(invoiceId);
+      if (pdfBuffer) {
+        console.log(`[Mailgun] PDF downloaded successfully (${pdfBuffer.length} bytes)`);
+      }
+    }
+
+    // 4. Wyślij przez Mailgun API
     const formData = new FormData();
     formData.append('from', process.env.MAILGUN_FROM_EMAIL!);
     formData.append('to', actualRecipient);
     formData.append('subject', subject);
     formData.append('html', bodyHtml);
     formData.append('text', bodyText);
+
+    // Załącz PDF jeśli dostępny
+    if (pdfBuffer) {
+      const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+      formData.append('attachment', blob, `faktura_${emailData.invoice_number}.pdf`);
+      console.log(`[Mailgun] Attached PDF: faktura_${emailData.invoice_number}.pdf`);
+    }
 
     const authHeader = `Basic ${Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString('base64')}`;
 

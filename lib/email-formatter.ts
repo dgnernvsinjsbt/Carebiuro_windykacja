@@ -36,7 +36,8 @@ export function plainTextToHtml(plainText: string): string {
   });
 
   // Owinięcie w HTML z profesjonalnym stylingiem
-  return `<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">${htmlParagraphs.join('')}</body></html>`;
+  // Dodaj margin-bottom do <p> żeby akapity były widocznie oddzielone
+  return `<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;"><style>p { margin: 0 0 1em 0; }</style>${htmlParagraphs.join('')}</body></html>`;
 }
 
 /**

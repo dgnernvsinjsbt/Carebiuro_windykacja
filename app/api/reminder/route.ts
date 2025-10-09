@@ -184,7 +184,8 @@ export async function POST(request: NextRequest) {
       const result = await sendEmailReminder(
         templateId,
         invoice.buyer_email || 'brak@email.com',
-        emailData
+        emailData,
+        invoice.id // Załącz PDF faktury
       );
 
       if (!result.success) {
