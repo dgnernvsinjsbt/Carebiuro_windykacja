@@ -87,20 +87,30 @@ export async function POST(request: NextRequest) {
 
     console.log(`Katalog tymczasowy: ${tempDir}`);
 
-    // Uruchom Puppeteer - używaj @sparticuz/chromium na Vercel (production)
+    // Uruchom Puppeteer - używaj @sparticuz/chromium-min na Vercel (production)
     console.log('Uruchamianie Puppeteer...');
     const isProduction = process.env.VERCEL === '1';
 
-    const browser = isProduction
-      ? await puppeteer.launch({
-          args: chromium.args,
-          executablePath: await chromium.executablePath(),
-          headless: true,
-        })
-      : await puppeteerLocal.launch({
-          headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
+    let browser;
+    if (isProduction) {
+      // Konfiguracja dla @sparticuz/chromium-min w środowisku Vercel
+      chromium.setGraphicsMode = false;
+      const executablePath = await chromium.executablePath(
+        '/var/task/node_modules/@sparticuz/chromium-min/bin'
+      );
+
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath,
+        headless: true,
+      });
+    } else {
+      // Lokalnie używaj standardowego Puppeteer
+      browser = await puppeteerLocal.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+    }
     console.log('Puppeteer uruchomiony pomyślnie');
 
     try {
