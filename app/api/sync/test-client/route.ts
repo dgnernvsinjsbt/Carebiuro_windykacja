@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
         updated_at: clientData.updated_at || new Date().toISOString(),
 
         // Our custom fields
-        list_polecony: false,
         total_unpaid: 0,
       }]);
 

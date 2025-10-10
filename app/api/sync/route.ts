@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
 
             // Our custom fields
             total_unpaid: 0,
-            list_polecony: null,
           };
         });
 

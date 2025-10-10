@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
       updated_at: fc.updated_at || new Date().toISOString(),
 
       // Our custom fields
-      list_polecony: null,
       total_unpaid: 0, // Will calculate from invoices
     }));
 

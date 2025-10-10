@@ -69,20 +69,8 @@ export async function GET(request: NextRequest) {
 
     console.log(`Znaleziono ${qualifiedClients.length} klientów kwalifikujących się do listu poleconego`);
 
-    // Opcjonalnie: Aktualizuj flagę list_polecony w bazie danych
-    // (możesz to zrobić w osobnym endpoincie lub w sync)
-    for (const client of qualifiedClients) {
-      if (client) {
-        // Aktualizuj flagę w Supabase
-        await supabase()
-          .from('clients')
-          .update({ list_polecony: true })
-          .eq('id', client.id);
-
-        // Opcjonalnie: Aktualizuj tag [LIST_POLECONY] w Fakturowni
-        // (wymaga wywołania Fakturownia API)
-      }
-    }
+    // Note: List Polecony status is tracked via invoice.internal_note, not client.list_polecony
+    // Client qualification is calculated on-demand based on invoice flags
 
     return NextResponse.json({
       success: true,
