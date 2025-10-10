@@ -151,9 +151,7 @@ export async function POST(request: NextRequest) {
           .from('invoices')
           .update({
             internal_note: updatedInternalNote,
-            list_polecony_ignored: true, // boolean flag (stary format dla kompatybilności)
-            list_polecony_ignored_date: today.toISOString(), // data ignorowania (do historii)
-            list_polecony_sent_date: originalDate // data wysłania (ZACHOWANA)
+            updated_at: new Date().toISOString(),
           })
           .eq('id', invoice.id);
 

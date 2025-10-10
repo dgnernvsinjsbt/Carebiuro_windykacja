@@ -77,11 +77,7 @@ export async function POST(request: NextRequest) {
       const { error: invoiceError } = await supabaseAdmin()
         .from('invoices')
         .update({
-          comment: invoice.internal_note || '',
-          list_polecony: flags.listPoleconyStatus === 'sent', // boolean flag (stary format)
-          list_polecony_sent_date: flags.listPoleconyStatus === 'sent' ? flags.listPoleconyStatusDate : null,
-          list_polecony_ignored: flags.listPoleconyStatus === 'ignore', // boolean flag (stary format)
-          list_polecony_ignored_date: flags.listPoleconyStatus === 'ignore' ? flags.listPoleconyStatusDate : null,
+          internal_note: invoice.internal_note || '',
           updated_at: new Date().toISOString(),
         })
         .eq('id', invoice.id);

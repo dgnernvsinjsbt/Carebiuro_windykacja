@@ -125,9 +125,6 @@ export async function POST(request: NextRequest) {
           view_url: fi.view_url || null,
           payment_url: fi.payment_url || null,
           overdue: fi['overdue?'] || null,
-          has_third_reminder: null,
-          list_polecony_sent_date: null,
-          list_polecony_ignored_date: null,
         }));
 
         allInvoices.push(...invoices);
