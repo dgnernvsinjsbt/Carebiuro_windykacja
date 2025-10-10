@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Client, Invoice, InvoiceComment } from '@/types';
+import { Client, Invoice, InvoiceFromDB, InvoiceComment } from '@/types';
 
 // Lazy initialization - only validate and create clients when actually used
 let _supabase: SupabaseClient | null = null;
@@ -228,7 +228,7 @@ export const invoicesDb = {
       .order('issue_date', { ascending: false });
 
     if (error) throw error;
-    return data as Invoice[];
+    return data as InvoiceFromDB[];
   },
 
   /**
@@ -243,7 +243,7 @@ export const invoicesDb = {
       .limit(1);
 
     if (error) throw error;
-    return data && data.length > 0 ? (data[0] as Invoice) : null;
+    return data && data.length > 0 ? (data[0] as InvoiceFromDB) : null;
   },
 
   /**
@@ -257,7 +257,7 @@ export const invoicesDb = {
       .single();
 
     if (error) throw error;
-    return data as Invoice;
+    return data as InvoiceFromDB;
   },
 
   /**
@@ -271,7 +271,7 @@ export const invoicesDb = {
       .single();
 
     if (error) throw error;
-    return data as Invoice;
+    return data as InvoiceFromDB;
   },
 
   /**
@@ -286,7 +286,7 @@ export const invoicesDb = {
       .single();
 
     if (error) throw error;
-    return data as Invoice;
+    return data as InvoiceFromDB;
   },
 
   /**
@@ -345,7 +345,7 @@ export const invoicesDb = {
       .single();
 
     if (error) throw error;
-    return data as Invoice;
+    return data as InvoiceFromDB;
   },
 
   /**
@@ -361,7 +361,7 @@ export const invoicesDb = {
       .select();
 
     if (error) throw error;
-    return data as Invoice[];
+    return data as InvoiceFromDB[];
   },
 
   /**

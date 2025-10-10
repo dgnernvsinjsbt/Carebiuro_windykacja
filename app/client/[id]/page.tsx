@@ -40,6 +40,7 @@ export default async function ClientDetailPage({
 
   // Parse Fiscal Sync data for each invoice
   // If invoice was sent from Fakturownia (email_status='sent'), auto-mark EMAIL_1
+  // Note: invoices from getByClientId() returns InvoiceFromDB[] which includes outstanding
   const invoicesWithFiscalSync = invoices.map((invoice) => {
     const fakturowniaData = fakturowniaMap.get(invoice.id);
 
@@ -50,7 +51,7 @@ export default async function ClientDetailPage({
     );
 
     return {
-      ...invoice,
+      ...invoice, // invoice is InvoiceFromDB, includes outstanding field
       client: client,
       email_status: fakturowniaData?.email_status || invoice.email_status,
       sent_time: fakturowniaData?.sent_time || invoice.sent_time,
