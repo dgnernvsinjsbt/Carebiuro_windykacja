@@ -20,7 +20,7 @@ jobs:
         id: sync
         run: |
           echo "Calling /api/sync/test endpoint..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+          RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST \
             ${{ secrets.VERCEL_URL }}/api/sync/test \
             -H "x-github-action: true" \
             -H "Content-Type: application/json")
