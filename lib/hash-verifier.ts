@@ -8,7 +8,7 @@
 import { FakturowniaInvoice } from '@/types';
 import { generateInvoiceHash, verifyInvoiceHash, resetAllReminderFlags } from './invoice-hash';
 import { parseFiscalSync, generateFiscalSync } from './fiscal-sync-parser';
-import { supabase } from './supabase-client';
+import { supabase } from './supabase';
 import { fakturowniaApi } from './fakturownia';
 
 export interface HashVerificationResult {
