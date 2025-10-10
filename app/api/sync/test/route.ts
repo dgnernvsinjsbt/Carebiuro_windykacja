@@ -38,17 +38,18 @@ export async function POST(request: NextRequest) {
 
       // Send SMS even if no invoices
       try {
-        await fetch('https://api.smsplanet.pl/sms', {
+        const smsFormData = new URLSearchParams();
+        smsFormData.append('from', process.env.SMSPLANET_FROM || 'Carebiuro');
+        smsFormData.append('to', '+48536214664');
+        smsFormData.append('msg', 'TEST SYNC: No invoices found for client 211779362');
+
+        await fetch('https://api2.smsplanet.pl/sms', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': `Bearer ${process.env.SMSPLANET_API_TOKEN}`,
           },
-          body: JSON.stringify({
-            to: '+48536214664',
-            from: process.env.SMSPLANET_FROM || 'Carebiuro',
-            message: 'TEST SYNC: No invoices found for client 211779362'
-          })
+          body: smsFormData.toString(),
         });
       } catch (smsError) {
         console.error('[TestSync] SMS alert failed:', smsError);
@@ -132,17 +133,18 @@ export async function POST(request: NextRequest) {
 
     // Send SUCCESS SMS
     try {
-      await fetch('https://api.smsplanet.pl/sms', {
+      const smsFormData = new URLSearchParams();
+      smsFormData.append('from', process.env.SMSPLANET_FROM || 'Carebiuro');
+      smsFormData.append('to', '+48536214664');
+      smsFormData.append('msg', `TEST SYNC OK: ${invoices.length} invoices in ${duration}s`);
+
+      await fetch('https://api2.smsplanet.pl/sms', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${process.env.SMSPLANET_API_TOKEN}`,
         },
-        body: JSON.stringify({
-          to: '+48536214664',
-          from: process.env.SMSPLANET_FROM || 'Carebiuro',
-          message: `TEST SYNC OK: ${invoices.length} invoices in ${duration}s`
-        })
+        body: smsFormData.toString(),
       });
     } catch (smsError) {
       console.error('[TestSync] SMS alert failed:', smsError);
@@ -162,17 +164,18 @@ export async function POST(request: NextRequest) {
 
     // Send FAILURE SMS
     try {
-      await fetch('https://api.smsplanet.pl/sms', {
+      const smsFormData = new URLSearchParams();
+      smsFormData.append('from', process.env.SMSPLANET_FROM || 'Carebiuro');
+      smsFormData.append('to', '+48536214664');
+      smsFormData.append('msg', `TEST SYNC FAIL: ${error.message.slice(0, 120)}`);
+
+      await fetch('https://api2.smsplanet.pl/sms', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${process.env.SMSPLANET_API_TOKEN}`,
         },
-        body: JSON.stringify({
-          to: '+48536214664',
-          from: process.env.SMSPLANET_FROM || 'Carebiuro',
-          message: `TEST SYNC FAIL: ${error.message.slice(0, 120)}`
-        })
+        body: smsFormData.toString(),
       });
     } catch (smsError) {
       console.error('[TestSync] SMS alert failed:', smsError);

@@ -281,17 +281,18 @@ export async function POST(request: NextRequest) {
 
     // Send SMS alert on failure
     try {
-      await fetch('https://api.smsplanet.pl/sms', {
+      const smsFormData = new URLSearchParams();
+      smsFormData.append('from', process.env.SMSPLANET_FROM || 'Carebiuro');
+      smsFormData.append('to', '+48536214664');
+      smsFormData.append('msg', `FULL SYNC FAILED: ${error.message.slice(0, 120)}`);
+
+      await fetch('https://api2.smsplanet.pl/sms', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${process.env.SMSPLANET_API_TOKEN}`,
         },
-        body: JSON.stringify({
-          to: '+48536214664',
-          from: process.env.SMSPLANET_FROM || 'Carebiuro',
-          message: `FULL SYNC FAILED: ${error.message.slice(0, 120)}`
-        })
+        body: smsFormData.toString(),
       });
     } catch (smsError) {
       console.error('[Sync] SMS alert failed:', smsError);
