@@ -1,11 +1,10 @@
 name: Nightly Full Sync (Production)
 
 on:
-  # DISABLED - uncomment after test succeeds
-  # schedule:
-  #   - cron: '0 23 * * *'  # 23:00 UTC = 00:00 CEST (midnight Poland winter time)
+  schedule:
+    - cron: '57 7 * * *'  # 07:57 UTC = 09:57 CEST (TEST - will change to midnight later)
 
-  workflow_dispatch:  # Manual trigger for now
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   full-sync:
@@ -13,6 +12,16 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Send Start SMS
+        run: |
+          echo "Sending start notification SMS..."
+          curl -s -X POST https://api2.smsplanet.pl/sms \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+            --data-urlencode "from=Carebiuro" \
+            --data-urlencode "to=+48536214664" \
+            --data-urlencode "msg=FULL SYNC STARTING..."
+
       - name: Trigger Full Sync
         id: sync
         run: |
@@ -33,6 +42,25 @@ jobs:
             exit 1
           fi
 
-      - name: Log Success
+      - name: Send Success SMS
         if: success()
-        run: echo "::notice::Full sync completed successfully"
+        run: |
+          echo "Sending success notification SMS..."
+          curl -s -X POST https://api2.smsplanet.pl/sms \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+            --data-urlencode "from=Carebiuro" \
+            --data-urlencode "to=+48536214664" \
+            --data-urlencode "msg=FULL SYNC COMPLETE!"
+          echo "::notice::Full sync completed successfully"
+
+      - name: Send Failure SMS
+        if: failure()
+        run: |
+          echo "Sending failure notification SMS..."
+          curl -s -X POST https://api2.smsplanet.pl/sms \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+            --data-urlencode "from=Carebiuro" \
+            --data-urlencode "to=+48536214664" \
+            --data-urlencode "msg=FULL SYNC FAILED - check logs"
