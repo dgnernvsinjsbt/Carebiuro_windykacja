@@ -57,6 +57,8 @@ export async function POST(request: NextRequest) {
       .in('id', clientIds)
       .order('name', { ascending: true }); // Sortowanie alfabetyczne
 
+    console.log(`[Regenerate] Pobrano ${clients?.length || 0} klientów z bazy`);
+
     if (clientsError || !clients) {
       console.error('[Regenerate] Błąd pobierania klientów:', clientsError);
       return NextResponse.json(
@@ -69,6 +71,8 @@ export async function POST(request: NextRequest) {
       .from('invoices')
       .select('*')
       .in('client_id', clientIds);
+
+    console.log(`[Regenerate] Pobrano ${invoices?.length || 0} faktur z bazy`);
 
     if (invoicesError || !invoices) {
       console.error('[Regenerate] Błąd pobierania faktur:', invoicesError);
@@ -85,14 +89,18 @@ export async function POST(request: NextRequest) {
     console.log(`[Regenerate] Katalog tymczasowy: ${tempDir}`);
 
     // Uruchom Puppeteer
+    console.log('[Regenerate] Uruchamianie Puppeteer...');
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
+    console.log('[Regenerate] Puppeteer uruchomiony pomyślnie');
 
     try {
+      console.log(`[Regenerate] Generowanie PDF-ów dla ${clients.length} klientów...`);
       // Generuj PDF-y dla każdego klienta
       const pdfPromises = clients.map(async (client, index) => {
+        console.log(`[Regenerate PDF ${index + 1}/${clients.length}] Rozpoczynam dla: ${client.name}`);
         const clientInvoices = invoices.filter((inv) => inv.client_id === client.id);
 
         // Generuj HTML

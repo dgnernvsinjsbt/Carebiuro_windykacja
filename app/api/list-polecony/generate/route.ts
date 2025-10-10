@@ -86,14 +86,18 @@ export async function POST(request: NextRequest) {
     console.log(`Katalog tymczasowy: ${tempDir}`);
 
     // Uruchom Puppeteer
+    console.log('Uruchamianie Puppeteer...');
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
+    console.log('Puppeteer uruchomiony pomyślnie');
 
     try {
+      console.log(`Generowanie PDF-ów dla ${clients.length} klientów...`);
       // Generuj PDF-y dla każdego klienta
       const pdfPromises = clients.map(async (client, index) => {
+        console.log(`[PDF ${index + 1}/${clients.length}] Rozpoczynam generowanie dla klienta: ${client.name}`);
         const clientInvoices = invoices.filter((inv) => inv.client_id === client.id);
 
         // Generuj HTML
