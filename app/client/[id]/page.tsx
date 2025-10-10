@@ -7,6 +7,7 @@ import ClientInvoicesTable from '@/components/ClientInvoicesTable';
 import OperationStatusBanner from '@/components/OperationStatusBanner';
 import { ClientOperationLockProvider } from '@/lib/client-operation-lock';
 import { notFound } from 'next/navigation';
+import { InvoiceWithClient } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -41,7 +42,7 @@ export default async function ClientDetailPage({
   // Parse Fiscal Sync data for each invoice
   // If invoice was sent from Fakturownia (email_status='sent'), auto-mark EMAIL_1
   // Note: invoices from getByClientId() returns InvoiceFromDB[] which includes outstanding
-  const invoicesWithFiscalSync = invoices.map((invoice) => {
+  const invoicesWithFiscalSync: InvoiceWithClient[] = invoices.map((invoice) => {
     const fakturowniaData = fakturowniaMap.get(invoice.id);
 
     const initializedComment = initializeFromEmailStatus(
