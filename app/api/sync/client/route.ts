@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { fakturowniaApi } from '@/lib/fakturownia';
 import { supabase, invoicesDb } from '@/lib/supabase';
 import { Invoice, FakturowniaInvoice } from '@/types';
+import { verifyAndCleanInvoiceHash } from '@/lib/hash-verifier';
 
 /**
  * POST /api/sync/client
@@ -64,6 +65,32 @@ export async function POST(request: NextRequest) {
     console.log(`[SyncClient] Fetching invoices from Fakturownia for client ${client_id}...`);
     const clientInvoices = await fakturowniaApi.getInvoicesByClientId(client_id, 1000);
     console.log(`[SyncClient] Fetched ${clientInvoices.length} invoices from Fakturownia`);
+
+    // STEP 3.5: AGGRESSIVE HASH VERIFICATION - Clean "Wystaw podobną" duplicates
+    console.log(`[SyncClient] Verifying invoice hashes (detecting "Wystaw podobną" duplicates)...`);
+    let cleanedCount = 0;
+
+    for (const invoice of clientInvoices) {
+      const result = await verifyAndCleanInvoiceHash(invoice, true); // cleanImmediately=true
+
+      if (result.action === 'cleaned') {
+        cleanedCount++;
+        console.log(`🧹 [SyncClient] Cleaned duplicate: Invoice ${invoice.id} (hash mismatch)`);
+      } else if (result.action === 'error') {
+        console.error(`❌ [SyncClient] Hash verification error for invoice ${invoice.id}:`, result.message);
+      }
+
+      // Small delay between API calls to avoid rate limiting
+      if (result.action === 'cleaned') {
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+      }
+    }
+
+    if (cleanedCount > 0) {
+      console.log(`✅ [SyncClient] Cleaned ${cleanedCount} "Wystaw podobną" duplicates`);
+    } else {
+      console.log(`✅ [SyncClient] No duplicates found - all hashes valid`);
+    }
 
     // STEP 4: Transform and upsert into Supabase
     const invoicesToSync: Invoice[] = clientInvoices.map((fi: FakturowniaInvoice) => ({

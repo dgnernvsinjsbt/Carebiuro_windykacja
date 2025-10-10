@@ -218,7 +218,10 @@ serve(async (req) => {
     console.log('[Sync] STEP 1: Clearing all existing data from Supabase...')
     await supabase.from('invoices').delete().neq('id', 0)
     await supabase.from('clients').delete().neq('id', 0)
-    console.log('[Sync] ✓ All data cleared')
+    // ⚠️ CRITICAL: DO NOT DELETE invoice_hash_registry!
+    // This table persists hash mappings to detect "Wystaw podobną" duplicates
+    // await supabase.from('invoice_hash_registry').delete().neq('invoice_id', 0) ← NO!
+    console.log('[Sync] ✓ All data cleared (invoice_hash_registry preserved)')
 
     // STEP 2: Stream invoices + clients from Fakturownia
     console.log('[Sync] STEP 2: Streaming invoices from Fakturownia (ALL statuses)...')
