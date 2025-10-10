@@ -347,9 +347,9 @@ export default function ClientInvoicesTable({
                   : (invoice.paid ?? 0).toFixed(2)}
               </td>
               <td className={`px-3 py-2 whitespace-nowrap text-sm ${(() => {
-                // Corrective invoices (FK prefix) should show €0.00
+                // Corrective invoices (FK prefix) should show €0.00 in green (like paid invoices)
                 const isCorrectiveInvoice = invoice.number && invoice.number.startsWith('FK');
-                if (isCorrectiveInvoice) return 'text-gray-400';
+                if (isCorrectiveInvoice) return 'text-green-600';
 
                 const balance = (invoice.total ?? 0) - (invoice.paid ?? 0);
                 if (invoice.kind === 'canceled') return 'text-gray-300';
