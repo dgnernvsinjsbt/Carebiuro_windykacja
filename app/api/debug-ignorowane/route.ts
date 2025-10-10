@@ -11,20 +11,20 @@ export async function GET(request: NextRequest) {
     // Test 1: Get all invoices for this client
     const { data: allInvoices } = await supabaseAdmin()
       .from('invoices')
-      .select('id, client_id, outstanding, internal_note')
+      .select('id, client_id, total, paid, outstanding, internal_note')
       .eq('client_id', clientId);
 
     // Test 2: Get invoices with LIKE query
     const { data: ignoredInvoices } = await supabaseAdmin()
       .from('invoices')
-      .select('id, client_id, outstanding, internal_note')
+      .select('id, client_id, total, paid, outstanding, internal_note')
       .eq('client_id', clientId)
       .like('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
     // Test 3: Get invoices with ILIKE query (case insensitive)
     const { data: ignoredInvoicesILike } = await supabaseAdmin()
       .from('invoices')
-      .select('id, client_id, outstanding, internal_note')
+      .select('id, client_id, total, paid, outstanding, internal_note')
       .eq('client_id', clientId)
       .ilike('internal_note', '%[LIST_POLECONY_IGNORED]true%');
 
