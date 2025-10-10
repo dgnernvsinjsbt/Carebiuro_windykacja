@@ -1,13 +1,13 @@
 /**
  * API Route: Restore Ignored Clients
  *
- * Usuwa flagi [LIST_POLECONY_IGNORED] z klientów i faktur,
- * przywracając ich do zakładki "Wysłane"
+ * Zmienia status z [LIST_POLECONY_STATUS]ignore na [LIST_POLECONY_STATUS]false
+ * Przywraca faktury do zakładki "Do wysłania" (nie do "Wysłane"!)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { setListPoleconyStatusSent, parseInvoiceFlags } from '@/lib/invoice-flags';
+import { setListPoleconyStatusFalse, parseInvoiceFlags } from '@/lib/invoice-flags';
 import { fakturowniaApi } from '@/lib/fakturownia';
 
 // Force dynamic rendering - don't evaluate at build time
@@ -45,38 +45,9 @@ export async function POST(request: NextRequest) {
 
     let totalInvoicesRestored = 0;
 
-    // 2. Dla każdego klienta: zmień status ignore → sent
-    const today = new Date().toISOString().split('T')[0];
-
+    // 2. Dla każdego klienta: zmień status ignore → false (przywróć do "Do wysłania")
     for (const client of clients || []) {
       console.log(`[ListPolecony Restore] Processing client ${client.id}...`);
-
-      // Parsuj oryginalną datę (zachowaj)
-      const clientFlags = parseInvoiceFlags(client.note);
-      const originalDate = clientFlags.listPoleconyStatusDate || today;
-
-      // Zmień status ignore → sent (zachowaj oryginalną datę wysłania)
-      const updatedNote = setListPoleconyStatusSent(client.note || '', originalDate);
-      console.log(`[ListPolecony Restore] Client ${client.id} note: ignore → sent (date preserved: ${originalDate})`);
-
-      // Aktualizuj klienta w Supabase
-      const { error: updateError } = await supabaseAdmin()
-        .from('clients')
-        .update({ note: updatedNote })
-        .eq('id', client.id);
-
-      if (updateError) {
-        console.error(`[ListPolecony Restore] Error updating client ${client.id} in Supabase:`, updateError);
-        continue;
-      }
-
-      // Aktualizuj klienta w Fakturowni
-      try {
-        await fakturowniaApi.updateClient(client.id, { note: updatedNote });
-        console.log(`[ListPolecony Restore] ✓ Client ${client.id} restored in Fakturownia`);
-      } catch (apiError) {
-        console.error(`[ListPolecony Restore] Error updating client ${client.id} in Fakturownia:`, apiError);
-      }
 
       // Pobierz faktury ze status=ignore dla tego klienta
       const { data: ignoredInvoices } = await supabaseAdmin()
@@ -87,23 +58,15 @@ export async function POST(request: NextRequest) {
 
       console.log(`[ListPolecony Restore] Found ${ignoredInvoices?.length || 0} ignored invoices for client ${client.id}`);
 
-      // Zmień status ignore → sent na każdej fakturze (zachowaj oryginalną datę)
+      // Zmień status ignore → false na każdej fakturze
       for (const invoice of ignoredInvoices || []) {
-        // Parsuj oryginalną datę wysłania
-        const flags = parseInvoiceFlags(invoice.internal_note);
-        const originalDate = flags.listPoleconyStatusDate || today;
-
-        const updatedInternalNote = setListPoleconyStatusSent(invoice.internal_note, originalDate);
+        // Ustaw status=false (przywrócenie do "Do wysłania")
+        const updatedInternalNote = setListPoleconyStatusFalse(invoice.internal_note);
 
         // Aktualizuj w Supabase
         const { error: invoiceError } = await supabaseAdmin()
           .from('invoices')
-          .update({
-            internal_note: updatedInternalNote,
-            list_polecony_ignored: false,
-            list_polecony_ignored_date: null,
-            list_polecony_sent_date: originalDate
-          })
+          .update({ internal_note: updatedInternalNote })
           .eq('id', invoice.id);
 
         if (invoiceError) {
@@ -116,7 +79,7 @@ export async function POST(request: NextRequest) {
           await fakturowniaApi.updateInvoice(invoice.id, {
             internal_note: updatedInternalNote
           });
-          console.log(`[ListPolecony Restore] ✓ Invoice ${invoice.id} restored in Fakturownia`);
+          console.log(`[ListPolecony Restore] ✓ Invoice ${invoice.id} restored (status=false) in Fakturownia`);
           totalInvoicesRestored++;
         } catch (apiError) {
           console.error(`[ListPolecony Restore] Error updating invoice ${invoice.id} in Fakturownia:`, apiError);

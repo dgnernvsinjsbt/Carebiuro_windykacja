@@ -7,7 +7,7 @@
  * [LIST_POLECONY_STATUS_DATE]2025-09-01[/LIST_POLECONY_STATUS_DATE]
  */
 
-export type ListPoleconyStatus = 'sent' | 'ignore' | null;
+export type ListPoleconyStatus = 'sent' | 'ignore' | 'false' | null;
 
 export interface InvoiceFlags {
   listPoleconyStatus: ListPoleconyStatus;
@@ -20,8 +20,8 @@ export interface InvoiceFlags {
 export function parseInvoiceFlags(internalNote: string | null | undefined): InvoiceFlags {
   const note = internalNote || '';
 
-  // Parsuj status LIST_POLECONY (sent/ignore)
-  const statusMatch = note.match(/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]/);
+  // Parsuj status LIST_POLECONY (sent/ignore/false)
+  const statusMatch = note.match(/\[LIST_POLECONY_STATUS\](sent|ignore|false)\[\/LIST_POLECONY_STATUS\]/);
   const listPoleconyStatus: ListPoleconyStatus = statusMatch ? (statusMatch[1] as ListPoleconyStatus) : null;
 
   // Parsuj datę
@@ -36,7 +36,11 @@ export function parseInvoiceFlags(internalNote: string | null | undefined): Invo
 
 /**
  * Aktualizuje flagi w internal_note faktury
- * WAŻNE: Aktualizuje TYLKO przekazane flagi, nie usuwa innych!
+ *
+ * ⚠️ WAŻNE: Ta funkcja aktualizuje TYLKO flagi LIST_POLECONY_STATUS i LIST_POLECONY_STATUS_DATE
+ * ✅ NIE NADPISUJE innych flag (np. [FISCAL_SYNC], EMAIL_1, SMS_1, WHATSAPP_1, STOP, itd.)
+ * ✅ Zachowuje całą resztę contentu w internal_note
+ * ✅ Usuwa TYLKO stare tagi list polecony podczas migracji
  */
 export function updateInvoiceFlags(
   internalNote: string | null | undefined,
@@ -46,7 +50,8 @@ export function updateInvoiceFlags(
 
   // 1. LIST_POLECONY_STATUS
   if (updates.listPoleconyStatus !== undefined) {
-    // Usuń stare tagi (dla migracji ze starego formatu)
+    // Usuń TYLKO stare tagi list polecony (dla migracji ze starego formatu)
+    // NIE USUWAMY innych tagów (FISCAL_SYNC, EMAIL_*, SMS_*, etc.)
     note = note.replace(/\[LIST_POLECONY\](true|false)\[\/LIST_POLECONY\]\n?/g, '');
     note = note.replace(/\[LIST_POLECONY_IGNORED\](true|false)\[\/LIST_POLECONY_IGNORED\]\n?/g, '');
     note = note.replace(/\[LIST_POLECONY_SENT_DATE\].*?\[\/LIST_POLECONY_SENT_DATE\]\n?/g, '');
@@ -54,10 +59,10 @@ export function updateInvoiceFlags(
 
     if (updates.listPoleconyStatus === null) {
       // Usuń tag jeśli null
-      note = note.replace(/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]\n?/g, '');
+      note = note.replace(/\[LIST_POLECONY_STATUS\](sent|ignore|false)\[\/LIST_POLECONY_STATUS\]\n?/g, '');
     } else {
-      if (/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]/.test(note)) {
-        note = note.replace(/\[LIST_POLECONY_STATUS\](sent|ignore)\[\/LIST_POLECONY_STATUS\]/, `[LIST_POLECONY_STATUS]${updates.listPoleconyStatus}[/LIST_POLECONY_STATUS]`);
+      if (/\[LIST_POLECONY_STATUS\](sent|ignore|false)\[\/LIST_POLECONY_STATUS\]/.test(note)) {
+        note = note.replace(/\[LIST_POLECONY_STATUS\](sent|ignore|false)\[\/LIST_POLECONY_STATUS\]/, `[LIST_POLECONY_STATUS]${updates.listPoleconyStatus}[/LIST_POLECONY_STATUS]`);
       } else {
         note = `[LIST_POLECONY_STATUS]${updates.listPoleconyStatus}[/LIST_POLECONY_STATUS]\n${note}`;
       }
@@ -118,6 +123,18 @@ export function clearListPoleconyStatus(
 ): string {
   return updateInvoiceFlags(internalNote, {
     listPoleconyStatus: null,
+    listPoleconyStatusDate: null,
+  });
+}
+
+/**
+ * Ustawia status=false (przywrócenie z ignorowanych do "Do wysłania")
+ */
+export function setListPoleconyStatusFalse(
+  internalNote: string | null | undefined
+): string {
+  return updateInvoiceFlags(internalNote, {
+    listPoleconyStatus: 'false',
     listPoleconyStatusDate: null,
   });
 }

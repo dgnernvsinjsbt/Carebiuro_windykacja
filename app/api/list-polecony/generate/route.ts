@@ -239,72 +239,32 @@ export async function POST(request: NextRequest) {
 
       console.log('Usunięto pliki tymczasowe');
 
-      // Aktualizuj flagę [LIST_POLECONY_STATUS]sent dla wygenerowanych klientów
-      console.log('Aktualizowanie flag [LIST_POLECONY_STATUS]sent dla klientów...');
-      const { setListPoleconyStatusSent: setClientStatus } = await import('@/lib/client-flags-v2');
-      const { fakturowniaApi } = await import('@/lib/fakturownia');
-
-      const updatePromises = clients.map(async (client) => {
-        try {
-          // Zaktualizuj note z flagą status=sent
-          const updatedNote = setClientStatus(client.note, today);
-          console.log(`[Update] Client ${client.id} - old note:`, client.note);
-          console.log(`[Update] Client ${client.id} - new note:`, updatedNote);
-
-          // 1. Zaktualizuj w Supabase
-          const { data, error } = await supabaseAdmin()
-            .from('clients')
-            .update({ note: updatedNote })
-            .eq('id', client.id)
-            .select();
-
-          if (error) {
-            console.error(`✗ Supabase update error for client ${client.id}:`, error);
-          } else {
-            console.log(`✓ Zaktualizowano flagę LIST_POLECONY w Supabase dla klienta ${client.id}`, data);
-          }
-
-          // 2. Zaktualizuj w Fakturowni
-          await fakturowniaApi.updateClient(client.id, {
-            note: updatedNote
-          });
-
-          console.log(`✓ Zaktualizowano flagę LIST_POLECONY w Fakturowni dla klienta ${client.id}`);
-        } catch (err) {
-          console.error(`✗ Błąd aktualizacji klienta ${client.id}:`, err);
-        }
-      });
-
-      await Promise.all(updatePromises);
-      console.log('Zakończono aktualizację flag klientów');
-
       // Aktualizuj flagę [LIST_POLECONY_STATUS]sent na fakturach z trzecim upomnieniem
       console.log('Aktualizowanie flag [LIST_POLECONY_STATUS]sent na fakturach...');
       const { setListPoleconyStatusSent } = await import('@/lib/invoice-flags');
+      const { hasThirdReminder } = await import('@/lib/list-polecony-logic');
+      const { fakturowniaApi } = await import('@/lib/fakturownia');
       const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
       const invoiceUpdatePromises = pdfResults.map(async (result) => {
         // Pobierz faktury klienta z bazy
         const clientInvoices = invoices.filter((inv) => inv.client_id === result.client.id);
-        const invoicesWithThirdReminder = clientInvoices.filter(inv =>
-          inv.has_third_reminder === true
-        );
+
+        // Filtruj faktury z trzecim upomnieniem (parsowanie internal_note)
+        const invoicesWithThirdReminder = clientInvoices.filter(hasThirdReminder);
 
         for (const invoice of invoicesWithThirdReminder) {
           try {
             // Ustaw status=sent z datą
             const updatedInternalNote = setListPoleconyStatusSent(invoice.internal_note || '', today);
 
-            console.log(`[Update Invoice] ${invoice.id} - old internal_note:`, invoice.internal_note);
-            console.log(`[Update Invoice] ${invoice.id} - new internal_note:`, updatedInternalNote);
+            console.log(`[Update Invoice] ${invoice.id} - old internal_note:`, invoice.internal_note?.substring(0, 100));
+            console.log(`[Update Invoice] ${invoice.id} - new internal_note:`, updatedInternalNote?.substring(0, 100));
 
             // 1. Zaktualizuj w Supabase
             const { error: supError } = await supabaseAdmin()
               .from('invoices')
-              .update({
-                internal_note: updatedInternalNote,
-                list_polecony_sent_date: today
-              })
+              .update({ internal_note: updatedInternalNote })
               .eq('id', invoice.id);
 
             if (supError) {

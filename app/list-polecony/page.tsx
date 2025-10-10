@@ -9,7 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ListPoleconyTable from '@/components/ListPoleconyTable';
 import { qualifiesForListPolecony, calculateTotalDebt, getInvoicesWithThirdReminder, hasThirdReminder } from '@/lib/list-polecony-logic';
-import { parseListPolecony, parseListPoleconyIgnored } from '@/lib/list-polecony-parser';
+import { parseInvoiceFlags } from '@/lib/invoice-flags';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -32,9 +32,23 @@ async function getListPoleconyClients() {
   console.log(`[ListPolecony] Fetched ${allInvoices?.length || 0} total invoices`);
 
   // Filtruj faktury z trzecim upomnieniem (parsowanie internal_note)
-  const invoicesWithThirdReminder = (allInvoices || []).filter(hasThirdReminder);
+  // ORAZ które NIE mają statusu 'sent' lub 'ignore'
+  const invoicesWithThirdReminder = (allInvoices || []).filter(inv => {
+    // Musi mieć trzecie przypomnienie (E3/S3/W3)
+    if (!hasThirdReminder(inv)) return false;
 
-  console.log(`[ListPolecony] Found ${invoicesWithThirdReminder.length} invoices with third reminder (EMAIL_3/SMS_3/WHATSAPP_3)`);
+    // Sprawdź status LIST_POLECONY_STATUS w invoice.internal_note
+    const flags = parseInvoiceFlags(inv.internal_note);
+
+    // Wyklucz jeśli status = 'sent' lub 'ignore'
+    if (flags.listPoleconyStatus === 'sent') return false;
+    if (flags.listPoleconyStatus === 'ignore') return false;
+
+    // Akceptuj jeśli status = null lub 'false' (przywrócone z ignorowanych)
+    return true;
+  });
+
+  console.log(`[ListPolecony] Found ${invoicesWithThirdReminder.length} invoices with third reminder (EMAIL_3/SMS_3/WHATSAPP_3) AND status != sent/ignore`);
 
   // Grupuj faktury po client_id
   const clientInvoicesMap = new Map<number, any[]>();
@@ -66,18 +80,13 @@ async function getListPoleconyClients() {
 
   console.log(`[ListPolecony] Fetched ${clients?.length || 0} clients`);
 
-  // Filtruj klientów którzy kwalifikują się DO WYSŁANIA (nie wysłano jeszcze i nie zignorowano)
+  // Mapuj klientów z ich fakturami
+  // UWAGA: Faktury już są przefiltrowane (mają E3/S3/W3 + status != sent/ignore)
   const qualifiedClients = (clients || [])
     .map((client) => {
-      // Sprawdź czy list polecony już został wysłany - filtruj NAJPIERW
-      const listPoleconyWyslany = parseListPolecony(client.note);
-      if (listPoleconyWyslany) return null; // Już wysłany - pomijamy
-
-      // Sprawdź czy klient został zignorowany
-      const listPoleconyIgnored = parseListPoleconyIgnored(client.note);
-      if (listPoleconyIgnored) return null; // Zignorowany - pomijamy
-
       const clientInvoices = clientInvoicesMap.get(client.id) || [];
+
+      // Faktury już są przefiltrowane wyżej, więc po prostu obliczamy statystyki
       const qualifies = qualifiesForListPolecony(client, clientInvoices);
 
       if (!qualifies) return null;

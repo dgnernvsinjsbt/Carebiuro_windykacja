@@ -22,18 +22,15 @@ Klient kwalifikuje się do zakładki "List polecony", jeśli:
 
 ### 1. **Struktura bazy danych**
 
-#### Tabela `clients`
-```sql
-ALTER TABLE clients
-  ADD COLUMN note TEXT,
-  ADD COLUMN list_polecony BOOLEAN DEFAULT false;
-```
+#### ⚠️ WAŻNE: Jedyne źródło prawdy = `invoice.internal_note`
 
-- `note` - komentarz z Fakturowni (zawiera `[WINDYKACJA]` i `[LIST_POLECONY]`)
-- `list_polecony` - flaga boolean oznaczająca klienta kwalifikującego się do listu poleconego
+**WSZYSTKIE flagi List Polecony są przechowywane TYLKO w `invoice.internal_note`**
+- Format: `[LIST_POLECONY_STATUS]sent|ignore|false[/LIST_POLECONY_STATUS]`
+- `client.note` nie jest już używany dla List Polecony (stary system, deprecated)
 
 #### Tabela `invoices`
 Rozszerzona o dodatkowe pola potrzebne do PDF/Excel:
+- `internal_note` - **JEDYNE źródło prawdy** dla flag `[FISCAL_SYNC]`, `[LIST_POLECONY_STATUS]`
 - `issue_date`, `payment_to`, `paid_date`
 - `buyer_name`, `buyer_email`, `buyer_street`, `buyer_city`, `buyer_post_code`, `buyer_country`
 - `currency`, `price_net`, `price_tax`
@@ -42,11 +39,16 @@ Rozszerzona o dodatkowe pola potrzebne do PDF/Excel:
 
 ### 2. **Parsery i helpery**
 
-#### `lib/list-polecony-parser.ts`
-Parser dla tagu `[LIST_POLECONY]true/false[/LIST_POLECONY]`:
-- `parseListPolecony(note)` - odczytuje status
-- `updateListPolecony(note, enabled)` - aktualizuje tag
-- `removeListPolecony(note)` - usuwa tag
+#### `lib/invoice-flags.ts` ⭐ NOWY SYSTEM
+Parser dla flag w `invoice.internal_note`:
+- `parseInvoiceFlags(internalNote)` - odczytuje wszystkie flagi (`listPoleconyStatus`, `listPoleconyStatusDate`, flags z `[FISCAL_SYNC]`)
+- `setListPoleconyStatusSent(internalNote, date)` - ustawia status=sent
+- `setListPoleconyStatusIgnore(internalNote, date)` - ustawia status=ignore
+- `setListPoleconyStatusFalse(internalNote)` - ustawia status=false (przywrócenie)
+- **⚠️ Funkcje zachowują inne flagi (FISCAL_SYNC, EMAIL_*, SMS_*, WHATSAPP_*, STOP)**
+
+#### ~~`lib/list-polecony-parser.ts`~~ DEPRECATED
+Stary system - nie używać. Funkcje zostały zastąpione przez `lib/invoice-flags.ts`
 
 #### `lib/list-polecony-logic.ts`
 Logika biznesowa:
@@ -180,31 +182,51 @@ Szablon zgodny z `szablon_neolist.xlsx`:
 
 ## 🚀 Workflow użytkowania
 
-1. **Przejdź do zakładki "List Polecony"** (sidebar)
+### Zakładka "Do wysłania" (`/list-polecony`)
+Pokazuje klientów z fakturami po trzecim upomnieniu (E3/S3/W3) które NIE mają statusu `sent` ani `ignore`.
+
+1. **Przejdź do zakładki "List Polecony → Do wysłania"**
 2. **Sprawdź listę klientów** kwalifikujących się do eskalacji
-3. **Zaznacz klientów** za pomocą checkboxów (lub "Zaznacz wszystkie")
-4. **Kliknij "Generuj dokumenty"**
-5. **Pobierz archiwum ZIP** zawierające:
-   - Osobne PDF-y dla każdego klienta (`1.pdf`, `2.pdf`, ...)
-   - Plik Excel (`lista_klientow.xlsx`)
-6. **Wyślij dokumenty** pocztą poleconą
+3. **Zaznacz klientów** za pomocą checkboxów
+4. **Opcja A: Generuj dokumenty**
+   - Kliknij "Generuj dokumenty"
+   - Pobierz archiwum ZIP (PDF-y + Excel)
+   - Status faktur zmienia się na `[LIST_POLECONY_STATUS]sent[/LIST_POLECONY_STATUS]`
+   - Klienci przechodzą do zakładki "Wysłane"
+5. **Opcja B: Ignoruj**
+   - Kliknij "Ignoruj" dla klientów które nie chcesz wysłać
+   - Status faktur zmienia się na `[LIST_POLECONY_STATUS]ignore[/LIST_POLECONY_STATUS]`
+   - Klienci przechodzą do zakładki "Ignorowane"
+
+### Zakładka "Wysłane" (`/list-polecony/wyslane`)
+Pokazuje klientów z fakturami o statusie `[LIST_POLECONY_STATUS]sent`.
+
+- **Historia**: kto i kiedy został wysłany
+- **Regeneruj**: możliwość ponownego wygenerowania dokumentów (bez zmiany statusu)
+
+### Zakładka "Ignorowane" (`/list-polecony/ignorowane`)
+Pokazuje klientów z fakturami o statusie `[LIST_POLECONY_STATUS]ignore`.
+
+- **Przywróć**: zmienia status na `[LIST_POLECONY_STATUS]false` → klient wraca do "Do wysłania"
 
 ---
 
 ## 🔄 Integracja z synchronizacją
 
-### Automatyczna identyfikacja klientów
+### Automatyczna identyfikacja faktur
 
-Podczas synchronizacji z Fakturownią:
-1. System pobiera faktury i komentarze zawierające `[FISCAL_SYNC]`
-2. Funkcja `qualifiesForListPolecony()` sprawdza warunki eskalacji
-3. Jeśli klient kwalifikuje się:
-   - Ustawia `list_polecony = true` w Supabase
-   - Opcjonalnie aktualizuje tag `[LIST_POLECONY]true[/LIST_POLECONY]` w Fakturowni
+System identyfikuje faktury kwalifikujące się do List Polecony na podstawie:
+1. Parsowania `invoice.internal_note` w poszukiwaniu flag `[FISCAL_SYNC]`
+2. Sprawdzania czy `EMAIL_3=TRUE` LUB `SMS_3=TRUE` LUB `WHATSAPP_3=TRUE`
+3. Filtrowania po statusie: wyklucza `status=sent` i `status=ignore`
+4. Grupowania faktur po `client_id` (jeden klient może mieć wiele faktur)
 
-### Manualna aktualizacja
+### Retroaktywne grupowanie
 
-Endpoint `GET /api/list-polecony/clients` automatycznie aktualizuje flagę `list_polecony` dla kwalifikujących się klientów.
+⚠️ **WAŻNE**: System NIE grupuje klientów z góry!
+- Najpierw filtrujemy **faktury** (E3/S3/W3 + status != sent/ignore)
+- Potem grupujemy faktury po `client_id`
+- Dopiero na końcu pokazujemy klientów (którzy mają ≥1 fakturę spełniającą warunki)
 
 ---
 
@@ -254,16 +276,38 @@ Strona `/list-polecony` wyświetla:
 
 ## 🐛 Debugging i troubleshooting
 
-### Problem: Klient nie pojawia się w zakładce
+### Problem: Klient nie pojawia się w zakładce "Do wysłania"
 
-**Sprawdź:**
-1. Czy faktury klienta mają prawidłową strukturę `[FISCAL_SYNC]` w `comment`
-2. Czy `EMAIL_3`, `SMS_3` lub `WHATSAPP_3` są ustawione na `TRUE`
-3. Czy suma zadłużenia (dla faktur >= 190 EUR) jest poprawna
+**Sprawdź krok po kroku:**
+1. ✅ **Czy faktury mają `internal_note` z flagami `[FISCAL_SYNC]`?**
+   ```sql
+   SELECT id, internal_note FROM invoices WHERE client_id = 123;
+   ```
+   Szukaj: `EMAIL_3=TRUE` LUB `SMS_3=TRUE` LUB `WHATSAPP_3=TRUE`
 
-**Logi:**
+2. ✅ **Czy faktury NIE mają statusu `sent` lub `ignore`?**
+   ```sql
+   SELECT id, internal_note FROM invoices
+   WHERE client_id = 123
+   AND internal_note LIKE '%LIST_POLECONY_STATUS%';
+   ```
+   Jeśli widzisz `[LIST_POLECONY_STATUS]sent` lub `[LIST_POLECONY_STATUS]ignore` → faktura NIE pojawi się w "Do wysłania"
+
+3. ✅ **Czy klient spełnia warunki eskalacji?**
+   - 3+ faktury z E3/S3/W3 **LUB**
+   - ≥1 faktura z E3/S3/W3 i kwotą >= 190 EUR
+
+**Debugowanie w kodzie:**
 ```typescript
-console.log('Klient kwalifikuje się:', qualifiesForListPolecony(client, invoices));
+import { hasThirdReminder } from '@/lib/list-polecony-logic';
+import { parseInvoiceFlags } from '@/lib/invoice-flags';
+
+const invoice = await supabase.from('invoices').select('*').eq('id', 456).single();
+
+console.log('Ma trzecie przypomnienie?', hasThirdReminder(invoice.data));
+
+const flags = parseInvoiceFlags(invoice.data.internal_note);
+console.log('Status:', flags.listPoleconyStatus); // null / 'false' = OK, 'sent'/'ignore' = NIE
 ```
 
 ### Problem: PDF nie generuje się
@@ -303,14 +347,50 @@ const browser = await puppeteer.launch({
 ### Sprawdzenie czy klient kwalifikuje się
 
 ```typescript
-import { qualifiesForListPolecony } from '@/lib/list-polecony-logic';
+import { qualifiesForListPolecony, hasThirdReminder } from '@/lib/list-polecony-logic';
+import { parseInvoiceFlags } from '@/lib/invoice-flags';
 
 const client = await supabase.from('clients').select('*').eq('id', 123).single();
-const invoices = await supabase.from('invoices').select('*').eq('client_id', 123);
+const allInvoices = await supabase.from('invoices').select('*').eq('client_id', 123);
 
-if (qualifiesForListPolecony(client.data, invoices.data)) {
+// Filtruj faktury z trzecim upomnieniem BEZ statusu sent/ignore
+const eligibleInvoices = allInvoices.data.filter(inv => {
+  if (!hasThirdReminder(inv)) return false;
+
+  const flags = parseInvoiceFlags(inv.internal_note);
+  if (flags.listPoleconyStatus === 'sent') return false;
+  if (flags.listPoleconyStatus === 'ignore') return false;
+
+  return true; // Accept null or 'false'
+});
+
+if (qualifiesForListPolecony(client.data, eligibleInvoices)) {
   console.log('Klient kwalifikuje się do listu poleconego');
+  console.log('Liczba faktur:', eligibleInvoices.length);
 }
+```
+
+### Ustawienie statusu po wysłaniu
+
+```typescript
+import { setListPoleconyStatusSent } from '@/lib/invoice-flags';
+import { fakturowniaApi } from '@/lib/fakturownia';
+
+const invoice = await supabase.from('invoices').select('*').eq('id', 456).single();
+const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+// Ustaw status=sent (zachowuje wszystkie inne flagi!)
+const updatedNote = setListPoleconyStatusSent(invoice.data.internal_note, today);
+
+// Aktualizuj w Supabase
+await supabase.from('invoices')
+  .update({ internal_note: updatedNote })
+  .eq('id', 456);
+
+// Aktualizuj w Fakturowni
+await fakturowniaApi.updateInvoice(456, {
+  internal_note: updatedNote
+});
 ```
 
 ### Generowanie PDF-a programowo
