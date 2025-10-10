@@ -18,19 +18,19 @@ export const revalidate = 0;
 async function getListPoleconyClients() {
   const supabase = supabaseAdmin;
 
-  // Pobierz faktury które mają [FISCAL_SYNC] w internal_note
-  // (to znacząco zmniejszy ilość danych do przetworzenia)
+  // Pobierz faktury z trzecim upomnieniem (EMAIL_3=TRUE lub SMS_3=TRUE lub WHATSAPP_3=TRUE)
+  // Używamy OR w LIKE aby znaleźć faktury z którymkolwiek z trzech flag
   const { data: allInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[FISCAL_SYNC]%');
+    .or('internal_note.like.%EMAIL_3=TRUE%,internal_note.like.%SMS_3=TRUE%,internal_note.like.%WHATSAPP_3=TRUE%');
 
   if (invoicesError) {
     console.error('[ListPolecony] Error fetching invoices:', invoicesError);
     return [];
   }
 
-  console.log(`[ListPolecony] Fetched ${allInvoices?.length || 0} invoices with FISCAL_SYNC`);
+  console.log(`[ListPolecony] Fetched ${allInvoices?.length || 0} invoices with EMAIL_3/SMS_3/WHATSAPP_3`);
 
   // Filtruj faktury z trzecim upomnieniem (parsowanie internal_note)
   // ORAZ które NIE mają statusu 'sent' lub 'ignore'
