@@ -107,6 +107,7 @@ export async function POST(request: NextRequest) {
             price_net: parseFloat(inv.price_net) || null,
             price_tax: parseFloat(inv.price_tax) || null,
             paid: parseFloat(inv.paid) || null,
+            outstanding: (parseFloat(inv.price_gross) || 0) - (parseFloat(inv.paid) || 0),
             currency: inv.currency || null,
             payment_type: inv.payment_type || null,
             buyer_name: inv.buyer_name || null,

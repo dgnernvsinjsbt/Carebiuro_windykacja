@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
         price_net: parseFloat(fi.price_net) || null,
         price_tax: parseFloat(fi.price_tax) || null,
         paid: parseFloat(fi.paid) || null,
+        outstanding: (parseFloat(fi.price_gross) || 0) - (parseFloat(fi.paid) || 0),
         currency: fi.currency || null,
         payment_type: fi.payment_type || null,
 
@@ -336,6 +337,7 @@ export async function GET(request: NextRequest) {
         price_net: parseFloat(fi.price_net) || null,
         price_tax: parseFloat(fi.price_tax) || null,
         paid: parseFloat(fi.paid) || null,
+        outstanding: (parseFloat(fi.price_gross) || 0) - (parseFloat(fi.paid) || 0),
         currency: fi.currency || null,
         payment_type: fi.payment_type || null,
 

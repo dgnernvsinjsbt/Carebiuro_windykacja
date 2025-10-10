@@ -70,6 +70,7 @@ export interface Invoice {
   price_net: number | null;
   price_tax: number | null;
   paid: number | null;
+  outstanding: number | null; // Amount remaining unpaid (total - paid)
   currency: string | null;
   payment_type: string | null;
 
