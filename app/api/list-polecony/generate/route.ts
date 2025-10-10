@@ -15,7 +15,9 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { generateListPoleconyHTML } from '@/lib/pdf-generator';
 import { getInvoicesWithThirdReminder, calculateTotalDebt } from '@/lib/list-polecony-logic';
 import { InvoiceFromDB, Client } from '@/types';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import puppeteerLocal from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 import ExcelJS from 'exceljs';
 import archiver from 'archiver';
 import { Readable } from 'stream';
@@ -85,19 +87,26 @@ export async function POST(request: NextRequest) {
 
     console.log(`Katalog tymczasowy: ${tempDir}`);
 
-    // Uruchom Puppeteer
+    // Uruchom Puppeteer - używaj @sparticuz/chromium na Vercel (production)
     console.log('Uruchamianie Puppeteer...');
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    const isProduction = process.env.VERCEL === '1';
+
+    const browser = isProduction
+      ? await puppeteer.launch({
+          args: chromium.args,
+          defaultViewport: chromium.defaultViewport,
+          executablePath: await chromium.executablePath(),
+          headless: chromium.headless,
+        })
+      : await puppeteerLocal.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
     console.log('Puppeteer uruchomiony pomyślnie');
 
     try {
-      console.log(`Generowanie PDF-ów dla ${clients.length} klientów...`);
       // Generuj PDF-y dla każdego klienta
       const pdfPromises = clients.map(async (client, index) => {
-        console.log(`[PDF ${index + 1}/${clients.length}] Rozpoczynam generowanie dla klienta: ${client.name}`);
         const clientInvoices = invoices.filter((inv) => inv.client_id === client.id);
 
         // Generuj HTML

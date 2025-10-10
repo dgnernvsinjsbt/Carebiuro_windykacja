@@ -13,6 +13,7 @@
   "dependencies": {
     "@playwright/test": "^1.56.0",
     "@sentry/nextjs": "^10.18.0",
+    "@sparticuz/chromium": "^141.0.0",
     "@supabase/supabase-js": "^2.74.0",
     "archiver": "^7.0.1",
     "date-fns": "^3.3.1",
@@ -25,6 +26,7 @@
     "next": "14.2",
     "pizzip": "^3.2.0",
     "puppeteer": "^24.23.0",
+    "puppeteer-core": "^24.24.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
