@@ -26,10 +26,11 @@ async function getKaczmarskiClients() {
 
   // KROK 1: Pobierz wszystkie faktury z [LIST_POLECONY_STATUS]sent w internal_note
   // (potem filtrujemy po dacie w kodzie)
+  // UWAGA: Używamy ilike z escapowaniem nawiasów kwadratowych
   const { data: allInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[LIST_POLECONY_STATUS]sent%')
+    .ilike('internal_note', '%\\[LIST\\_POLECONY\\_STATUS\\]sent%')
     .neq('status', 'paid');
 
   if (invoicesError) {

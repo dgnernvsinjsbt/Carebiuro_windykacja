@@ -17,23 +17,12 @@ export const revalidate = 0;
 async function getIgnorowaneClients() {
   const supabase = supabaseAdmin;
 
-  // Pobierz WSZYSTKICH klientów (filtrowanie po fakturach, nie po kliencie)
-  const { data: allClients, error: clientsError } = await supabase()
-    .from('clients')
-    .select('*');
-
-  if (clientsError) {
-    console.error('[ListPolecony Ignorowane] Error fetching clients:', clientsError);
-    return [];
-  }
-
-  console.log(`[ListPolecony Ignorowane] Fetched ${allClients?.length || 0} total clients`);
-
   // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_STATUS]ignore
+  // UWAGA: Używamy ilike z escapowaniem nawiasów kwadratowych
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[LIST_POLECONY_STATUS]ignore%');
+    .ilike('internal_note', '%\\[LIST\\_POLECONY\\_STATUS\\]ignore%');
 
   if (invoicesError) {
     console.error('[ListPolecony Ignorowane] Error fetching invoices:', invoicesError);
@@ -63,9 +52,20 @@ async function getIgnorowaneClients() {
     clientInvoicesMap.get(invoice.client_id)!.push(invoice);
   }
 
-  // Filtruj klientów - tylko ci którzy mają faktury
+  // Pobierz TYLKO klientów którzy mają ignorowane faktury (zamiast wszystkich 1000+)
   const clientIdsWithInvoices = Array.from(clientInvoicesMap.keys());
-  const ignorowaneClientsData = allClients?.filter(c => clientIdsWithInvoices.includes(c.id)) || [];
+
+  console.log(`[ListPolecony Ignorowane] ${clientIdsWithInvoices.length} unique clients with ignored invoices`);
+
+  const { data: ignorowaneClientsData, error: clientsError } = await supabase()
+    .from('clients')
+    .select('*')
+    .in('id', clientIdsWithInvoices);
+
+  if (clientsError) {
+    console.error('[ListPolecony Ignorowane] Error fetching clients:', clientsError);
+    return [];
+  }
 
   console.log(`[ListPolecony Ignorowane] ${ignorowaneClientsData.length} clients have invoices with STATUS=ignore`);
 
