@@ -45,7 +45,8 @@ export async function GET() {
       const invoices = clientInvoicesMap.get(client.id) || [];
 
       const totalDebt = invoices.reduce((sum, inv) => {
-        return sum + (inv.outstanding || 0);
+        const outstanding = (inv.total || 0) - (inv.paid || 0);
+        return sum + outstanding;
       }, 0);
 
       const earliestSentDate = invoices.reduce((earliest, inv) => {

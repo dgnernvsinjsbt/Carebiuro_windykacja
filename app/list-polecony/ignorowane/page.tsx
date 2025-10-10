@@ -42,11 +42,13 @@ async function getIgnorowaneClients() {
   console.log(`[ListPolecony Ignorowane] Fetched ${clientInvoices?.length || 0} ignored invoices`);
 
   if (clientInvoices && clientInvoices.length > 0) {
+    const firstInv = clientInvoices[0];
+    const outstanding = (firstInv.total || 0) - (firstInv.paid || 0);
     console.log('[ListPolecony Ignorowane] Example invoice:', {
-      id: clientInvoices[0].id,
-      client_id: clientInvoices[0].client_id,
-      outstanding: clientInvoices[0].outstanding,
-      internal_note_preview: clientInvoices[0].internal_note?.substring(0, 150)
+      id: firstInv.id,
+      client_id: firstInv.client_id,
+      outstanding: outstanding, // calculated: total - paid
+      internal_note_preview: firstInv.internal_note?.substring(0, 150)
     });
   }
 
@@ -71,9 +73,10 @@ async function getIgnorowaneClients() {
   const ignorowaneClients = ignorowaneClientsData.map((client) => {
     const invoices = clientInvoicesMap.get(client.id) || [];
 
-    // Oblicz zadłużenie (suma outstanding ze wszystkich faktur zignorowanych)
+    // Oblicz zadłużenie (outstanding = total - paid, bo outstanding jest GENERATED COLUMN)
     const totalDebt = invoices.reduce((sum, inv) => {
-      return sum + (inv.outstanding || 0);
+      const outstanding = (inv.total || 0) - (inv.paid || 0);
+      return sum + outstanding;
     }, 0);
 
     // Znajdź najwcześniejszą datę IGNOROWANIA (parsuj z internal_note)

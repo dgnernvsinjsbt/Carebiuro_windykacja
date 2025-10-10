@@ -63,8 +63,9 @@ async function testWyslaneFunction() {
 
     // Oblicz zadłużenie
     const totalDebt = invoices.reduce((sum, inv) => {
-      console.log(`     Invoice ${inv.id}: outstanding=${inv.outstanding}`);
-      return sum + (inv.outstanding || 0);
+      const outstanding = (inv.total || 0) - (inv.paid || 0);
+      console.log(`     Invoice ${inv.id}: outstanding=${outstanding}`);
+      return sum + outstanding;
     }, 0);
 
     console.log(`   - Total debt: €${totalDebt}`);

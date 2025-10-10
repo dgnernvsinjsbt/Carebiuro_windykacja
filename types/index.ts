@@ -48,6 +48,7 @@ export interface Client {
   qualifies_for_list_polecony?: boolean; // Calculated from invoice.internal_note
 }
 
+// Invoice type for INSERT/UPDATE operations (without GENERATED columns)
 export interface Invoice {
   id: number;
   client_id: number | null;
@@ -70,7 +71,9 @@ export interface Invoice {
   price_net: number | null;
   price_tax: number | null;
   paid: number | null;
-  outstanding: number | null; // Amount remaining unpaid (total - paid)
+  // NOTE: outstanding is a GENERATED COLUMN in Supabase (calculated as total - paid)
+  // Do NOT include in INSERT/UPDATE operations - it's auto-calculated by the database
+  // Use InvoiceFromDB type when reading from database (includes outstanding field)
   currency: string | null;
   payment_type: string | null;
 
@@ -97,6 +100,11 @@ export interface Invoice {
   // ⚠️ DEPRECATED FIELDS REMOVED (2025-10-10):
   // has_third_reminder, list_polecony, list_polecony_sent_date, list_polecony_ignored, list_polecony_ignored_date
   // ALL List Polecony data now stored in internal_note field
+}
+
+// Invoice type when reading from database (includes GENERATED columns)
+export interface InvoiceFromDB extends Invoice {
+  outstanding: number | null; // GENERATED COLUMN: total - paid (read-only)
 }
 
 export interface InvoiceComment {
@@ -242,7 +250,7 @@ export interface ReminderRequest {
 }
 
 // UI types
-export interface InvoiceWithClient extends Invoice {
+export interface InvoiceWithClient extends InvoiceFromDB {
   client: Client | null;
   fiscal_sync: FiscalSyncData | null;
 }

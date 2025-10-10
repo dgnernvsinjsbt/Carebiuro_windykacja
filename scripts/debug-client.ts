@@ -28,11 +28,12 @@ async function debug() {
     const flags = parseInvoiceFlags(inv.internal_note);
     const shouldShow = hasThird && flags.listPoleconyStatus !== 'sent' && flags.listPoleconyStatus !== 'ignore';
 
+    const outstanding = (inv.total || 0) - (inv.paid || 0);
     console.log(`Invoice ${inv.number}:`);
     console.log(`  - hasThirdReminder: ${hasThird}`);
     console.log(`  - listPoleconyStatus: ${flags.listPoleconyStatus}`);
     console.log(`  - total: €${inv.total}`);
-    console.log(`  - outstanding: €${inv.outstanding}`);
+    console.log(`  - outstanding: €${outstanding}`);
     console.log(`  - Should show: ${shouldShow}`);
     console.log('');
 
@@ -44,7 +45,10 @@ async function debug() {
   console.log(`\n=== Summary ===`);
   console.log(`Qualifying invoices: ${qualifyingInvoices.length}`);
   console.log(`Total (sum of total): €${qualifyingInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)}`);
-  console.log(`Outstanding (sum of outstanding): €${qualifyingInvoices.reduce((sum, inv) => sum + (inv.outstanding || 0), 0)}`);
+  console.log(`Outstanding (sum of outstanding): €${qualifyingInvoices.reduce((sum, inv) => {
+    const outstanding = (inv.total || 0) - (inv.paid || 0);
+    return sum + outstanding;
+  }, 0)}`);
   console.log(`Qualifies (ALL invoices): ${qualifiesForListPolecony(client, invoices || [])}`);
   console.log(`Qualifies (ONLY qualifying): ${qualifiesForListPolecony(client, qualifyingInvoices)}`);
 }

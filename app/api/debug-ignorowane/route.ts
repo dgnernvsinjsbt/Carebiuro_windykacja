@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { InvoiceFromDB } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       clientId,
       allInvoices: allInvoices?.map(i => ({
         id: i.id,
-        outstanding: i.outstanding,
+        outstanding: (i.total || 0) - (i.paid || 0), // calculated: total - paid
         has_internal_note: !!i.internal_note,
         internal_note_length: i.internal_note?.length || 0,
         has_ignored_flag: i.internal_note?.includes('[LIST_POLECONY_IGNORED]true'),
@@ -39,11 +40,11 @@ export async function GET(request: NextRequest) {
       })),
       ignoredInvoices_LIKE: ignoredInvoices?.map(i => ({
         id: i.id,
-        outstanding: i.outstanding
+        outstanding: (i.total || 0) - (i.paid || 0) // calculated: total - paid
       })),
       ignoredInvoices_ILIKE: ignoredInvoicesILike?.map(i => ({
         id: i.id,
-        outstanding: i.outstanding
+        outstanding: (i.total || 0) - (i.paid || 0) // calculated: total - paid
       })),
       summary: {
         total_invoices: allInvoices?.length || 0,
@@ -51,7 +52,10 @@ export async function GET(request: NextRequest) {
         ignored_ILIKE: ignoredInvoicesILike?.length || 0,
         expected_outstanding_sum: allInvoices
           ?.filter(i => i.internal_note?.includes('[LIST_POLECONY_IGNORED]true'))
-          .reduce((sum, i) => sum + (i.outstanding || 0), 0) || 0
+          .reduce((sum, i) => {
+            const outstanding = (i.total || 0) - (i.paid || 0);
+            return sum + outstanding;
+          }, 0) || 0
       }
     });
   } catch (error: any) {

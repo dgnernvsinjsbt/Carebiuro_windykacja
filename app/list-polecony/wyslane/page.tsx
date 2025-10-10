@@ -62,9 +62,10 @@ async function getWyslaneClients() {
   const wyslaneClients = wyslaneClientsData.map((client) => {
     const invoices = clientInvoicesMap.get(client.id) || [];
 
-    // Oblicz zadłużenie (suma outstanding ze wszystkich faktur z list_polecony)
+    // Oblicz zadłużenie (outstanding = total - paid, bo outstanding jest GENERATED COLUMN)
     const totalDebt = invoices.reduce((sum, inv) => {
-      return sum + (inv.outstanding || 0);
+      const outstanding = (inv.total || 0) - (inv.paid || 0);
+      return sum + outstanding;
     }, 0);
 
     // Znajdź najwcześniejszą datę wysłania (parsuj z internal_note)
