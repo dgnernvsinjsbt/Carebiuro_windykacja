@@ -94,13 +94,13 @@ export async function POST(request: NextRequest) {
     let browser;
     if (isProduction) {
       // Konfiguracja dla @sparticuz/chromium-min w środowisku Vercel
-      chromium.setGraphicsMode = false;
+      // chromium-min wymaga URL do pliku .tar z Chromium binary
       const executablePath = await chromium.executablePath(
-        '/var/task/node_modules/@sparticuz/chromium-min/bin'
+        'https://github.com/Sparticuz/chromium/releases/download/v141.0.0/chromium-v141.0.0-pack.x64.tar'
       );
 
       browser = await puppeteer.launch({
-        args: chromium.args,
+        args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
         executablePath,
         headless: true,
       });
