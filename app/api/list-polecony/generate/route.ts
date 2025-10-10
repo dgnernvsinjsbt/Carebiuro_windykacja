@@ -17,7 +17,7 @@ import { getInvoicesWithThirdReminder, calculateTotalDebt } from '@/lib/list-pol
 import { InvoiceFromDB, Client } from '@/types';
 import puppeteer from 'puppeteer-core';
 import puppeteerLocal from 'puppeteer';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import ExcelJS from 'exceljs';
 import archiver from 'archiver';
 import { Readable } from 'stream';

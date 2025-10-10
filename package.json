@@ -13,7 +13,7 @@
   "dependencies": {
     "@playwright/test": "^1.56.0",
     "@sentry/nextjs": "^10.18.0",
-    "@sparticuz/chromium": "^141.0.0",
+    "@sparticuz/chromium-min": "^141.0.0",
     "@supabase/supabase-js": "^2.74.0",
     "archiver": "^7.0.1",
     "date-fns": "^3.3.1",
