@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateListPoleconyHTML } from '@/lib/pdf-generator';
 import { getInvoicesWithThirdReminder, calculateTotalDebt } from '@/lib/list-polecony-logic';
+import { InvoiceFromDB, Client } from '@/types';
 import puppeteer from 'puppeteer';
 import ExcelJS from 'exceljs';
 import archiver from 'archiver';
@@ -63,18 +64,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: invoices, error: invoicesError } = await supabaseAdmin()
+    const { data, error: invoicesError } = await supabaseAdmin()
       .from('invoices')
       .select('*')
       .in('client_id', clientIds);
 
-    if (invoicesError || !invoices) {
+    if (invoicesError || !data) {
       console.error('Błąd pobierania faktur:', invoicesError);
       return NextResponse.json(
         { success: false, error: 'Błąd pobierania faktur' },
         { status: 500 }
       );
     }
+
+    const invoices = data as InvoiceFromDB[];
 
     // Stwórz katalog tymczasowy dla plików
     const tempDir = path.join(os.tmpdir(), `list-polecony-${Date.now()}`);
