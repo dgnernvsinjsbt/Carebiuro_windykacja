@@ -24,6 +24,7 @@ const DEFAULT_FISCAL_SYNC: FiscalSyncData = {
   WHATSAPP_3_DATE: null,
   STOP: false,
   WINDYKACJA: false,
+  HASH: null,
   UPDATED: new Date().toISOString(),
 };
 
@@ -51,6 +52,9 @@ export function parseFiscalSync(comment: string | null): FiscalSyncData | null {
 
     if (key === 'UPDATED') {
       data[key] = value;
+    } else if (key === 'HASH') {
+      // Parse hash field (8-char string or null)
+      (data as any)[key] = value === 'NULL' ? null : value;
     } else if (key.endsWith('_DATE')) {
       // Parse date fields (null if 'NULL', otherwise the date string)
       (data as any)[key] = value === 'NULL' ? null : value;
@@ -75,6 +79,7 @@ export function parseFiscalSync(comment: string | null): FiscalSyncData | null {
 export function generateFiscalSync(data: FiscalSyncData): string {
   const lines = [
     '[FISCAL_SYNC]',
+    `HASH=${data.HASH || 'NULL'}`, // Hash first for easy visibility
     `EMAIL_1=${data.EMAIL_1 ? 'TRUE' : 'FALSE'}`,
     `EMAIL_1_DATE=${data.EMAIL_1_DATE || 'NULL'}`,
     `EMAIL_2=${data.EMAIL_2 ? 'TRUE' : 'FALSE'}`,
@@ -94,6 +99,7 @@ export function generateFiscalSync(data: FiscalSyncData): string {
     `WHATSAPP_3=${data.WHATSAPP_3 ? 'TRUE' : 'FALSE'}`,
     `WHATSAPP_3_DATE=${data.WHATSAPP_3_DATE || 'NULL'}`,
     `STOP=${data.STOP ? 'TRUE' : 'FALSE'}`,
+    `WINDYKACJA=${data.WINDYKACJA ? 'TRUE' : 'FALSE'}`,
     `UPDATED=${data.UPDATED}`,
     '[/FISCAL_SYNC]',
   ];

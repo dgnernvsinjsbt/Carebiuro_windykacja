@@ -218,6 +218,7 @@ export interface FiscalSyncData {
   WHATSAPP_3_DATE: string | null;
   STOP: boolean;
   WINDYKACJA: boolean; // Auto-reminders enabled (default: false)
+  HASH: string | null; // Invoice hash to detect "Wystaw podobną" duplicates
   UPDATED: string;
 }
 
