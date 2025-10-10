@@ -15,14 +15,12 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Security: Verify cron secret
-    const cronSecret = request.headers.get('X-Cron-Secret');
-    const expectedSecret = process.env.CRON_SECRET;
+    // Security: Accept GitHub Actions or Vercel Cron
+    const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+    const isGitHubAction = request.headers.get('x-github-action') === 'true';
 
-    if (!expectedSecret) {
-      console.warn('[Sync] CRON_SECRET not configured - sync endpoint is unprotected!');
-    } else if (cronSecret !== expectedSecret) {
-      console.error('[Sync] Unauthorized sync attempt - invalid cron secret');
+    if (!isVercelCron && !isGitHubAction) {
+      console.error('[Sync] Unauthorized: Not from Vercel Cron or GitHub Actions');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -280,6 +278,25 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('[Sync] Error:', error);
+
+    // Send SMS alert on failure
+    try {
+      await fetch('https://api.smsplanet.pl/sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SMSPLANET_API_TOKEN}`,
+        },
+        body: JSON.stringify({
+          to: '+48536214664',
+          from: process.env.SMSPLANET_FROM || 'Carebiuro',
+          message: `FULL SYNC FAILED: ${error.message.slice(0, 120)}`
+        })
+      });
+    } catch (smsError) {
+      console.error('[Sync] SMS alert failed:', smsError);
+    }
+
     return NextResponse.json(
       {
         success: false,
