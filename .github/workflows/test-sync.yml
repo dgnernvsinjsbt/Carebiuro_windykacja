@@ -1,0 +1,41 @@
+name: Test Sync (Client 211779362)
+
+on:
+  schedule:
+    - cron: '35 7 * * *'  # 07:35 UTC = 09:35 CEST (runs in 4 minutes)
+  workflow_dispatch:       # Manual trigger button
+
+jobs:
+  test-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Get Current Time
+        run: |
+          echo "Current UTC: $(date -u)"
+          echo "Current CEST: $(TZ='Europe/Warsaw' date)"
+
+      - name: Trigger Test Sync
+        id: sync
+        run: |
+          echo "Calling /api/sync/test endpoint..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            ${{ secrets.VERCEL_URL }}/api/sync/test \
+            -H "x-github-action: true" \
+            -H "Content-Type: application/json")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response Body: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Test sync failed with HTTP $HTTP_CODE"
+            echo "::error::Response: $BODY"
+            exit 1
+          fi
+
+          echo "::notice::Test sync succeeded!"
+          echo "$BODY"
