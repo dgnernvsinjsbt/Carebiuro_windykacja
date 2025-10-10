@@ -2,7 +2,7 @@ name: Nightly Full Sync (Production)
 
 on:
   schedule:
-    - cron: '57 7 * * *'  # 07:57 UTC = 09:57 CEST (TEST - will change to midnight later)
+    - cron: '10 8 * * *'  # 08:10 UTC = 10:10 CEST (TEST - will change to midnight later)
 
   workflow_dispatch:  # Manual trigger
 
