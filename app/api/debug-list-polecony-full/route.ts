@@ -8,16 +8,17 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const supabase = supabaseAdmin;
 
-  // Pobierz WSZYSTKIE faktury
+  // Pobierz faktury z [FISCAL_SYNC]
   const { data: allInvoices, error: invoicesError } = await supabase()
     .from('invoices')
-    .select('*');
+    .select('*')
+    .like('internal_note', '%[FISCAL_SYNC]%');
 
   if (invoicesError) {
     return NextResponse.json({ error: invoicesError.message }, { status: 500 });
   }
 
-  console.log(`[Debug] Fetched ${allInvoices?.length || 0} total invoices`);
+  console.log(`[Debug] Fetched ${allInvoices?.length || 0} invoices with FISCAL_SYNC`);
 
   // Filtruj faktury z trzecim upomnieniem ORAZ które NIE mają statusu 'sent' lub 'ignore'
   const invoicesWithThirdReminder = (allInvoices || []).filter(inv => {
