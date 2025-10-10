@@ -2,7 +2,7 @@ name: Test Sync (Client 211779362)
 
 on:
   schedule:
-    - cron: '35 7 * * *'  # 07:35 UTC = 09:35 CEST (runs in 4 minutes)
+    - cron: '42 7 * * *'  # 07:42 UTC = 09:42 CEST (runs in 2 minutes)
   workflow_dispatch:       # Manual trigger button
 
 jobs:
