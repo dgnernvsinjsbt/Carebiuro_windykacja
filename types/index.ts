@@ -94,8 +94,7 @@ export interface Invoice {
   // Status fields
   overdue: boolean | null;
 
-  // Optimization flags
-  has_third_reminder: boolean | null; // true if EMAIL_3/SMS_3/WHATSAPP_3 = true in [FISCAL_SYNC]
+  // List polecony metadata (parsed from client.note)
   list_polecony_sent_date: string | null; // Data wysłania listu poleconego (parsowane z [LIST_POLECONY_SENT])
   list_polecony_ignored_date: string | null; // Data ignorowania faktury (parsowane z [LIST_POLECONY_IGNORED])
 }

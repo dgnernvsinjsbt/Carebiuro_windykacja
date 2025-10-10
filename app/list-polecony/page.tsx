@@ -8,7 +8,7 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ListPoleconyTable from '@/components/ListPoleconyTable';
-import { qualifiesForListPolecony, calculateTotalDebt, getInvoicesWithThirdReminder } from '@/lib/list-polecony-logic';
+import { qualifiesForListPolecony, calculateTotalDebt, getInvoicesWithThirdReminder, hasThirdReminder } from '@/lib/list-polecony-logic';
 import { parseListPolecony, parseListPoleconyIgnored } from '@/lib/list-polecony-parser';
 import Link from 'next/link';
 
@@ -18,18 +18,23 @@ export const revalidate = 0;
 async function getListPoleconyClients() {
   const supabase = supabaseAdmin;
 
-  // OPTIMIZED: Pobierz TYLKO faktury z trzecim upomnieniem (has_third_reminder = true)
-  const { data: invoicesWithThirdReminder, error: invoicesError } = await supabase()
+  // Pobierz WSZYSTKIE faktury, parsuj internal_note w pamięci
+  // (internal_note = jedyne źródło prawdy dla EMAIL_3/SMS_3/WHATSAPP_3)
+  const { data: allInvoices, error: invoicesError } = await supabase()
     .from('invoices')
-    .select('*')
-    .eq('has_third_reminder', true);
+    .select('*');
 
   if (invoicesError) {
     console.error('[ListPolecony] Error fetching invoices:', invoicesError);
     return [];
   }
 
-  console.log(`[ListPolecony] Fetched ${invoicesWithThirdReminder?.length || 0} invoices with third reminder`);
+  console.log(`[ListPolecony] Fetched ${allInvoices?.length || 0} total invoices`);
+
+  // Filtruj faktury z trzecim upomnieniem (parsowanie internal_note)
+  const invoicesWithThirdReminder = (allInvoices || []).filter(hasThirdReminder);
+
+  console.log(`[ListPolecony] Found ${invoicesWithThirdReminder.length} invoices with third reminder (EMAIL_3/SMS_3/WHATSAPP_3)`);
 
   // Grupuj faktury po client_id
   const clientInvoicesMap = new Map<number, any[]>();

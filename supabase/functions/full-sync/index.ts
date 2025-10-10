@@ -76,7 +76,6 @@ interface Invoice {
   view_url: string | null
   payment_url: string | null
   overdue: boolean | null
-  has_third_reminder: boolean
   list_polecony_sent_date: string | null
   list_polecony_ignored_date: string | null
 }
@@ -121,21 +120,6 @@ interface Client {
   updated_at: string
   total_unpaid: number
   list_polecony: string | null
-}
-
-// Helper: Check if invoice has third reminder in internal_note
-function hasThirdReminder(invoice: { internal_note: string | null }): boolean {
-  if (!invoice.internal_note) return false
-
-  const match = invoice.internal_note.match(/\[FISCAL_SYNC\](.*?)\[\/FISCAL_SYNC\]/s)
-  if (!match) return false
-
-  try {
-    const syncData = JSON.parse(match[1])
-    return syncData.third_reminder_sent === true
-  } catch {
-    return false
-  }
 }
 
 // Helper: Send SMS notification
@@ -345,9 +329,6 @@ serve(async (req) => {
 
       // 4. Transform and save ALL invoices
       const invoices: Invoice[] = pageInvoices.map((fi: FakturowniaInvoice) => {
-        const tempInvoice = { internal_note: fi.internal_note || null }
-        const hasThird = hasThirdReminder(tempInvoice)
-
         return {
           id: fi.id,
           client_id: fi.client_id,
@@ -382,7 +363,6 @@ serve(async (req) => {
           view_url: fi.view_url || null,
           payment_url: fi.payment_url || null,
           overdue: fi['overdue?'] || null,
-          has_third_reminder: hasThird,
           list_polecony_sent_date: null,
           list_polecony_ignored_date: null,
         }
