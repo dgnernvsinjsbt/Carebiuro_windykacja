@@ -41,12 +41,11 @@ export interface Client {
 
   // Our custom fields
   total_unpaid: number | null; // Calculated from unpaid invoices
-  list_polecony: boolean | null; // Flaga oznaczająca klienta kwalifikującego się do listu poleconego
 
   // UI dynamic fields (not in database)
   invoice_count?: number;
   total_debt?: number;
-  qualifies_for_list_polecony?: boolean;
+  qualifies_for_list_polecony?: boolean; // Calculated from invoice.internal_note
 }
 
 export interface Invoice {
@@ -94,9 +93,9 @@ export interface Invoice {
   // Status fields
   overdue: boolean | null;
 
-  // List polecony metadata (parsed from client.note)
-  list_polecony_sent_date: string | null; // Data wysłania listu poleconego (parsowane z [LIST_POLECONY_SENT])
-  list_polecony_ignored_date: string | null; // Data ignorowania faktury (parsowane z [LIST_POLECONY_IGNORED])
+  // ⚠️ DEPRECATED FIELDS REMOVED (2025-10-10):
+  // has_third_reminder, list_polecony, list_polecony_sent_date, list_polecony_ignored, list_polecony_ignored_date
+  // ALL List Polecony data now stored in internal_note field
 }
 
 export interface InvoiceComment {

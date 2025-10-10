@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS clients (
   email TEXT,
   phone TEXT,
   total_unpaid NUMERIC,
-  note TEXT, -- Komentarz z Fakturowni (zawiera [WINDYKACJA] i [LIST_POLECONY])
-  list_polecony BOOLEAN DEFAULT false, -- Flaga oznaczająca klienta do listu poleconego
+  note TEXT, -- Komentarz z Fakturowni (zawiera [WINDYKACJA]) - DEPRECATED dla List Polecony, użyj invoice.internal_note
   updated_at TIMESTAMP DEFAULT now()
 );
 
@@ -59,14 +58,13 @@ CREATE TABLE IF NOT EXISTS invoices (
   view_url TEXT,
   payment_url TEXT,
   overdue BOOLEAN,
-  print_time TIMESTAMP,
+  print_time TIMESTAMP
 
-  -- Flagi optymalizacji i list polecony
-  has_third_reminder BOOLEAN DEFAULT false, -- true jeśli EMAIL_3/SMS_3/WHATSAPP_3 = true w [FISCAL_SYNC]
-  list_polecony BOOLEAN DEFAULT false, -- Faktura ma wysłany list polecony
-  list_polecony_sent_date DATE, -- Data wysłania listu poleconego
-  list_polecony_ignored BOOLEAN DEFAULT false, -- Faktura zignorowana (nie wysyłać do Kaczmarski)
-  list_polecony_ignored_date TIMESTAMP -- Data zignorowania faktury
+  -- ⚠️ DEPRECATED COLUMNS REMOVED (2025-10-10):
+  -- has_third_reminder, list_polecony, list_polecony_sent_date, list_polecony_ignored, list_polecony_ignored_date
+  -- ALL List Polecony flags now stored in internal_note:
+  -- [LIST_POLECONY_STATUS]sent|ignore|false[/LIST_POLECONY_STATUS]
+  -- [LIST_POLECONY_STATUS_DATE]YYYY-MM-DD[/LIST_POLECONY_STATUS_DATE]
 );
 
 -- Tabela historii komentarzy
@@ -110,8 +108,10 @@ CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
 CREATE INDEX IF NOT EXISTS idx_invoice_comments_invoice_id ON invoice_comments(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_updated_at ON invoices(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_clients_updated_at ON clients(updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_clients_list_polecony ON clients(list_polecony) WHERE list_polecony = true;
-CREATE INDEX IF NOT EXISTS idx_invoices_has_third_reminder ON invoices(has_third_reminder) WHERE has_third_reminder = true;
+
+-- ⚠️ DEPRECATED INDEXES REMOVED (2025-10-10):
+-- idx_clients_list_polecony, idx_invoices_has_third_reminder
+-- Use invoice.internal_note for List Polecony filtering
 
 -- Indeksy dla message_history
 CREATE INDEX IF NOT EXISTS idx_message_history_client_id ON message_history(client_id);

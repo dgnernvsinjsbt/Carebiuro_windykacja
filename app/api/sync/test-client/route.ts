@@ -124,9 +124,6 @@ export async function POST(request: NextRequest) {
             view_url: inv.view_url || null,
             payment_url: inv.payment_url || null,
             overdue: inv['overdue?'] || false,
-            has_third_reminder: false,
-            list_polecony_sent_date: null,
-            list_polecony_ignored_date: null,
           });
 
         if (error) {

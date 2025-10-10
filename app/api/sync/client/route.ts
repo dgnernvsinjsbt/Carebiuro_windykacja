@@ -110,11 +110,6 @@ export async function POST(request: NextRequest) {
 
       // Status fields
       overdue: fi['overdue?'] || null,
-
-      // Optimization flags (will be calculated later by parser)
-      has_third_reminder: null,
-      list_polecony_sent_date: null,
-      list_polecony_ignored_date: null,
     }));
 
     await invoicesDb.bulkUpsert(invoicesToSync);

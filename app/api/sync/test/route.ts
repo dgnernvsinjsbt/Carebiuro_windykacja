@@ -67,13 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform invoices (same logic as full sync)
-    const { hasThirdReminder } = await import('@/lib/list-polecony-logic');
-
-    const invoices = clientInvoices.map((fi: any) => {
-      const tempInvoice = { internal_note: fi.internal_note || null };
-      const hasThird = hasThirdReminder(tempInvoice as any);
-
-      return {
+    const invoices = clientInvoices.map((fi: any) => ({
         id: fi.id,
         client_id: fi.client_id,
         number: fi.number,
@@ -117,11 +111,6 @@ export async function POST(request: NextRequest) {
 
         // Status fields
         overdue: fi['overdue?'] || null,
-
-        // Optimization flags
-        has_third_reminder: hasThird,
-        list_polecony_sent_date: null,
-        list_polecony_ignored_date: null,
       };
     });
 

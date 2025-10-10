@@ -144,14 +144,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 4. Transform and save ALL invoices (for both new and existing clients)
-      const { hasThirdReminder } = await import('@/lib/list-polecony-logic');
-
-      const invoices: Invoice[] = pageInvoices.map((fi: FakturowniaInvoice) => {
-        // Parse fiscal sync to check for third reminder
-        const tempInvoice = { internal_note: fi.internal_note || null } as Invoice;
-        const hasThird = hasThirdReminder(tempInvoice);
-
-        return {
+      const invoices: Invoice[] = pageInvoices.map((fi: FakturowniaInvoice) => ({
         id: fi.id,
         client_id: fi.client_id,
         number: fi.number,
@@ -195,13 +188,7 @@ export async function POST(request: NextRequest) {
 
         // Status fields
         overdue: fi['overdue?'] || null,
-
-        // Optimization flags
-        has_third_reminder: hasThird,
-        list_polecony_sent_date: null,
-        list_polecony_ignored_date: null,
-      };
-      });
+      }));
 
       await invoicesDb.bulkUpsert(invoices);
       totalInvoices += invoices.length;
@@ -328,13 +315,7 @@ export async function GET(request: NextRequest) {
       const recentInvoices = await fakturowniaApi.getRecentInvoices(100);
 
       // Transform and upsert
-      const { hasThirdReminder } = await import('@/lib/list-polecony-logic');
-
-      const invoices: Invoice[] = recentInvoices.map((fi: FakturowniaInvoice) => {
-        const tempInvoice = { internal_note: fi.internal_note || null } as Invoice;
-        const hasThird = hasThirdReminder(tempInvoice);
-
-        return {
+      const invoices: Invoice[] = recentInvoices.map((fi: FakturowniaInvoice) => ({
         id: fi.id,
         client_id: fi.client_id,
         number: fi.number,
@@ -378,13 +359,7 @@ export async function GET(request: NextRequest) {
 
         // Status fields
         overdue: fi['overdue?'] || null,
-
-        // Optimization flags
-        has_third_reminder: hasThird,
-        list_polecony_sent_date: null,
-        list_polecony_ignored_date: null,
-      };
-      });
+      }));
 
       await invoicesDb.bulkUpsert(invoices);
 
