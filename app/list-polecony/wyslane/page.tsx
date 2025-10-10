@@ -30,10 +30,11 @@ async function getWyslaneClients() {
   console.log(`[ListPolecony Wysłane] Fetched ${allClients?.length || 0} total clients`);
 
   // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_STATUS]sent
+  // UWAGA: Używamy ilike z escapowaniem nawiasów kwadratowych, bo [] są specjalnymi znakami w PostgreSQL LIKE (character class)
   const { data: clientInvoices, error: invoicesError } = await supabase()
     .from('invoices')
     .select('*')
-    .like('internal_note', '%[LIST_POLECONY_STATUS]sent%');
+    .ilike('internal_note', '%\\[LIST\\_POLECONY\\_STATUS\\]sent%');
 
   if (invoicesError) {
     console.error('[ListPolecony Wysłane] Error fetching invoices:', invoicesError);
