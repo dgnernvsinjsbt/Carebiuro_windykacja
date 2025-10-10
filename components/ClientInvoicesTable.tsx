@@ -51,8 +51,10 @@ export default function ClientInvoicesTable({
 
   const toggleAllUnpaid = () => {
     const unpaidInvoices = sortedInvoices.filter((inv) => {
+      // Exclude corrective invoices (FK prefix) from selection
+      const isCorrectiveInvoice = inv.number && inv.number.startsWith('FK');
       const balance = (inv.total ?? 0) - (inv.paid ?? 0);
-      return balance > 0 && inv.kind !== 'canceled';
+      return balance > 0 && inv.kind !== 'canceled' && !isCorrectiveInvoice;
     });
 
     if (selectedInvoices.size === unpaidInvoices.length) {
@@ -245,8 +247,9 @@ export default function ClientInvoicesTable({
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 onChange={toggleAllUnpaid}
                 checked={selectedInvoices.size > 0 && selectedInvoices.size === sortedInvoices.filter((inv) => {
+                  const isCorrectiveInvoice = inv.number && inv.number.startsWith('FK');
                   const balance = (inv.total ?? 0) - (inv.paid ?? 0);
-                  return balance > 0 && inv.kind !== 'canceled';
+                  return balance > 0 && inv.kind !== 'canceled' && !isCorrectiveInvoice;
                 }).length}
                 title="Zaznacz wszystkie nieopłacone"
               />
@@ -288,8 +291,10 @@ export default function ClientInvoicesTable({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {sortedInvoices.map((invoice) => {
+            // Corrective invoices (FK prefix) are never considered "unpaid"
+            const isCorrectiveInvoice = invoice.number && invoice.number.startsWith('FK');
             const balance = (invoice.total ?? 0) - (invoice.paid ?? 0);
-            const isUnpaid = balance > 0 && invoice.kind !== 'canceled';
+            const isUnpaid = balance > 0 && invoice.kind !== 'canceled' && !isCorrectiveInvoice;
 
             return (
               <tr key={invoice.id} className={`hover:bg-gray-50 ${selectedInvoices.has(invoice.id) ? 'bg-blue-50' : ''}`}>
@@ -342,11 +347,19 @@ export default function ClientInvoicesTable({
                   : (invoice.paid ?? 0).toFixed(2)}
               </td>
               <td className={`px-3 py-2 whitespace-nowrap text-sm ${(() => {
+                // Corrective invoices (FK prefix) should show €0.00
+                const isCorrectiveInvoice = invoice.number && invoice.number.startsWith('FK');
+                if (isCorrectiveInvoice) return 'text-gray-400';
+
                 const balance = (invoice.total ?? 0) - (invoice.paid ?? 0);
                 if (invoice.kind === 'canceled') return 'text-gray-300';
                 return balance > 0 ? 'text-red-600 font-medium' : 'text-green-600';
               })()}`}>
                 €{(() => {
+                  // Corrective invoices (FK prefix) always show €0.00
+                  const isCorrectiveInvoice = invoice.number && invoice.number.startsWith('FK');
+                  if (isCorrectiveInvoice) return '0.00';
+
                   const balance = invoice.kind === 'canceled'
                     ? 0
                     : (invoice.total ?? 0) - (invoice.paid ?? 0);

@@ -59,8 +59,14 @@ export default async function ClientDetailPage({
   });
 
   // Calculate unpaid balance as sum of (total - paid) for non-canceled invoices
+  // IMPORTANT: Exclude corrective invoices (FK prefix) - they don't count toward balance
   const unpaidBalance = invoicesWithFiscalSync.reduce((sum, invoice) => {
     if (invoice.kind === 'canceled') return sum;
+
+    // Skip corrective invoices (FK prefix) - they shouldn't affect total_unpaid
+    const isCorrectiveInvoice = invoice.number && invoice.number.startsWith('FK');
+    if (isCorrectiveInvoice) return sum;
+
     const balance = (invoice.total ?? 0) - (invoice.paid ?? 0);
     return sum + balance;
   }, 0);
