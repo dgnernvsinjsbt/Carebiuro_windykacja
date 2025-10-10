@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
 
         // Status fields
         overdue: fi['overdue?'] || null,
-      };
-    });
+      }
+    ));
 
     // Upsert to Supabase
     await invoicesDb.bulkUpsert(invoices);
