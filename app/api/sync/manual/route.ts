@@ -78,8 +78,7 @@ export async function POST(request: NextRequest) {
         payment_url: inv.payment_url || null,
         overdue: inv['overdue?'] || null,
 
-        // Optimization flags
-        has_third_reminder: null,
+        // List polecony metadata (parsed from internal_note)
         list_polecony_sent_date: null,
         list_polecony_ignored_date: null,
       };
