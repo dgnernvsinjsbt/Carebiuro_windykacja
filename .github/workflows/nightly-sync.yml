@@ -18,7 +18,7 @@ jobs:
           curl -s -X POST https://api2.smsplanet.pl/sms \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
-            --data-urlencode "from=Carebiuro" \
+            --data-urlencode "from=Cbb-Office" \
             --data-urlencode "to=+48536214664" \
             --data-urlencode "msg=FULL SYNC STARTING..."
 
@@ -49,7 +49,7 @@ jobs:
           curl -s -X POST https://api2.smsplanet.pl/sms \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
-            --data-urlencode "from=Carebiuro" \
+            --data-urlencode "from=Cbb-Office" \
             --data-urlencode "to=+48536214664" \
             --data-urlencode "msg=FULL SYNC COMPLETE!"
           echo "::notice::Full sync completed successfully"
@@ -61,6 +61,6 @@ jobs:
           curl -s -X POST https://api2.smsplanet.pl/sms \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
-            --data-urlencode "from=Carebiuro" \
+            --data-urlencode "from=Cbb-Office" \
             --data-urlencode "to=+48536214664" \
             --data-urlencode "msg=FULL SYNC FAILED - check logs"
