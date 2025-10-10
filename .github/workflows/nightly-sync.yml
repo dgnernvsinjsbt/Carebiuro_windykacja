@@ -2,7 +2,7 @@ name: Nightly Full Sync (Production)
 
 on:
   schedule:
-    - cron: '10 8 * * *'  # 08:10 UTC = 10:10 CEST (TEST - will change to midnight later)
+    - cron: '0 22 * * *'  # 22:00 UTC = 00:00 CEST (midnight Warsaw time)
 
   workflow_dispatch:  # Manual trigger
 
@@ -25,11 +25,12 @@ jobs:
       - name: Trigger Full Sync
         id: sync
         run: |
-          echo "Starting full synchronization..."
+          echo "Starting full synchronization via Supabase Edge Function..."
           RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST \
-            ${{ secrets.VERCEL_URL }}/api/sync \
+            ${{ secrets.SUPABASE_FUNCTION_URL }}/full-sync \
             -H "x-github-action: true" \
-            -H "Content-Type: application/json")
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
           BODY=$(echo "$RESPONSE" | head -n -1)

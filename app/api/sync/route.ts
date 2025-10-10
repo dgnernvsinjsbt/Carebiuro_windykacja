@@ -228,22 +228,26 @@ export async function POST(request: NextRequest) {
     // STEP 4: Calculate total_unpaid for all clients by querying Supabase invoices
     console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...');
 
-    // Fetch all invoices grouped by client_id
+    // Fetch all invoices grouped by client_id (excluding corrective invoices FK)
     const { data: allInvoices, error: fetchError } = await supabase()
       .from('invoices')
-      .select('client_id, total');
+      .select('client_id, total, number');
 
     if (fetchError) {
       console.error('[Sync] Warning: Could not fetch invoices for totals:', fetchError);
       console.log('[Sync] Skipping total_unpaid update');
     } else {
-      // Aggregate totals per client
+      // Aggregate totals per client (excluding FK - corrective invoices)
       const clientTotalsMap = new Map<number, number>();
 
       for (const inv of allInvoices || []) {
         if (inv.client_id) {
-          const current = clientTotalsMap.get(inv.client_id) || 0;
-          clientTotalsMap.set(inv.client_id, current + (inv.total || 0));
+          // Skip corrective invoices (FK prefix) - they shouldn't affect total_unpaid
+          const isCorrectiveInvoice = inv.number && inv.number.startsWith('FK');
+          if (!isCorrectiveInvoice) {
+            const current = clientTotalsMap.get(inv.client_id) || 0;
+            clientTotalsMap.set(inv.client_id, current + (inv.total || 0));
+          }
         }
       }
 
