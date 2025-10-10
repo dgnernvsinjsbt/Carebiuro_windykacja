@@ -1,0 +1,6 @@
+# Ignore Supabase Edge Functions (they're deployed separately to Supabase)
+supabase/
+
+# Ignore deployment documentation
+SUPABASE_DEPLOYMENT.md
+GITHUB_SECRETS_SETUP.md
