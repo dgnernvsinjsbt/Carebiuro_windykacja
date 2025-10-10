@@ -459,7 +459,7 @@ export default function ClientInvoicesTable({
                 </div>
               </td>
               <td className="px-3 py-2 whitespace-nowrap">
-                {invoice.status === 'paid' || invoice.kind === 'canceled' ? (
+                {invoice.status === 'paid' || invoice.kind === 'canceled' || isCorrectiveInvoice ? (
                   <span className="text-gray-400 text-xs">-</span>
                 ) : (
                   <StopToggle
@@ -469,7 +469,7 @@ export default function ClientInvoicesTable({
                 )}
               </td>
               <td className="px-3 py-2 whitespace-nowrap text-sm">
-                {invoice.status === 'paid' || invoice.kind === 'canceled' ? (
+                {invoice.status === 'paid' || invoice.kind === 'canceled' || isCorrectiveInvoice ? (
                   <span className="text-gray-400 text-xs">-</span>
                 ) : (
                   <ProgressiveReminderButtons
