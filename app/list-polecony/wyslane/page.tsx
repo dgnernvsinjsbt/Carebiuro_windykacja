@@ -17,18 +17,6 @@ export const revalidate = 0;
 async function getWyslaneClients() {
   const supabase = supabaseAdmin;
 
-  // Pobierz WSZYSTKICH klientów (filtrowanie po fakturach, nie po kliencie)
-  const { data: allClients, error: clientsError } = await supabase()
-    .from('clients')
-    .select('*');
-
-  if (clientsError) {
-    console.error('[ListPolecony Wysłane] Error fetching clients:', clientsError);
-    return [];
-  }
-
-  console.log(`[ListPolecony Wysłane] Fetched ${allClients?.length || 0} total clients`);
-
   // Pobierz WSZYSTKIE faktury z [LIST_POLECONY_STATUS]sent
   // UWAGA: Używamy ilike z escapowaniem nawiasów kwadratowych, bo [] są specjalnymi znakami w PostgreSQL LIKE (character class)
   const { data: clientInvoices, error: invoicesError } = await supabase()
@@ -53,9 +41,20 @@ async function getWyslaneClients() {
     clientInvoicesMap.get(invoice.client_id)!.push(invoice);
   }
 
-  // Filtruj klientów - tylko ci którzy mają faktury
+  // Pobierz TYLKO klientów którzy mają faktury z flagą sent (zamiast wszystkich 1000+)
   const clientIdsWithInvoices = Array.from(clientInvoicesMap.keys());
-  const wyslaneClientsData = allClients?.filter(c => clientIdsWithInvoices.includes(c.id)) || [];
+
+  console.log(`[ListPolecony Wysłane] ${clientIdsWithInvoices.length} unique clients with sent invoices`);
+
+  const { data: wyslaneClientsData, error: clientsError } = await supabase()
+    .from('clients')
+    .select('*')
+    .in('id', clientIdsWithInvoices);
+
+  if (clientsError) {
+    console.error('[ListPolecony Wysłane] Error fetching clients:', clientsError);
+    return [];
+  }
 
   console.log(`[ListPolecony Wysłane] ${wyslaneClientsData.length} clients have invoices with STATUS=sent`);
 
