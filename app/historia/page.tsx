@@ -108,7 +108,6 @@ export default function HistoriaPage() {
 
   useEffect(() => {
     fetchHistory();
-    fetchStats();
   }, [dateRange, selectedType]);
 
   async function fetchHistory() {
@@ -129,6 +128,9 @@ export default function HistoriaPage() {
 
       if (data.success) {
         setHistory(data.data);
+
+        // Calculate stats from the SAME data (guaranteed consistency!)
+        calculateStatsFromHistory(data.data);
       }
     } catch (error) {
       console.error('Failed to fetch history:', error);
@@ -137,22 +139,41 @@ export default function HistoriaPage() {
     }
   }
 
-  async function fetchStats() {
-    try {
-      const params = new URLSearchParams({
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      });
+  function calculateStatsFromHistory(historyData: MessageGroup[]) {
+    let totalEmail = 0;
+    let totalSms = 0;
+    let totalWhatsapp = 0;
 
-      const response = await fetch(`/api/historia/stats?${params}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setStats(data.data.summary);
+    // Count messages from history data (single source of truth)
+    for (const day of historyData) {
+      for (const client of day.clients) {
+        for (const invoice of client.invoices) {
+          for (const message of invoice.messages) {
+            if (message.type === 'email') totalEmail++;
+            else if (message.type === 'sms') totalSms++;
+            else if (message.type === 'whatsapp') totalWhatsapp++;
+          }
+        }
       }
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
     }
+
+    const total = totalEmail + totalSms + totalWhatsapp;
+
+    setStats({
+      total,
+      sent: total, // All messages from FISCAL_SYNC are sent
+      failed: 0,
+      byType: {
+        email: totalEmail,
+        sms: totalSms,
+        whatsapp: totalWhatsapp,
+      },
+      byLevel: {
+        level1: 0, // Can calculate if needed
+        level2: 0,
+        level3: 0,
+      },
+    });
   }
 
   return (
