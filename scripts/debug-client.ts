@@ -31,6 +31,8 @@ async function debug() {
     console.log(`Invoice ${inv.number}:`);
     console.log(`  - hasThirdReminder: ${hasThird}`);
     console.log(`  - listPoleconyStatus: ${flags.listPoleconyStatus}`);
+    console.log(`  - total: €${inv.total}`);
+    console.log(`  - outstanding: €${inv.outstanding}`);
     console.log(`  - Should show: ${shouldShow}`);
     console.log('');
 
@@ -41,7 +43,8 @@ async function debug() {
 
   console.log(`\n=== Summary ===`);
   console.log(`Qualifying invoices: ${qualifyingInvoices.length}`);
-  console.log(`Total debt: €${qualifyingInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)}`);
+  console.log(`Total (sum of total): €${qualifyingInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)}`);
+  console.log(`Outstanding (sum of outstanding): €${qualifyingInvoices.reduce((sum, inv) => sum + (inv.outstanding || 0), 0)}`);
   console.log(`Qualifies (ALL invoices): ${qualifiesForListPolecony(client, invoices || [])}`);
   console.log(`Qualifies (ONLY qualifying): ${qualifiesForListPolecony(client, qualifyingInvoices)}`);
 }

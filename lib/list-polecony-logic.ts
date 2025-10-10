@@ -45,8 +45,9 @@ export function qualifiesForListPolecony(
   }
 
   // Warunek 2: Suma zadłużenia >= 190 EUR (z faktur z trzecim upomnieniem)
+  // Używamy 'outstanding' (kwota nieopłacona) zamiast 'total'
   const totalDebt = invoicesWithThirdReminder.reduce((sum, invoice) => {
-    return sum + (invoice.total || 0);
+    return sum + (invoice.outstanding || 0);
   }, 0);
 
   if (totalDebt >= thresholdAmount) {
@@ -66,12 +67,13 @@ export function getInvoicesWithThirdReminder(invoices: Invoice[]): Invoice[] {
 
 /**
  * Oblicza całkowitą kwotę zadłużenia klienta (tylko faktury z trzecim upomnieniem)
+ * Używa 'outstanding' (kwota nieopłacona) zamiast 'total' dla częściowo opłaconych faktur
  */
 export function calculateTotalDebt(invoices: Invoice[]): number {
   const relevantInvoices = getInvoicesWithThirdReminder(invoices);
 
   return relevantInvoices.reduce((sum, invoice) => {
-    return sum + (invoice.total || 0);
+    return sum + (invoice.outstanding || 0);
   }, 0);
 }
 
