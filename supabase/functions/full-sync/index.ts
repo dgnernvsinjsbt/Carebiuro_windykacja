@@ -76,8 +76,6 @@ interface Invoice {
   view_url: string | null
   payment_url: string | null
   overdue: boolean | null
-  list_polecony_sent_date: string | null
-  list_polecony_ignored_date: string | null
 }
 
 interface Client {
@@ -119,7 +117,6 @@ interface Client {
   created_at: string | null
   updated_at: string
   total_unpaid: number
-  list_polecony: string | null
 }
 
 // Helper: Send SMS notification
@@ -201,6 +198,15 @@ serve(async (req) => {
       )
     }
 
+    // TEST MODE: Check for maxPages query parameter
+    const url = new URL(req.url)
+    const maxPages = parseInt(url.searchParams.get('maxPages') || '0')
+    const isTestMode = maxPages > 0
+
+    if (isTestMode) {
+      console.log(`[Sync] 🧪 TEST MODE: Will sync only ${maxPages} pages`)
+    }
+
     console.log('[Sync] Starting full synchronization...')
     const startTime = Date.now()
 
@@ -235,6 +241,13 @@ serve(async (req) => {
     let hasMore = true
 
     while (hasMore) {
+      // TEST MODE: Stop after maxPages
+      if (isTestMode && page > maxPages) {
+        console.log(`[Sync] 🧪 TEST MODE: Reached maxPages limit (${maxPages}), stopping`)
+        hasMore = false
+        break
+      }
+
       // 1. Fetch one page (100 invoices)
       const pageInvoices = await fakturowniaRequest<FakturowniaInvoice[]>(
         `/invoices.json?period=all&page=${page}&per_page=100`,
@@ -260,13 +273,15 @@ serve(async (req) => {
         }
       }
 
-      // 3. Create ONLY NEW clients
-      const newClientIds = Array.from(uniqueClientIdsOnPage).filter(id => !seenClientIds.has(id))
+      // 3. Upsert ALL unique clients from this page (even if seen before)
+      // This ensures clients exist in DB before we insert invoices
+      const clientIdsToUpsert = Array.from(uniqueClientIdsOnPage)
+      const newClientIds = clientIdsToUpsert.filter(id => !seenClientIds.has(id))
 
-      console.log(`[Sync] Page ${page}: ${uniqueClientIdsOnPage.size} unique clients, ${newClientIds.length} new`)
+      console.log(`[Sync] Page ${page}: ${uniqueClientIdsOnPage.size} unique clients, ${newClientIds.length} new, upserting all ${clientIdsToUpsert.length}`)
 
-      if (newClientIds.length > 0) {
-        const newClients: Client[] = newClientIds.map(clientId => {
+      if (clientIdsToUpsert.length > 0) {
+        const clientsToUpsert: Client[] = clientIdsToUpsert.map(clientId => {
           const invoiceData = clientDataMap.get(clientId)!
           return {
             id: clientId,
@@ -307,13 +322,12 @@ serve(async (req) => {
             created_at: null,
             updated_at: new Date().toISOString(),
             total_unpaid: 0,
-            list_polecony: null,
           }
         })
 
-        console.log(`[Sync] Creating clients: ${newClientIds.slice(0, 5).join(', ')}${newClientIds.length > 5 ? '...' : ''}`)
+        console.log(`[Sync] Upserting clients: ${clientIdsToUpsert.slice(0, 5).join(', ')}${clientIdsToUpsert.length > 5 ? '...' : ''}`)
 
-        const { error: clientError } = await supabase.from('clients').upsert(newClients)
+        const { error: clientError } = await supabase.from('clients').upsert(clientsToUpsert)
         if (clientError) throw clientError
 
         newClientIds.forEach(id => seenClientIds.add(id))
@@ -366,8 +380,6 @@ serve(async (req) => {
           view_url: fi.view_url || null,
           payment_url: fi.payment_url || null,
           overdue: fi['overdue?'] || null,
-          list_polecony_sent_date: null,
-          list_polecony_ignored_date: null,
         }
       })
 
@@ -384,17 +396,22 @@ serve(async (req) => {
 
     console.log(`[Sync] ✓ Streaming complete: ${totalInvoices} invoices, ${totalClients} clients`)
 
-    // STEP 3: Fetch client notes from Fakturownia
-    console.log('[Sync] STEP 3: Fetching client notes from Fakturownia...')
-    const fakturowniaClients = await fetchAllClients(fakturowniaApiToken)
-
+    // STEP 3: Fetch client notes from Fakturownia (skip in test mode)
     const clientNotesMap = new Map<number, string>()
-    for (const fc of fakturowniaClients) {
-      if (fc.note) {
-        clientNotesMap.set(fc.id, fc.note)
+
+    if (!isTestMode) {
+      console.log('[Sync] STEP 3: Fetching client notes from Fakturownia...')
+      const fakturowniaClients = await fetchAllClients(fakturowniaApiToken)
+
+      for (const fc of fakturowniaClients) {
+        if (fc.note) {
+          clientNotesMap.set(fc.id, fc.note)
+        }
       }
+      console.log(`[Sync] ✓ Fetched notes for ${clientNotesMap.size} clients from Fakturownia`)
+    } else {
+      console.log('[Sync] STEP 3: Skipped (test mode)')
     }
-    console.log(`[Sync] ✓ Fetched notes for ${clientNotesMap.size} clients from Fakturownia`)
 
     // STEP 4: Calculate total_unpaid for all clients
     console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...')

@@ -1,4 +1,23 @@
 CLAUDE.md — Best Practices for Fiscal Development
+
+⚡ CRITICAL: Supabase Database Management
+
+**ZAWSZE używaj Supabase CLI do zarządzania bazą danych, NIE proś użytkownika o wklejanie SQL.**
+
+Dostępne komendy:
+- `SUPABASE_ACCESS_TOKEN="sbp_488bb6b5a6b6e2b652b28c6c736776023117c461" npx supabase gen types typescript --linked` - generuj TypeScript types (sprawdzaj strukturę tabel)
+- `SUPABASE_ACCESS_TOKEN="sbp_488bb6b5a6b6e2b652b28c6c736776023117c461" npx supabase inspect db table-stats --linked` - statystyki tabel
+- `SUPABASE_ACCESS_TOKEN="sbp_488bb6b5a6b6e2b652b28c6c736776023117c461" npx supabase migration new nazwa_migracji` - stwórz nową migrację
+- `SUPABASE_ACCESS_TOKEN="sbp_488bb6b5a6b6e2b652b28c6c736776023117c461" npx supabase db push` - wypchnij migracje do bazy
+
+Workflow:
+1. Sprawdź strukturę bazy przez `gen types` lub `table-stats`
+2. Stwórz migrację przez `migration new`
+3. Napisz SQL w pliku migracji
+4. Użytkownik wykonuje `npx supabase db push`
+
+**NIE pytaj użytkownika o strukturę - sam ją sprawdź przez CLI!**
+
 🎯 Core Principles
 1. Plan First, Code Second
 
