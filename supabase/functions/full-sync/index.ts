@@ -198,10 +198,16 @@ serve(async (req) => {
       )
     }
 
-    // TEST MODE: Check for maxPages query parameter
+    // SELF-TRIGGERING MODE: Batch parameters
     const url = new URL(req.url)
     const maxPages = parseInt(url.searchParams.get('maxPages') || '0')
+    const batchNumber = parseInt(url.searchParams.get('batch') || '1')
+    const batchSize = 50 // Pages per batch
+    const startPage = (batchNumber - 1) * batchSize + 1
+    const endPage = batchNumber * batchSize
     const isTestMode = maxPages > 0
+
+    console.log(`[Sync] 🔄 SELF-TRIGGERING MODE: Batch #${batchNumber} (pages ${startPage}-${endPage})`)
 
     if (isTestMode) {
       console.log(`[Sync] 🧪 TEST MODE: Will sync only ${maxPages} pages`)
@@ -220,14 +226,18 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // STEP 1: Clear all existing data
-    console.log('[Sync] STEP 1: Clearing all existing data from Supabase...')
-    await supabase.from('invoices').delete().neq('id', 0)
-    await supabase.from('clients').delete().neq('id', 0)
-    // ⚠️ CRITICAL: DO NOT DELETE invoice_hash_registry!
-    // This table persists hash mappings to detect "Wystaw podobną" duplicates
-    // await supabase.from('invoice_hash_registry').delete().neq('invoice_id', 0) ← NO!
-    console.log('[Sync] ✓ All data cleared (invoice_hash_registry preserved)')
+    // STEP 1: Clear all existing data (only on first batch)
+    if (batchNumber === 1) {
+      console.log('[Sync] STEP 1: Clearing all existing data from Supabase...')
+      await supabase.from('invoices').delete().neq('id', 0)
+      await supabase.from('clients').delete().neq('id', 0)
+      // ⚠️ CRITICAL: DO NOT DELETE invoice_hash_registry!
+      // This table persists hash mappings to detect "Wystaw podobną" duplicates
+      // await supabase.from('invoice_hash_registry').delete().neq('invoice_id', 0) ← NO!
+      console.log('[Sync] ✓ All data cleared (invoice_hash_registry preserved)')
+    } else {
+      console.log('[Sync] STEP 1: Skipped clearing (batch #${batchNumber})')
+    }
 
     // STEP 2: Stream invoices + clients from Fakturownia
     console.log('[Sync] STEP 2: Streaming invoices from Fakturownia (ALL statuses)...')
@@ -237,10 +247,11 @@ serve(async (req) => {
     const seenClientIds = new Set<number>()
     let totalInvoices = 0
     let totalClients = 0
-    let page = 1
+    let page = startPage
     let hasMore = true
+    let hitEmptyPage = false
 
-    while (hasMore) {
+    while (hasMore && page <= endPage) {
       // TEST MODE: Stop after maxPages
       if (isTestMode && page > maxPages) {
         console.log(`[Sync] 🧪 TEST MODE: Reached maxPages limit (${maxPages}), stopping`)
@@ -256,7 +267,8 @@ serve(async (req) => {
 
       if (pageInvoices.length === 0) {
         hasMore = false
-        console.log(`[Sync] ✓ Page ${page}: No more invoices`)
+        hitEmptyPage = true
+        console.log(`[Sync] ✓ Page ${page}: No more invoices (end of data)`)
         break
       }
 
@@ -394,9 +406,47 @@ serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 1000))
     }
 
-    console.log(`[Sync] ✓ Streaming complete: ${totalInvoices} invoices, ${totalClients} clients`)
+    console.log(`[Sync] ✓ Batch #${batchNumber} complete: ${totalInvoices} invoices, ${totalClients} clients`)
 
-    // STEP 3: Fetch client notes from Fakturownia (skip in test mode)
+    // SELF-TRIGGERING: Fire next batch or run post-processing
+    const isLastBatch = hitEmptyPage || isTestMode
+
+    if (!isLastBatch) {
+      // Fire next batch (don't await - "fire and forget")
+      const nextBatchUrl = `${url.origin}${url.pathname}?batch=${batchNumber + 1}`
+      console.log(`[Sync] 🔄 Triggering next batch: #${batchNumber + 1}`)
+
+      // Fire and forget - don't await!
+      fetch(nextBatchUrl, {
+        method: 'POST',
+        headers: {
+          'x-github-action': 'true',
+          'Content-Type': 'application/json',
+        },
+      }).catch(err => console.error('[Sync] Failed to trigger next batch:', err))
+
+      // Return immediately - this batch is done
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Batch #${batchNumber} done, triggered batch #${batchNumber + 1}`,
+          data: {
+            batch: batchNumber,
+            synced_clients: totalClients,
+            synced_invoices: totalInvoices,
+            duration_seconds: parseFloat(duration),
+            next_batch_triggered: true,
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // This is the LAST batch - run post-processing
+    console.log(`[Sync] 🏁 Last batch reached, running post-processing (Steps 3 & 4)`)
+
+    // STEP 3: Fetch client notes from Fakturownia
     const clientNotesMap = new Map<number, string>()
 
     if (!isTestMode) {
@@ -414,7 +464,13 @@ serve(async (req) => {
     }
 
     // STEP 4: Calculate total_unpaid for all clients
-    console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...')
+    if (!isTestMode) {
+      console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...')
+    } else {
+      console.log('[Sync] STEP 4: Skipped (test mode)')
+    }
+
+    if (!isTestMode) {
 
     const { data: allInvoices, error: fetchError } = await supabase
       .from('invoices')
@@ -456,6 +512,7 @@ serve(async (req) => {
       if (updateError) throw updateError
 
       console.log('[Sync] ✓ Client totals and notes updated')
+    }
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)

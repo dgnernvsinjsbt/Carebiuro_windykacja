@@ -3,18 +3,16 @@ name: Nightly Full Sync (Production)
 on:
   schedule:
     - cron: '0 22 * * *'  # 22:00 UTC = 00:00 CEST (midnight Warsaw time)
-
   workflow_dispatch:  # Manual trigger
 
 jobs:
   full-sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Send Start SMS
         run: |
-          echo "Sending start notification SMS..."
           curl -s -X POST https://api2.smsplanet.pl/sms \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
@@ -22,46 +20,81 @@ jobs:
             --data-urlencode "to=+48536214664" \
             --data-urlencode "msg=FULL SYNC STARTING..."
 
-      - name: Trigger Full Sync
-        id: sync
+      - name: Batch 1 (pages 1-50, clear DB)
         run: |
-          echo "Starting full synchronization via Supabase Edge Function..."
-          RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST \
-            ${{ secrets.SUPABASE_FUNCTION_URL }}/full-sync \
-            -H "x-github-action: true" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=1" \
+            -H "x-github-action: true" --max-time 150
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
+      - name: Batch 2 (pages 51-100)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=2" \
+            -H "x-github-action: true" --max-time 150
 
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response: $BODY"
+      - name: Batch 3 (pages 101-150)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=3" \
+            -H "x-github-action: true" --max-time 150
 
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "::error::Full sync failed with HTTP $HTTP_CODE: $BODY"
-            exit 1
-          fi
+      - name: Batch 4 (pages 151-200)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=4" \
+            -H "x-github-action: true" --max-time 150
+
+      - name: Batch 5 (pages 201-250)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=5" \
+            -H "x-github-action: true" --max-time 150
+
+      - name: Batch 6 (pages 251-300)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=6" \
+            -H "x-github-action: true" --max-time 150
+
+      - name: Batch 7 (pages 301-350)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=7" \
+            -H "x-github-action: true" --max-time 150
+
+      - name: Batch 8 (pages 351-400)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=8" \
+            -H "x-github-action: true" --max-time 150
+
+      - name: Batch 9 (pages 401-450)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=9" \
+            -H "x-github-action: true" --max-time 150
+
+      - name: Batch 10 (pages 451-500)
+        run: |
+          sleep 10
+          curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=10" \
+            -H "x-github-action: true" --max-time 150
 
       - name: Send Success SMS
         if: success()
         run: |
-          echo "Sending success notification SMS..."
           curl -s -X POST https://api2.smsplanet.pl/sms \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
             --data-urlencode "from=Cbb-Office" \
             --data-urlencode "to=+48536214664" \
-            --data-urlencode "msg=FULL SYNC COMPLETE!"
-          echo "::notice::Full sync completed successfully"
+            --data-urlencode "msg=FULL SYNC COMPLETE! Check dashboard"
 
       - name: Send Failure SMS
         if: failure()
         run: |
-          echo "Sending failure notification SMS..."
           curl -s -X POST https://api2.smsplanet.pl/sms \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
             --data-urlencode "from=Cbb-Office" \
             --data-urlencode "to=+48536214664" \
-            --data-urlencode "msg=FULL SYNC FAILED - check logs"
+            --data-urlencode "msg=FULL SYNC FAILED - check GitHub Actions logs"
