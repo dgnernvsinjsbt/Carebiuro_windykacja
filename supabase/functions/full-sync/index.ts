@@ -408,10 +408,34 @@ serve(async (req) => {
 
     console.log(`[Sync] ✓ Batch #${batchNumber} complete: ${totalInvoices} invoices, ${totalClients} clients`)
 
-    // SELF-TRIGGERING: Fire next batch or run post-processing
-    const isLastBatch = hitEmptyPage || isTestMode
+    // Determine if this is the last batch:
+    // - hitEmptyPage = true (no more data in Fakturownia)
+    // - totalInvoices > 0 (we actually synced something - not just an empty batch)
+    const isLastBatch = hitEmptyPage && totalInvoices > 0
 
     if (!isLastBatch) {
+      // Empty batch (no invoices synced) - just return success, don't trigger next or post-process
+      if (totalInvoices === 0) {
+        console.log(`[Sync] 🏁 Batch #${batchNumber} was empty (no invoices), ending gracefully`)
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: `Batch #${batchNumber} empty, sync already completed by previous batch`,
+            data: {
+              batch: batchNumber,
+              synced_clients: 0,
+              synced_invoices: 0,
+              duration_seconds: parseFloat(duration),
+              empty_batch: true,
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Still more pages to sync - this shouldn't happen with our batch logic
+      // but keep the code for safety
       // Fire next batch (don't await - "fire and forget")
       const nextBatchUrl = `${url.origin}${url.pathname}?batch=${batchNumber + 1}`
       console.log(`[Sync] 🔄 Triggering next batch: #${batchNumber + 1}`)
