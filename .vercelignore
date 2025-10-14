@@ -1,5 +1,5 @@
 # Ignore Supabase Edge Functions (they're deployed separately to Supabase)
-supabase/
+/supabase/
 
 # Ignore deployment documentation
 SUPABASE_DEPLOYMENT.md
