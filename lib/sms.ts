@@ -33,18 +33,21 @@ export async function sendSmsReminder(
   console.log(`[SMS] Sending ${templateKey} to ${recipientPhone}`);
 
   try {
-    // 1. Pobierz szablon z Supabase
-    const { data: template, error: templateError } = await supabaseAdmin()
+    // 1. Pobierz szablon z Supabase (najnowszy jeśli jest kilka)
+    const { data: templates, error: templateError } = await supabaseAdmin()
       .from('message_templates')
       .select('*')
       .eq('template_key', templateKey)
       .eq('channel', 'sms')
       .eq('is_active', true)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    if (templateError || !template) {
-      throw new Error(`Template ${templateKey} not found: ${templateError?.message}`);
+    if (templateError || !templates || templates.length === 0) {
+      throw new Error(`Template ${templateKey} not found: ${templateError?.message || 'No templates returned'}`);
     }
+
+    const template = templates[0];
 
     console.log(`[SMS] Template loaded: ${template.name}`);
 

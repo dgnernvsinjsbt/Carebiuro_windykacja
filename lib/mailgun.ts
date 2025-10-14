@@ -74,18 +74,21 @@ export async function sendEmailReminder(
   console.log(`[Mailgun] Sending ${templateId} to ${actualRecipient} (sandbox: ${isSandbox})`);
 
   try {
-    // 1. Pobierz template z Supabase (z nowej tabeli message_templates)
-    const { data: template, error: templateError } = await supabaseAdmin()
+    // 1. Pobierz template z Supabase (najnowszy jeśli jest kilka)
+    const { data: templates, error: templateError } = await supabaseAdmin()
       .from('message_templates')
       .select('*')
       .eq('template_key', templateId)
       .eq('channel', 'email')
       .eq('is_active', true)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    if (templateError || !template) {
-      throw new Error(`Template ${templateId} not found: ${templateError?.message}`);
+    if (templateError || !templates || templates.length === 0) {
+      throw new Error(`Template ${templateId} not found: ${templateError?.message || 'No templates returned'}`);
     }
+
+    const template = templates[0];
 
     console.log(`[Mailgun] Template loaded: ${template.name}`);
 
