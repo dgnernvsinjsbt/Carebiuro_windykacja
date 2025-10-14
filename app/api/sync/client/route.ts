@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
       .from('clients')
       .update({
         name: clientData.name || null,
+        first_name: clientData.first_name || null,
+        last_name: clientData.last_name || null,
         email: clientData.email || null,
         phone: clientData.phone || null,
         note: clientData.note || null, // WINDYKACJA tag jest tutaj

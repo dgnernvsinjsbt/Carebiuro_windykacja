@@ -39,6 +39,9 @@ interface FakturowniaInvoice {
 
 interface FakturowniaClient {
   id: number
+  name: string
+  first_name: string | null
+  last_name: string | null
   note: string | null
 }
 
@@ -470,19 +473,26 @@ serve(async (req) => {
     // This is the LAST batch - run post-processing
     console.log(`[Sync] 🏁 Last batch reached, running post-processing (Steps 3 & 4)`)
 
-    // STEP 3: Fetch client notes from Fakturownia
+    // STEP 3: Fetch client data (notes + names) from Fakturownia
     const clientNotesMap = new Map<number, string>()
+    const clientNamesMap = new Map<number, { name: string, first_name: string | null, last_name: string | null }>()
 
     if (!isTestMode) {
-      console.log('[Sync] STEP 3: Fetching client notes from Fakturownia...')
+      console.log('[Sync] STEP 3: Fetching client data from Fakturownia...')
       const fakturowniaClients = await fetchAllClients(fakturowniaApiToken)
 
       for (const fc of fakturowniaClients) {
         if (fc.note) {
           clientNotesMap.set(fc.id, fc.note)
         }
+        // Store name data for all clients
+        clientNamesMap.set(fc.id, {
+          name: fc.name,
+          first_name: fc.first_name,
+          last_name: fc.last_name,
+        })
       }
-      console.log(`[Sync] ✓ Fetched notes for ${clientNotesMap.size} clients from Fakturownia`)
+      console.log(`[Sync] ✓ Fetched data for ${fakturowniaClients.length} clients (${clientNotesMap.size} with notes)`)
     } else {
       console.log('[Sync] STEP 3: Skipped (test mode)')
     }
@@ -525,12 +535,19 @@ serve(async (req) => {
         .from('clients')
         .select('*')
 
-      const clientsToUpdate: Client[] = (existingClients || []).map((client: any) => ({
-        ...client,
-        note: clientNotesMap.get(client.id) || client.note || null,
-        total_unpaid: clientTotalsMap.get(client.id) || 0,
-        updated_at: new Date().toISOString(),
-      }))
+      const clientsToUpdate: Client[] = (existingClients || []).map((client: any) => {
+        const nameData = clientNamesMap.get(client.id)
+        return {
+          ...client,
+          // Update name fields from Fakturownia (if available)
+          name: nameData?.name || client.name,
+          first_name: nameData?.first_name || client.first_name || null,
+          last_name: nameData?.last_name || client.last_name || null,
+          note: clientNotesMap.get(client.id) || client.note || null,
+          total_unpaid: clientTotalsMap.get(client.id) || 0,
+          updated_at: new Date().toISOString(),
+        }
+      })
 
       const { error: updateError } = await supabase.from('clients').upsert(clientsToUpdate)
       if (updateError) throw updateError
