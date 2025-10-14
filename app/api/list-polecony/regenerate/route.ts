@@ -17,7 +17,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateListPoleconyHTML } from '@/lib/pdf-generator';
 import { getInvoicesWithThirdReminder, calculateTotalDebt } from '@/lib/list-polecony-logic';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import puppeteerLocal from 'puppeteer';
+import chromium from '@sparticuz/chromium-min';
 import ExcelJS from 'exceljs';
 import archiver from 'archiver';
 import fs from 'fs';
@@ -88,12 +90,29 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Regenerate] Katalog tymczasowy: ${tempDir}`);
 
-    // Uruchom Puppeteer
+    // Uruchom Puppeteer - używaj @sparticuz/chromium-min na Vercel (production)
     console.log('[Regenerate] Uruchamianie Puppeteer...');
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    const isProduction = process.env.VERCEL === '1';
+
+    let browser;
+    if (isProduction) {
+      // Konfiguracja dla @sparticuz/chromium-min w środowisku Vercel
+      const executablePath = await chromium.executablePath(
+        'https://github.com/Sparticuz/chromium/releases/download/v141.0.0/chromium-v141.0.0-pack.x64.tar'
+      );
+
+      browser = await puppeteer.launch({
+        args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+        executablePath,
+        headless: true,
+      });
+    } else {
+      // Lokalnie używaj standardowego Puppeteer
+      browser = await puppeteerLocal.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+    }
     console.log('[Regenerate] Puppeteer uruchomiony pomyślnie');
 
     try {
