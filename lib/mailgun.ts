@@ -1,10 +1,11 @@
 import { supabaseAdmin } from './supabase';
 
 interface EmailData {
-  client_name: string;
-  invoice_number: string;
-  amount: string;
-  due_date: string;
+  nazwa_klienta: string;
+  numer_faktury: string;
+  kwota: string;
+  waluta: string;
+  termin: string;
 }
 
 /**
@@ -73,11 +74,13 @@ export async function sendEmailReminder(
   console.log(`[Mailgun] Sending ${templateId} to ${actualRecipient} (sandbox: ${isSandbox})`);
 
   try {
-    // 1. Pobierz template z Supabase
+    // 1. Pobierz template z Supabase (z nowej tabeli message_templates)
     const { data: template, error: templateError } = await supabaseAdmin()
-      .from('email_templates')
+      .from('message_templates')
       .select('*')
-      .eq('id', templateId)
+      .eq('template_key', templateId)
+      .eq('channel', 'email')
+      .eq('is_active', true)
       .single();
 
     if (templateError || !template) {
@@ -87,9 +90,9 @@ export async function sendEmailReminder(
     console.log(`[Mailgun] Template loaded: ${template.name}`);
 
     // 2. Render template z danymi
-    const subject = replacePlaceholders(template.subject, emailData);
-    const bodyHtml = replacePlaceholders(template.body_html, emailData);
-    const bodyText = replacePlaceholders(template.body_text, emailData);
+    const subject = replacePlaceholders(template.subject || 'Przypomnienie o płatności', emailData);
+    const bodyHtml = replacePlaceholders(template.body_html || template.body_text || '', emailData);
+    const bodyText = replacePlaceholders(template.body_text || '', emailData);
 
     console.log(`[Mailgun] Rendered email:`, {
       subject,
@@ -127,7 +130,7 @@ export async function sendEmailReminder(
         const uint8Array = new Uint8Array(pdfBuffer);
         console.log(`[Mailgun] Converted Buffer to Uint8Array (${uint8Array.length} bytes)`);
 
-        const filename = `faktura_${emailData.invoice_number}.pdf`;
+        const filename = `faktura_${emailData.numer_faktury}.pdf`;
         const pdfFile = new File([uint8Array], filename, {
           type: 'application/pdf'
         });

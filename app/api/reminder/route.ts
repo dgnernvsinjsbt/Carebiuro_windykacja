@@ -5,6 +5,7 @@ import { fakturowniaApi } from '@/lib/fakturownia';
 import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
 import { updateFiscalSync } from '@/lib/fiscal-sync-parser';
 import { sendEmailReminder } from '@/lib/mailgun';
+import { sendSmsReminder } from '@/lib/sms';
 
 // Validation schema
 const ReminderSchema = z.object({
@@ -45,17 +46,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Send notification (SMS via SMS Planet API, others via n8n webhook)
+    // 2. Send notification
     if (type === 'sms') {
-      console.log(`[SMS] Starting SMS send for invoice ${invoice_id}`);
-      console.log(`[SMS] Invoice details:`, {
-        number: invoice.number,
-        buyer_phone: invoice.buyer_phone,
-        total: invoice.total,
-        currency: invoice.currency,
-      });
+      // Send SMS directly via SMS Planet API (using template from message_templates)
+      console.log(`[Reminder] Sending SMS via SMS Planet for SMS_${level}`);
 
-      // Send SMS directly via SMS Planet API
       if (!invoice.buyer_phone) {
         console.error(`[SMS] ❌ No phone number for invoice ${invoice_id}`);
         return NextResponse.json(
@@ -64,118 +59,42 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const smsApiToken = process.env.SMSPLANET_API_TOKEN;
-      const smsFrom = process.env.SMSPLANET_FROM || 'Cbb-Office';
+      const smsData = {
+        nazwa_klienta: invoice.buyer_name || 'Klient',
+        numer_faktury: invoice.number || `#${invoice.id}`,
+        kwota: ((invoice.total || 0) - (invoice.paid || 0)).toFixed(2),
+        waluta: invoice.currency || 'EUR',
+        termin: invoice.payment_to
+          ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+          : 'brak',
+      };
 
-      console.log(`[SMS] SMS API config:`, {
-        from: smsFrom,
-        tokenConfigured: !!smsApiToken,
-        tokenLength: smsApiToken?.length,
-      });
+      const templateKey = `SMS_${level}` as 'SMS_1' | 'SMS_2' | 'SMS_3';
+      const result = await sendSmsReminder(
+        templateKey,
+        invoice.buyer_phone,
+        smsData
+      );
 
-      if (!smsApiToken) {
-        console.error(`[SMS] ❌ SMSPLANET_API_TOKEN not configured in .env`);
+      if (!result.success) {
+        console.error(`[Reminder] SMS send failed: ${result.error}`);
         return NextResponse.json(
-          { success: false, error: 'SMS API not configured' },
+          { success: false, error: `SMS send failed: ${result.error}` },
           { status: 500 }
         );
       }
 
-      // Prepare SMS message
-      const issueDate = invoice.issue_date
-        ? new Date(invoice.issue_date).toLocaleDateString('pl-PL', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          })
-        : 'nieznana';
-
-      // Calculate unpaid balance (total - paid)
-      const total = typeof invoice.total === 'string' ? invoice.total : String(invoice.total || '0');
-      const paid = typeof invoice.paid === 'string' ? invoice.paid : String(invoice.paid || '0');
-      const balance = parseFloat(total) - parseFloat(paid);
-      const balanceFormatted = balance.toFixed(2);
-
-      const invoiceNumber = invoice.number || `#${invoice.id}`;
-      const message = `Drogi kliencie, w dniu ${issueDate} na Twoj Email wyslalismy fakture ${invoiceNumber} na ${balanceFormatted} ${invoice.currency || 'EUR'}.\n\nCBB / Carebiuro`;
-
-      console.log(`[SMS] Message prepared:`, {
-        to: invoice.buyer_phone,
-        from: smsFrom,
-        messageLength: message.length,
-        messagePreview: message.substring(0, 100) + '...',
-      });
-
-      // Create form data for SMS Planet API
-      const formData = new URLSearchParams();
-      formData.append('from', smsFrom);
-      formData.append('to', invoice.buyer_phone);
-      formData.append('msg', message);
-
-      console.log(`[SMS] Form data created, length: ${formData.toString().length} bytes`);
-      console.log(`[SMS] Calling SMS Planet API: POST https://api2.smsplanet.pl/sms`);
-
-      try {
-        const smsResponse = await fetch('https://api2.smsplanet.pl/sms', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${smsApiToken}`,
-          },
-          body: formData.toString(),
-        });
-
-        const smsResult = await smsResponse.text();
-
-        console.log(`[SMS] API response received:`, {
-          status: smsResponse.status,
-          statusText: smsResponse.statusText,
-          ok: smsResponse.ok,
-          headers: Object.fromEntries(smsResponse.headers.entries()),
-          bodyLength: smsResult.length,
-          body: smsResult,
-        });
-
-        if (!smsResponse.ok) {
-          console.error(`[SMS] ❌ SMS Planet API returned error ${smsResponse.status}`);
-          console.error(`[SMS] Response body:`, smsResult);
-          return NextResponse.json(
-            {
-              success: false,
-              error: `Failed to send SMS: ${smsResponse.status} ${smsResponse.statusText}`,
-              details: smsResult
-            },
-            { status: 500 }
-          );
-        }
-
-        console.log(`[SMS] ✓ SMS sent successfully to ${invoice.buyer_phone}`);
-        console.log(`[SMS] SMS Planet confirmed delivery`);
-      } catch (smsError: any) {
-        console.error(`[SMS] ❌ Exception while sending SMS:`, {
-          message: smsError.message,
-          stack: smsError.stack,
-          name: smsError.name,
-          cause: smsError.cause,
-        });
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Failed to send SMS: ' + smsError.message,
-            details: smsError.stack
-          },
-          { status: 500 }
-        );
-      }
+      console.log(`[Reminder] SMS sent successfully: ${result.messageId}`);
     } else if (type === 'email') {
       // Send email directly via Mailgun
       console.log(`[Reminder] Sending email via Mailgun for EMAIL_${level}`);
 
       const emailData = {
-        client_name: invoice.buyer_name || 'Klient',
-        invoice_number: invoice.number || `#${invoice.id}`,
-        amount: `€${((invoice.total || 0) - (invoice.paid || 0)).toFixed(2)}`,
-        due_date: invoice.payment_to
+        nazwa_klienta: invoice.buyer_name || 'Klient',
+        numer_faktury: invoice.number || `#${invoice.id}`,
+        kwota: ((invoice.total || 0) - (invoice.paid || 0)).toFixed(2),
+        waluta: invoice.currency || 'EUR',
+        termin: invoice.payment_to
           ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
           : 'brak',
       };
