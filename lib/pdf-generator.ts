@@ -2,7 +2,7 @@
  * PDF Generator - List Polecony
  *
  * Generuje HTML dla "Przedsądowego Wezwania do Zapłaty"
- * zgodnie z szablonem z 1.pdf
+ * używając szablonu z bazy danych (message_templates)
  */
 
 import { Client, Invoice } from '@/types';
@@ -18,10 +18,42 @@ export interface ListPoleconyData {
   invoices: Invoice[];
 }
 
+export interface LetterTemplate {
+  body_top: string | null;
+  body_bottom: string | null;
+}
+
+/**
+ * Zamienia placeholdery {{nazwa}} na wartości rzeczywiste
+ */
+function replacePlaceholders(text: string, client: Client, invoices: Invoice[]): string {
+  const relevantInvoices = getInvoicesWithThirdReminder(invoices);
+  const totalDebt = calculateTotalDebt(invoices);
+  const currency = relevantInvoices[0]?.currency || 'EUR';
+
+  const placeholders: Record<string, string> = {
+    '{{nazwa_klienta}}': client.name || 'Szanowni Państwo',
+    '{{numer_faktury}}': relevantInvoices[0]?.number || '-',
+    '{{kwota}}': totalDebt.toFixed(2),
+    '{{waluta}}': currency,
+    '{{termin}}': relevantInvoices[0]?.payment_to ? formatDate(relevantInvoices[0].payment_to) : '-',
+  };
+
+  let result = text;
+  for (const [key, value] of Object.entries(placeholders)) {
+    result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
+  }
+
+  return result;
+}
+
 /**
  * Generuje HTML dla listu poleconego
  */
-export function generateListPoleconyHTML(data: ListPoleconyData): string {
+export function generateListPoleconyHTML(
+  data: ListPoleconyData,
+  template?: LetterTemplate
+): string {
   const { client, invoices } = data;
 
   // Pobierz tylko faktury z trzecim upomnieniem
@@ -56,6 +88,34 @@ ${invoice.buyer_post_code || ''} ${invoice.buyer_city || ''}, ${invoice.buyer_co
       </tr>`;
     })
     .join('');
+
+  // Domyślny tekst NAD tabelą
+  const defaultBodyTop = `${clientName}
+
+Niniejszym wzywamy Państwa do natychmiastowej zapłaty zaległych należności wynikających z niżej wymienionych faktur. Pomimo wcześniejszych przypomnień, należności nie zostały uregulowane.`;
+
+  // Domyślny tekst POD tabelą
+  const defaultBodyBottom = `Prosimy o uregulowanie powyższej kwoty w terminie 30 dni od daty otrzymania niniejszego wezwania.
+
+Brak wpłaty w wyznaczonym terminie spowoduje skierowanie sprawy na drogę postępowania sądowego oraz wpis do Krajowego Rejestru Dłużników, co wiąże się z dodatkowymi kosztami postępowania, odsetkami oraz opłatami egzekucyjnymi, którymi zostaniecie Państwo obciążeni.`;
+
+  // Użyj szablonu z bazy lub domyślnego tekstu
+  const bodyTop = template?.body_top
+    ? replacePlaceholders(template.body_top, client, invoices)
+    : defaultBodyTop;
+
+  const bodyBottom = template?.body_bottom
+    ? replacePlaceholders(template.body_bottom, client, invoices)
+    : defaultBodyBottom;
+
+  // Przekształć newline na <br> dla HTML (zachowaj akapity)
+  const bodyTopHtml = bodyTop.split('\n\n').map(para =>
+    `<div class="content">${para.replace(/\n/g, '<br>')}</div>`
+  ).join('');
+
+  const bodyBottomHtml = bodyBottom.split('\n\n').map(para =>
+    `<div class="content">${para.replace(/\n/g, '<br>')}</div>`
+  ).join('');
 
   // Szablon HTML
   const html = `<!DOCTYPE html>
@@ -140,13 +200,7 @@ ${invoice.buyer_post_code || ''} ${invoice.buyer_city || ''}, ${invoice.buyer_co
 
     <div class="title">Przedsądowe Wezwanie do Zapłaty</div>
 
-    <div class="content">Szanowni Państwo,</div>
-
-    <div class="content">
-        Niniejszym wzywamy Państwa do natychmiastowej zapłaty zaległych należności
-        wynikających z niżej wymienionych faktur. Pomimo wcześniejszych przypomnień,
-        należności nie zostały uregulowane.
-    </div>
+    ${bodyTopHtml}
 
     <div class="content"><strong>Szczegóły zaległości:</strong></div>
 
@@ -169,31 +223,7 @@ ${invoice.buyer_post_code || ''} ${invoice.buyer_city || ''}, ${invoice.buyer_co
         CAŁKOWITA KWOTA ZALEGŁOŚCI: ${totalDebt.toFixed(2)} ${currency}
     </div>
 
-    <div class="content">
-        Prosimy o uregulowanie powyższej kwoty w terminie <strong>30 dni</strong>
-        od daty otrzymania niniejszego wezwania. Brak wpłaty w wyznaczonym terminie
-        spowoduje skierowanie sprawy na drogę postępowania sądowego oraz wpis do
-        Krajowego Rejestru Dłużników, co wiąże się z dodatkowymi kosztami postępowania,
-        odsetkami oraz opłatami egzekucyjnymi, którymi zostaniecie Państwo obciążeni.
-    </div>
-
-    <div class="content">
-        Zgodnie z art. 4871 § 1 Kodeksu cywilnego, dłużnik pozostający w zwłoce
-        jest obowiązany do zapłaty odsetek ustawowych od dnia wymagalności świadczenia.
-    </div>
-
-    <div class="content">
-        Dane do przelewu:<br>
-        <strong>Bank:</strong> BNP Paribas<br>
-        <strong>SWIFT:</strong> PPABPLPKXXX<br>
-        <strong>Konto:</strong> PL09 1600 1462 1806 8729 3000 0003<br>
-        <strong>Tytuł przelewu:</strong> ${clientName}
-    </div>
-
-    <div class="content">
-        W przypadku uregulowania należności po wysłaniu niniejszego wezwania,
-        prosimy o poinformowanie nas o dokonaniu wpłaty.
-    </div>
+    ${bodyBottomHtml}
 
     <div class="footer">
         Z poważaniem,<br><br>

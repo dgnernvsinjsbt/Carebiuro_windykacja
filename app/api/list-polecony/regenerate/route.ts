@@ -84,6 +84,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Pobierz szablon listu poleconego z bazy danych
+    const { data: templateData, error: templateError } = await supabaseAdmin()
+      .from('message_templates')
+      .select('body_top, body_bottom')
+      .eq('channel', 'letter')
+      .eq('is_active', true)
+      .single();
+
+    if (templateError) {
+      console.warn('[Regenerate] Nie znaleziono szablonu listu poleconego - używam domyślnego:', templateError);
+    }
+
+    const letterTemplate = templateData || undefined;
+
     // Stwórz katalog tymczasowy dla plików
     const tempDir = path.join(os.tmpdir(), `list-polecony-regen-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
@@ -122,11 +136,14 @@ export async function POST(request: NextRequest) {
         console.log(`[Regenerate PDF ${index + 1}/${clients.length}] Rozpoczynam dla: ${client.name}`);
         const clientInvoices = invoices.filter((inv) => inv.client_id === client.id);
 
-        // Generuj HTML
-        const html = generateListPoleconyHTML({
-          client,
-          invoices: clientInvoices,
-        });
+        // Generuj HTML z szablonem
+        const html = generateListPoleconyHTML(
+          {
+            client,
+            invoices: clientInvoices,
+          },
+          letterTemplate
+        );
 
         // Generuj PDF za pomocą Puppeteer
         const page = await browser.newPage();
