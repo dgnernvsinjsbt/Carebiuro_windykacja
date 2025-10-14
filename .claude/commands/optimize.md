@@ -1,0 +1,1 @@
+Analyze for inefficiencies and suggest performance optimizations with code diffs.

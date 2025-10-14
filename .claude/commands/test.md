@@ -1,0 +1,1 @@
+Generate unit tests for this module using Jest or Vitest, covering edge cases.

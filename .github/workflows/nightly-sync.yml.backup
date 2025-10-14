@@ -1,0 +1,67 @@
+name: Nightly Full Sync (Production)
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 22:00 UTC = 00:00 CEST (midnight Warsaw time)
+
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  full-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Send Start SMS
+        run: |
+          echo "Sending start notification SMS..."
+          curl -s -X POST https://api2.smsplanet.pl/sms \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+            --data-urlencode "from=Cbb-Office" \
+            --data-urlencode "to=+48536214664" \
+            --data-urlencode "msg=FULL SYNC STARTING..."
+
+      - name: Trigger Full Sync
+        id: sync
+        run: |
+          echo "Starting full synchronization via Supabase Edge Function..."
+          RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST \
+            ${{ secrets.SUPABASE_FUNCTION_URL }}/full-sync \
+            -H "x-github-action: true" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Full sync failed with HTTP $HTTP_CODE: $BODY"
+            exit 1
+          fi
+
+      - name: Send Success SMS
+        if: success()
+        run: |
+          echo "Sending success notification SMS..."
+          curl -s -X POST https://api2.smsplanet.pl/sms \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+            --data-urlencode "from=Cbb-Office" \
+            --data-urlencode "to=+48536214664" \
+            --data-urlencode "msg=FULL SYNC COMPLETE!"
+          echo "::notice::Full sync completed successfully"
+
+      - name: Send Failure SMS
+        if: failure()
+        run: |
+          echo "Sending failure notification SMS..."
+          curl -s -X POST https://api2.smsplanet.pl/sms \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+            --data-urlencode "from=Cbb-Office" \
+            --data-urlencode "to=+48536214664" \
+            --data-urlencode "msg=FULL SYNC FAILED - check logs"
