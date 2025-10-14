@@ -81,13 +81,23 @@ export function calculateTotalDebt(invoices: Invoice[]): number {
 
 /**
  * Oblicza liczbę dni zwłoki dla faktury
+ * Formuła: Dzień dzisiejszy - (Data wystawienia + 30 dni)
  */
-export function calculateDelayDays(paymentDueDate: string | null): number {
-  if (!paymentDueDate) return 0;
+export function calculateDelayDays(issueDate: string | null): number {
+  if (!issueDate) return 0;
 
   const today = new Date();
-  const dueDate = new Date(paymentDueDate);
-  const diffTime = today.getTime() - dueDate.getTime();
+  today.setHours(0, 0, 0, 0); // Zeruj godziny dla dokładności
+
+  const issueDateObj = new Date(issueDate);
+  issueDateObj.setHours(0, 0, 0, 0);
+
+  // Dodaj 30 dni do daty wystawienia (termin płatności)
+  const paymentDueDate = new Date(issueDateObj);
+  paymentDueDate.setDate(paymentDueDate.getDate() + 30);
+
+  // Oblicz różnicę w dniach
+  const diffTime = today.getTime() - paymentDueDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays > 0 ? diffDays : 0;

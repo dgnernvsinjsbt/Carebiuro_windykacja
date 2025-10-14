@@ -78,7 +78,7 @@ ${invoice.buyer_post_code || ''} ${invoice.buyer_city || ''}, ${invoice.buyer_co
   // Generuj wiersze tabeli
   const tableRows = relevantInvoices
     .map((invoice) => {
-      const delayDays = calculateDelayDays(invoice.payment_to);
+      const delayDays = calculateDelayDays(invoice.issue_date); // Zmieniono z payment_to na issue_date
       return `<tr>
         <td>${invoice.number || '-'}</td>
         <td>${formatDate(invoice.issue_date)}</td>
