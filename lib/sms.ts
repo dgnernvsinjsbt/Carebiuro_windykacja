@@ -20,13 +20,13 @@ function replacePlaceholders(template: string, data: SmsData): string {
 /**
  * Wysyła SMS przez SMS Planet API
  *
- * @param templateKey - Klucz szablonu ('SMS_1', 'SMS_2', 'SMS_3')
+ * @param templateKey - Klucz szablonu ('REMINDER_1', 'REMINDER_2', 'REMINDER_3')
  * @param recipientPhone - Numer telefonu odbiorcy
  * @param smsData - Dane do podstawienia w szablonie
  * @returns { success: true, messageId } lub { success: false, error }
  */
 export async function sendSmsReminder(
-  templateKey: 'SMS_1' | 'SMS_2' | 'SMS_3',
+  templateKey: 'REMINDER_1' | 'REMINDER_2' | 'REMINDER_3',
   recipientPhone: string,
   smsData: SmsData
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {

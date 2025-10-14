@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
           : 'brak',
       };
 
-      const templateKey = `SMS_${level}` as 'SMS_1' | 'SMS_2' | 'SMS_3';
+      const templateKey = `REMINDER_${level}` as 'REMINDER_1' | 'REMINDER_2' | 'REMINDER_3';
       const result = await sendSmsReminder(
         templateKey,
         invoice.buyer_phone,
