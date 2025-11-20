@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     let query = supabaseAdmin()
       .from('invoices')
       .select('id, number, client_id, internal_note, total, currency, buyer_name, issue_date')
-      .not('internal_note', 'is', null);
+      .not('internal_note', 'is', null)
+      .limit(1000); // Explicitly set limit to avoid default pagination
 
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
