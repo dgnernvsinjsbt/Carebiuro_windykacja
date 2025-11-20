@@ -11,14 +11,16 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Send Start SMS
-        run: |
-          curl -s -X POST https://api2.smsplanet.pl/sms \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
-            --data-urlencode "from=Cbb-Office" \
-            --data-urlencode "to=+48536214664" \
-            --data-urlencode "msg=FULL SYNC STARTING..."
+      # Removed SMS notifications to avoid nighttime disruptions
+      # - name: Send Start SMS
+      #   run: |
+      #     echo "Sending start notification SMS..."
+      #     curl -s -X POST https://api2.smsplanet.pl/sms \
+      #       -H "Content-Type: application/x-www-form-urlencoded" \
+      #       -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+      #       --data-urlencode "from=Cbb-Office" \
+      #       --data-urlencode "to=+48536214664" \
+      #       --data-urlencode "msg=FULL SYNC STARTING..."
 
       - name: Batch 1 (pages 1-50, clear DB)
         run: |
@@ -79,22 +81,31 @@ jobs:
           curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=10" \
             -H "x-github-action: true" --max-time 150
 
-      - name: Send Success SMS
-        if: success()
-        run: |
-          curl -s -X POST https://api2.smsplanet.pl/sms \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
-            --data-urlencode "from=Cbb-Office" \
-            --data-urlencode "to=+48536214664" \
-            --data-urlencode "msg=FULL SYNC COMPLETE! Check dashboard"
+      # Removed SMS notifications to avoid nighttime disruptions
+      # - name: Send Success SMS
+      #   if: success()
+      #   run: |
+      #     echo "Sending success notification SMS..."
+      #     curl -s -X POST https://api2.smsplanet.pl/sms \
+      #       -H "Content-Type: application/x-www-form-urlencoded" \
+      #       -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+      #       --data-urlencode "from=Cbb-Office" \
+      #       --data-urlencode "to=+48536214664" \
+      #       --data-urlencode "msg=FULL SYNC COMPLETE!"
+      #     echo "::notice::Full sync completed successfully"
 
-      - name: Send Failure SMS
-        if: failure()
+      # - name: Send Failure SMS
+      #   if: failure()
+      #   run: |
+      #     echo "Sending failure notification SMS..."
+      #     curl -s -X POST https://api2.smsplanet.pl/sms \
+      #       -H "Content-Type: application/x-www-form-urlencoded" \
+      #       -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
+      #       --data-urlencode "from=Cbb-Office" \
+      #       --data-urlencode "to=+48536214664" \
+      #       --data-urlencode "msg=FULL SYNC FAILED - check logs"
+
+      - name: Log Completion
+        if: always()
         run: |
-          curl -s -X POST https://api2.smsplanet.pl/sms \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -H "Authorization: Bearer ${{ secrets.SMSPLANET_API_TOKEN }}" \
-            --data-urlencode "from=Cbb-Office" \
-            --data-urlencode "to=+48536214664" \
-            --data-urlencode "msg=FULL SYNC FAILED - check GitHub Actions logs"
+          echo "::notice::Nightly sync workflow completed. Check GitHub Actions logs for details."

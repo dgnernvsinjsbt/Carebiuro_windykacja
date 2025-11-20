@@ -2,11 +2,18 @@
   "crons": [
     {
       "path": "/api/windykacja/auto-send-initial",
-      "schedule": "0 8 * * *"
+      "schedule": "0 8 * * *",
+      "description": "Send E1/S1/W1 for newly issued invoices (last 3 days)"
+    },
+    {
+      "path": "/api/windykacja/auto-send-overdue",
+      "schedule": "15 8 * * *",
+      "description": "Send E1/S1 for overdue invoices (clients with windykacja enabled)"
     },
     {
       "path": "/api/sync",
-      "schedule": "0 0 * * *"
+      "schedule": "0 0 * * *",
+      "description": "Daily Fakturownia sync at midnight"
     }
   ]
 }

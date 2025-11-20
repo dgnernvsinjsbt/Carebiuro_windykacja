@@ -3,16 +3,18 @@ import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
 import { supabase } from '@/lib/supabase';
 
 /**
- * Auto-send E1, S1, W1 (initial informational messages) for newly issued invoices
+ * Auto-send E1, S1 (initial informational messages) for newly issued invoices
  *
  * These are NOT debt collection messages - they are informational notifications
  * about invoice issuance, so they bypass STOP and WINDYKACJA flags.
+ *
+ * WhatsApp (W1) is disabled - not configured in system.
  *
  * Eligible invoices:
  * - Issued in last 3 days (based on issue_date)
  * - Not paid (status != 'paid')
  * - Not canceled (kind != 'canceled')
- * - E1, S1, or W1 not sent yet (respective flag is false in [FISCAL_SYNC])
+ * - E1 or S1 not sent yet (respective flag is false in [FISCAL_SYNC])
  * - Has unpaid balance (total - paid > 0)
  *
  * Data source: Supabase (already synced by /api/sync full sync at midnight)
@@ -105,13 +107,13 @@ export async function POST(request: NextRequest) {
       // Parse fiscal sync data from internal_note
       const fiscalSync = parseFiscalSync(invoice.internal_note);
 
-      // Check if any of E1, S1, W1 need to be sent
+      // Check if any of E1, S1 need to be sent
       // We'll send them if they haven't been sent yet
+      // W1 (WhatsApp) disabled - not configured in system
       const needsE1 = !fiscalSync?.EMAIL_1;
       const needsS1 = !fiscalSync?.SMS_1;
-      const needsW1 = !fiscalSync?.WHATSAPP_1;
 
-      if (!needsE1 && !needsS1 && !needsW1) {
+      if (!needsE1 && !needsS1) {
         return false; // All initial messages already sent
       }
 
@@ -224,51 +226,14 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Send W1 if needed
-      if (!fiscalSync?.WHATSAPP_1) {
-        try {
-          console.log(`[AutoSendInitial] Sending W1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
-
-          const apiUrl = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000/api/reminder'
-            : `${request.nextUrl.origin}/api/reminder`;
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              invoice_id: invoice.id,
-              type: 'whatsapp',
-              level: '1',
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            whatsappCount++;
-            invoiceResults.sent.push('W1');
-            console.log(`[AutoSendInitial] ✓ W1 sent for invoice ${invoice.id}`);
-          } else {
-            failureCount++;
-            invoiceResults.failed.push({ type: 'W1', error: data.error });
-            console.log(`[AutoSendInitial] ✗ Failed to send W1: ${data.error}`);
-          }
-
-          // Small delay between requests
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (error: any) {
-          failureCount++;
-          invoiceResults.failed.push({ type: 'W1', error: error.message });
-          console.error(`[AutoSendInitial] Error sending W1:`, error);
-        }
-      }
+      // W1 (WhatsApp) disabled - not configured in system
+      // Skip WhatsApp sending entirely
 
       results.push(invoiceResults);
     }
 
-    const totalSent = emailCount + smsCount + whatsappCount;
-    console.log(`[AutoSendInitial] Completed: ${totalSent} total sent (E1: ${emailCount}, S1: ${smsCount}, W1: ${whatsappCount}), ${failureCount} failed`);
+    const totalSent = emailCount + smsCount;
+    console.log(`[AutoSendInitial] Completed: ${totalSent} total sent (E1: ${emailCount}, S1: ${smsCount}), ${failureCount} failed`);
 
     return NextResponse.json({
       success: true,

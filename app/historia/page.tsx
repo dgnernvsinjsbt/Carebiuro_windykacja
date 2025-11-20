@@ -230,26 +230,18 @@ export default function HistoriaPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Data od</label>
               <input
-                type="text"
-                placeholder="dd.mm.rrrr"
-                value={formatDateToPolish(dateRange.startDate)}
-                onChange={(e) => {
-                  const isoDate = parsePolishDate(e.target.value);
-                  if (isoDate) setDateRange({ ...dateRange, startDate: isoDate });
-                }}
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Data do</label>
               <input
-                type="text"
-                placeholder="dd.mm.rrrr"
-                value={formatDateToPolish(dateRange.endDate)}
-                onChange={(e) => {
-                  const isoDate = parsePolishDate(e.target.value);
-                  if (isoDate) setDateRange({ ...dateRange, endDate: isoDate });
-                }}
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
