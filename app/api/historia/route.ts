@@ -135,6 +135,19 @@ export async function GET(request: NextRequest) {
       success: true,
       data: grouped,
       total: allMessages.length,
+      debug: {
+        invoices_fetched: invoices?.length || 0,
+        invoices_with_fiscal_sync: invoices?.filter(inv => {
+          const fiscalSyncRegex = /\[FISCAL_SYNC\]([\s\S]*?)\[\/FISCAL_SYNC\]/;
+          return inv.internal_note?.match(fiscalSyncRegex);
+        }).length || 0,
+        messages_extracted: allMessages.length,
+        sample_invoice: invoices?.[0] ? {
+          id: invoices[0].id,
+          has_note: !!invoices[0].internal_note,
+          note_preview: invoices[0].internal_note?.substring(0, 100),
+        } : null,
+      },
     });
   } catch (error: any) {
     console.error('[Historia] Error:', error);
