@@ -29,6 +29,8 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
   // Filter states
   const [showInvoiceFilter, setShowInvoiceFilter] = useState(false);
   const [showSaldoFilter, setShowSaldoFilter] = useState(false);
+  const [showWindykacjaFilter, setShowWindykacjaFilter] = useState(false);
+  const [windykacjaFilter, setWindykacjaFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
   const [invoiceCountMin, setInvoiceCountMin] = useState<number | ''>('');
   const [invoiceCountMax, setInvoiceCountMax] = useState<number | ''>('');
   const [saldoMin, setSaldoMin] = useState<number | ''>('');
@@ -76,6 +78,13 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
         if (saldoMax !== '' && saldo > saldoMax) return false;
       }
 
+      // Windykacja filter
+      if (windykacjaFilter !== 'all') {
+        const windykacjaEnabled = parseWindykacja(client.note);
+        if (windykacjaFilter === 'enabled' && !windykacjaEnabled) return false;
+        if (windykacjaFilter === 'disabled' && windykacjaEnabled) return false;
+      }
+
       return true;
     });
 
@@ -95,7 +104,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
 
       return sortDirection === 'asc' ? compareValue : -compareValue;
     });
-  }, [clients, searchQuery, sortField, sortDirection, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax]);
+  }, [clients, searchQuery, sortField, sortDirection, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax, windykacjaFilter]);
 
   // Paginate clients
   const paginatedClients = useMemo(() => {
@@ -109,7 +118,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax, itemsPerPage]);
+  }, [searchQuery, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax, windykacjaFilter, itemsPerPage]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -144,6 +153,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
       if (!target.closest('.filter-dropdown')) {
         setShowInvoiceFilter(false);
         setShowSaldoFilter(false);
+        setShowWindykacjaFilter(false);
       }
     };
 
@@ -255,7 +265,62 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                 </button>
               </th>
               <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
-                Windykacja
+                <div className="flex items-center justify-center gap-2">
+                  <span>Windykacja</span>
+                  <div className="relative filter-dropdown">
+                    <button
+                      onClick={() => setShowWindykacjaFilter(!showWindykacjaFilter)}
+                      className={`p-1 rounded hover:bg-gray-200 transition-colors ${
+                        windykacjaFilter !== 'all' ? 'text-teal-600' : 'text-gray-400'
+                      }`}
+                      title="Filtruj"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                      </svg>
+                    </button>
+                    {showWindykacjaFilter && (
+                      <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 min-w-[180px]">
+                        <div className="text-xs font-semibold text-gray-700 mb-2">Status windykacji</div>
+                        <div className="space-y-1">
+                          <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            <input
+                              type="radio"
+                              name="windykacja"
+                              value="all"
+                              checked={windykacjaFilter === 'all'}
+                              onChange={(e) => setWindykacjaFilter(e.target.value as 'all')}
+                              className="text-teal-600 focus:ring-teal-500"
+                            />
+                            <span className="text-xs">Wszyscy</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            <input
+                              type="radio"
+                              name="windykacja"
+                              value="enabled"
+                              checked={windykacjaFilter === 'enabled'}
+                              onChange={(e) => setWindykacjaFilter(e.target.value as 'enabled')}
+                              className="text-teal-600 focus:ring-teal-500"
+                            />
+                            <span className="text-xs">Włączona</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            <input
+                              type="radio"
+                              name="windykacja"
+                              value="disabled"
+                              checked={windykacjaFilter === 'disabled'}
+                              onChange={(e) => setWindykacjaFilter(e.target.value as 'disabled')}
+                              className="text-teal-600 focus:ring-teal-500"
+                            />
+                            <span className="text-xs">Wyłączona</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </th>
               <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
                 <div className="flex items-center justify-center gap-2">
