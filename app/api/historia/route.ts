@@ -45,15 +45,26 @@ export async function GET(request: NextRequest) {
 
     console.log(`[Historia] Found ${invoices?.length || 0} invoices with internal_note`);
 
+    // DEBUG: Log first invoice details
+    if (invoices && invoices.length > 0) {
+      console.log(`[Historia] First invoice sample:`, {
+        id: invoices[0].id,
+        number: invoices[0].number,
+        has_note: !!invoices[0].internal_note,
+        note_preview: invoices[0].internal_note?.substring(0, 150),
+      });
+    }
+
     // Extract all messages from FISCAL_SYNC flags
     const allMessages: any[] = [];
 
     for (const invoice of invoices || []) {
       const fiscalSync = parseFiscalSync(invoice.internal_note);
       if (!fiscalSync) {
-        console.log(`[Historia] Invoice ${invoice.id} has no FISCAL_SYNC`);
+        console.log(`[Historia] Invoice ${invoice.id} has no FISCAL_SYNC - skipping`);
         continue;
       }
+      console.log(`[Historia] Invoice ${invoice.id} parsed FISCAL_SYNC successfully`);
       console.log(`[Historia] Invoice ${invoice.id} FISCAL_SYNC:`, {
         SMS_1: fiscalSync.SMS_1,
         SMS_1_DATE: fiscalSync.SMS_1_DATE,
