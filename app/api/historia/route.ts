@@ -66,10 +66,10 @@ export async function GET(request: NextRequest) {
       }
       console.log(`[Historia] Invoice ${invoice.id} parsed FISCAL_SYNC successfully`);
       console.log(`[Historia] Invoice ${invoice.id} FISCAL_SYNC:`, {
+        EMAIL_1: fiscalSync.EMAIL_1,
+        EMAIL_1_DATE: fiscalSync.EMAIL_1_DATE,
         SMS_1: fiscalSync.SMS_1,
         SMS_1_DATE: fiscalSync.SMS_1_DATE,
-        SMS_2: fiscalSync.SMS_2,
-        SMS_2_DATE: fiscalSync.SMS_2_DATE,
       });
 
       // Check each message type and level
