@@ -5,6 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import ClientHeader from '@/components/ClientHeader';
 import ClientInvoicesTable from '@/components/ClientInvoicesTable';
 import OperationStatusBanner from '@/components/OperationStatusBanner';
+import BackButton from '@/components/BackButton';
 import { ClientOperationLockProvider } from '@/lib/client-operation-lock';
 import { notFound } from 'next/navigation';
 import { InvoiceWithClient } from '@/types';
@@ -91,12 +92,9 @@ export default async function ClientDetailPage({
             {/* Client Header */}
             <div className="mb-8">
               <div className="flex items-center gap-4 mb-4">
-                <a
-                  href="/"
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
+                <BackButton className="text-gray-600 hover:text-gray-900 transition-colors">
                   ← Powrót do listy klientów
-                </a>
+                </BackButton>
               </div>
 
               <ClientHeader client={client} unpaidBalance={unpaidBalance} />

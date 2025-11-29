@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle, TrendingUp, ArrowLeft } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
-import Link from 'next/link';
 
 interface MessageGroup {
   date: string;
@@ -97,6 +97,7 @@ function getTodayDate(): string {
 }
 
 export default function HistoriaPage() {
+  const router = useRouter();
   const [history, setHistory] = useState<MessageGroup[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,13 +184,13 @@ export default function HistoriaPage() {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <Link
-              href="/"
+            <button
+              onClick={() => router.back()}
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Powrót do listy klientów
-            </Link>
+            </button>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Historia wysyłek</h1>
             <p className="text-gray-600">Wszystkie wiadomości wysłane przez system</p>
           </div>
