@@ -157,8 +157,13 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
 
   const totalPages = Math.ceil(filteredAndSortedClients.length / itemsPerPage);
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters change (but not on initial mount)
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return; // Skip on initial mount - use URL value
+    }
     setCurrentPage(1);
   }, [searchQuery, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax, windykacjaFilter, itemsPerPage]);
 
