@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Client } from '@/types';
 import { parseWindykacja } from '@/lib/windykacja-parser';
 import WindykacjaToggle from './WindykacjaToggle';
@@ -20,27 +20,69 @@ interface ClientsTableProps {
 type SortField = 'name' | 'saldo' | 'invoices';
 type SortDirection = 'asc' | 'desc';
 
+// Helper to parse number from URL param or return empty string
+function parseNumber(value: string | null): number | '' {
+  if (!value) return '';
+  const parsed = Number(value);
+  return isNaN(parsed) ? '' : parsed;
+}
+
+// Helper to create query string from filters
+function createQueryString(params: Record<string, string | number | undefined>) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '' && value !== 'all') {
+      searchParams.set(key, String(value));
+    }
+  });
+
+  return searchParams.toString();
+}
+
 export default function ClientsTable({ clients }: ClientsTableProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Initialize state from URL params
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [sortField, setSortField] = useState<SortField>(
+    (searchParams.get('sortBy') as SortField) || 'name'
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    (searchParams.get('sortDir') as SortDirection) || 'asc'
+  );
 
   // Filter states
   const [showInvoiceFilter, setShowInvoiceFilter] = useState(false);
   const [showSaldoFilter, setShowSaldoFilter] = useState(false);
   const [showWindykacjaFilter, setShowWindykacjaFilter] = useState(false);
-  const [windykacjaFilter, setWindykacjaFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
-  const [invoiceCountMin, setInvoiceCountMin] = useState<number | ''>('');
-  const [invoiceCountMax, setInvoiceCountMax] = useState<number | ''>('');
-  const [saldoMin, setSaldoMin] = useState<number | ''>('');
-  const [saldoMax, setSaldoMax] = useState<number | ''>('');
+  const [windykacjaFilter, setWindykacjaFilter] = useState<'all' | 'enabled' | 'disabled'>(
+    (searchParams.get('windykacja') as any) || 'all'
+  );
+  const [invoiceCountMin, setInvoiceCountMin] = useState<number | ''>(
+    parseNumber(searchParams.get('invoiceMin'))
+  );
+  const [invoiceCountMax, setInvoiceCountMax] = useState<number | ''>(
+    parseNumber(searchParams.get('invoiceMax'))
+  );
+  const [saldoMin, setSaldoMin] = useState<number | ''>(
+    parseNumber(searchParams.get('saldoMin'))
+  );
+  const [saldoMax, setSaldoMax] = useState<number | ''>(
+    parseNumber(searchParams.get('saldoMax'))
+  );
   const [invoiceRangeError, setInvoiceRangeError] = useState(false);
   const [saldoRangeError, setSaldoRangeError] = useState(false);
 
   // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [currentPage, setCurrentPage] = useState(
+    Number(searchParams.get('page')) || 1
+  );
+  const [itemsPerPage, setItemsPerPage] = useState(
+    Number(searchParams.get('perPage')) || 50
+  );
 
   // Filter and sort clients
   const filteredAndSortedClients = useMemo(() => {
@@ -145,6 +187,45 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
       setSaldoRangeError(false);
     }
   }, [saldoMin, saldoMax]);
+
+  // Sync filters to URL params (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = {
+        search: searchQuery,
+        windykacja: windykacjaFilter,
+        invoiceMin: invoiceCountMin,
+        invoiceMax: invoiceCountMax,
+        saldoMin: saldoMin,
+        saldoMax: saldoMax,
+        page: currentPage !== 1 ? currentPage : undefined, // Only include if not page 1
+        perPage: itemsPerPage !== 50 ? itemsPerPage : undefined, // Only include if not default
+        sortBy: sortField !== 'name' ? sortField : undefined, // Only include if not default
+        sortDir: sortDirection !== 'asc' ? sortDirection : undefined, // Only include if not default
+      };
+
+      const queryString = createQueryString(params);
+      const newURL = queryString ? `${pathname}?${queryString}` : pathname;
+
+      // Use replace to avoid creating history entries for each keystroke
+      router.replace(newURL, { scroll: false });
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [
+    searchQuery,
+    windykacjaFilter,
+    invoiceCountMin,
+    invoiceCountMax,
+    saldoMin,
+    saldoMax,
+    currentPage,
+    itemsPerPage,
+    sortField,
+    sortDirection,
+    pathname,
+    router,
+  ]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
