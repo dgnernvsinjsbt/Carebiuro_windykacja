@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { clientsDb, supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import ClientsTable from '@/components/ClientsTable';
@@ -144,7 +145,9 @@ export default async function ClientsPage() {
           </div>
 
           {/* Clients Table */}
-          <ClientsTable clients={clientsWithCount} />
+          <Suspense fallback={<div className="text-center py-8">Ładowanie...</div>}>
+            <ClientsTable clients={clientsWithCount} />
+          </Suspense>
         </div>
       </main>
     </div>
