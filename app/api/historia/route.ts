@@ -32,20 +32,35 @@ export async function GET(request: NextRequest) {
       messageType: searchParams.get('messageType') as 'email' | 'sms' | 'whatsapp' | undefined,
     };
 
+    const serverTime = new Date().toISOString();
+    console.log('[Historia] Server time:', serverTime);
     console.log('[Historia] Fetching from message_history table:', filters);
 
+    const supabase = getSupabaseAdmin();
+
+    // First, get total count without any filters for debugging
+    const { count: totalCount } = await supabase
+      .from('message_history')
+      .select('*', { count: 'exact', head: true });
+
+    console.log('[Historia] Total records in message_history (no filters):', totalCount);
+
     // Query message_history table directly
-    let query = getSupabaseAdmin()
+    let query = supabase
       .from('message_history')
       .select('*')
       .order('sent_at', { ascending: false });
 
-    // Apply date filters
+    // Apply date filters with explicit timezone
     if (filters.startDate) {
-      query = query.gte('sent_at', `${filters.startDate}T00:00:00`);
+      const startFilter = `${filters.startDate}T00:00:00.000Z`;
+      console.log('[Historia] Start filter:', startFilter);
+      query = query.gte('sent_at', startFilter);
     }
     if (filters.endDate) {
-      query = query.lte('sent_at', `${filters.endDate}T23:59:59`);
+      const endFilter = `${filters.endDate}T23:59:59.999Z`;
+      console.log('[Historia] End filter:', endFilter);
+      query = query.lte('sent_at', endFilter);
     }
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
@@ -55,6 +70,16 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: messages, error } = await query;
+
+    // Debug: log first few messages
+    if (messages && messages.length > 0) {
+      console.log('[Historia] First 3 messages:', messages.slice(0, 3).map(m => ({
+        id: m.id,
+        invoice_number: m.invoice_number,
+        sent_at: m.sent_at,
+        client_name: m.client_name,
+      })));
+    }
 
     if (error) throw error;
 
@@ -86,8 +111,11 @@ export async function GET(request: NextRequest) {
       total: allMessages.length,
       debug: {
         source: 'message_history',
-        messages_found: messages?.length || 0,
+        server_time: serverTime,
+        total_in_table: totalCount,
+        messages_after_filter: messages?.length || 0,
         filters_applied: filters,
+        first_3_ids: messages?.slice(0, 3).map(m => m.id) || [],
       },
     });
   } catch (error: any) {
