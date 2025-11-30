@@ -51,16 +51,19 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('sent_at', { ascending: false });
 
-    // Apply date filters with explicit timezone
+    // Apply date filters - use +00:00 format to match database format
     if (filters.startDate) {
-      const startFilter = `${filters.startDate}T00:00:00.000Z`;
+      const startFilter = `${filters.startDate}T00:00:00+00:00`;
       console.log('[Historia] Start filter:', startFilter);
       query = query.gte('sent_at', startFilter);
     }
     if (filters.endDate) {
-      const endFilter = `${filters.endDate}T23:59:59.999Z`;
+      // Use next day 00:00 to include all of end date
+      const endDate = new Date(`${filters.endDate}T00:00:00Z`);
+      endDate.setDate(endDate.getDate() + 1);
+      const endFilter = endDate.toISOString().replace('Z', '+00:00');
       console.log('[Historia] End filter:', endFilter);
-      query = query.lte('sent_at', endFilter);
+      query = query.lt('sent_at', endFilter);
     }
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
