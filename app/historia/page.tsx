@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle, TrendingUp, ArrowLeft } from 'lucide-react';
+import useSWR from 'swr';
+import { Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle, TrendingUp, ArrowLeft, RefreshCw } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 
 interface MessageGroup {
@@ -52,39 +53,15 @@ interface Stats {
   };
 }
 
-/**
- * Format ISO date (yyyy-mm-dd) to Polish format (dd.mm.rrrr)
- */
-function formatDateToPolish(isoDate: string): string {
-  if (!isoDate) return '';
-  const [year, month, day] = isoDate.split('-');
-  return `${day}.${month}.${year}`;
-}
-
-/**
- * Parse Polish date (dd.mm.rrrr) to ISO format (yyyy-mm-dd)
- */
-function parsePolishDate(polishDate: string): string | null {
-  if (!polishDate) return null;
-
-  // Remove extra spaces
-  const cleaned = polishDate.trim();
-
-  // Match dd.mm.rrrr or dd/mm/rrrr or dd-mm-rrrr
-  const match = cleaned.match(/^(\d{1,2})[\.\/-](\d{1,2})[\.\/-](\d{4})$/);
-
-  if (!match) return null;
-
-  const day = match[1].padStart(2, '0');
-  const month = match[2].padStart(2, '0');
-  const year = match[3];
-
-  // Validate date
-  const date = new Date(`${year}-${month}-${day}`);
-  if (isNaN(date.getTime())) return null;
-
-  return `${year}-${month}-${day}`;
-}
+// SWR fetcher
+const fetcher = async (url: string) => {
+  console.log('[Historia SWR] Fetching:', url);
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch');
+  const data = await res.json();
+  console.log('[Historia SWR] Response:', { total: data.total, days: data.data?.length });
+  return data;
+};
 
 function getDateDaysAgo(days: number): string {
   const date = new Date();
@@ -106,144 +83,49 @@ function getDateDaysAhead(days: number): string {
 
 export default function HistoriaPage() {
   const router = useRouter();
-  const [history, setHistory] = useState<MessageGroup[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string } | null>(null);
+
+  // Initialize dates
+  const [startDate, setStartDate] = useState(() => getDateDaysAgo(30));
+  const [endDate, setEndDate] = useState(() => getDateDaysAhead(7));
   const [selectedType, setSelectedType] = useState<string>('all');
 
-  // Initialize dates on client side only to avoid SSR timezone issues
-  // endDate is 7 days ahead to ensure all messages are visible (timezone buffer)
-  useEffect(() => {
-    if (dateRange === null) {
-      const start = getDateDaysAgo(30);
-      const end = getDateDaysAhead(7);
-      console.log('[Historia] Initializing date range:', { start, end, now: new Date().toISOString() });
-      setDateRange({
-        startDate: start,
-        endDate: end,
-      });
-    }
-  }, [dateRange]);
-
-  useEffect(() => {
-    if (dateRange) {
-      fetchHistory();
-    }
-  }, [dateRange, selectedType]);
-
-  // Refetch when page becomes visible (user navigates back)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && dateRange) {
-        console.log('[Historia] Page visible - refetching data');
-        fetchHistory();
-      }
-    };
-
-    const handleFocus = () => {
-      if (dateRange) {
-        console.log('[Historia] Window focused - refetching data');
-        fetchHistory();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [dateRange, selectedType]);
-
-  async function fetchHistory() {
-    if (!dateRange) return;
-
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-        limit: '1000',
-      });
-
-      if (selectedType !== 'all') {
-        params.append('messageType', selectedType);
-      }
-
-      const now = new Date();
-      const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      console.log('[Historia Frontend] Browser time:', now.toISOString(), 'Local date:', localDate);
-      console.log('[Historia Frontend] Fetching with params:', {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-        selectedType,
-      });
-
-      // Add timestamp to bypass all caches including Vercel Edge
-      const response = await fetch(`/api/historia?${params}&_t=${Date.now()}`, {
-        cache: 'no-store',
-      });
-      const data = await response.json();
-
-      console.log('[Historia Frontend] Response:', {
-        success: data.success,
-        total: data.total,
-        days: data.data?.length || 0,
-        data: data.data,
-      });
-
-      if (data.success) {
-        console.log('[Historia Frontend] Setting history with', data.data.length, 'days');
-        setHistory(data.data);
-
-        // Calculate stats from the SAME data (guaranteed consistency!)
-        calculateStatsFromHistory(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch history:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function calculateStatsFromHistory(historyData: MessageGroup[]) {
-    let totalEmail = 0;
-    let totalSms = 0;
-    let totalWhatsapp = 0;
-
-    // Count messages from history data (single source of truth)
-    for (const day of historyData) {
-      for (const client of day.clients) {
-        for (const invoice of client.invoices) {
-          for (const message of invoice.messages) {
-            if (message.type === 'email') totalEmail++;
-            else if (message.type === 'sms') totalSms++;
-            else if (message.type === 'whatsapp') totalWhatsapp++;
-          }
-        }
-      }
-    }
-
-    const total = totalEmail + totalSms + totalWhatsapp;
-
-    setStats({
-      total,
-      sent: total, // All messages from FISCAL_SYNC are sent
-      failed: 0,
-      byType: {
-        email: totalEmail,
-        sms: totalSms,
-        whatsapp: totalWhatsapp,
-      },
-      byLevel: {
-        level1: 0, // Can calculate if needed
-        level2: 0,
-        level3: 0,
-      },
+  // Build API URL
+  const buildUrl = useCallback(() => {
+    const params = new URLSearchParams({
+      startDate,
+      endDate,
+      limit: '1000',
     });
-  }
+    if (selectedType !== 'all') {
+      params.append('messageType', selectedType);
+    }
+    return `/api/historia?${params}`;
+  }, [startDate, endDate, selectedType]);
+
+  // SWR hook - automatic revalidation on focus, reconnect, and interval
+  const { data, error, isLoading, mutate } = useSWR(
+    buildUrl(),
+    fetcher,
+    {
+      revalidateOnFocus: true,        // Refetch when window gains focus
+      revalidateOnReconnect: true,    // Refetch on network reconnect
+      refreshInterval: 0,              // No polling (manual refresh only)
+      dedupingInterval: 2000,          // Dedupe requests within 2s
+      keepPreviousData: true,          // Show old data while fetching new
+    }
+  );
+
+  // Extract history data
+  const history: MessageGroup[] = data?.data || [];
+
+  // Calculate stats from history
+  const stats = calculateStatsFromHistory(history);
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    console.log('[Historia] Manual refresh triggered');
+    mutate();
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -259,99 +141,160 @@ export default function HistoriaPage() {
               <ArrowLeft className="w-4 h-4" />
               Powrót do listy klientów
             </button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Historia wysyłek</h1>
-            <p className="text-gray-600">Wszystkie wiadomości wysłane przez system</p>
-          </div>
-
-        {/* Statistics Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              title="Wszystkie"
-              value={stats.total}
-              icon={<TrendingUp className="w-5 h-5" />}
-              color="blue"
-            />
-            <StatCard
-              title="Email"
-              value={stats.byType.email}
-              icon={<Mail className="w-5 h-5" />}
-              color="purple"
-            />
-            <StatCard
-              title="SMS"
-              value={stats.byType.sms}
-              icon={<Phone className="w-5 h-5" />}
-              color="green"
-            />
-            <StatCard
-              title="WhatsApp"
-              value={stats.byType.whatsapp}
-              icon={<MessageSquare className="w-5 h-5" />}
-              color="emerald"
-            />
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Data od</label>
-              <input
-                type="date"
-                value={dateRange?.startDate || ''}
-                onChange={(e) => dateRange && setDateRange({ ...dateRange, startDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Data do</label>
-              <input
-                type="date"
-                value={dateRange?.endDate || ''}
-                onChange={(e) => dateRange && setDateRange({ ...dateRange, endDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Typ wiadomości</label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Historia wysyłek</h1>
+                <p className="text-gray-600">Wszystkie wiadomości wysłane przez system</p>
+              </div>
+              <button
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors ${isLoading ? 'opacity-50' : ''}`}
+                title="Odśwież dane"
               >
-                <option value="all">Wszystkie</option>
-                <option value="email">Email</option>
-                <option value="sms">SMS</option>
-                <option value="whatsapp">WhatsApp</option>
-              </select>
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Odśwież
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* History Timeline */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Ładowanie historii...</p>
+          {/* Statistics Cards */}
+          {stats && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <StatCard
+                title="Wszystkie"
+                value={stats.total}
+                icon={<TrendingUp className="w-5 h-5" />}
+                color="blue"
+              />
+              <StatCard
+                title="Email"
+                value={stats.byType.email}
+                icon={<Mail className="w-5 h-5" />}
+                color="purple"
+              />
+              <StatCard
+                title="SMS"
+                value={stats.byType.sms}
+                icon={<Phone className="w-5 h-5" />}
+                color="green"
+              />
+              <StatCard
+                title="WhatsApp"
+                value={stats.byType.whatsapp}
+                icon={<MessageSquare className="w-5 h-5" />}
+                color="emerald"
+              />
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Data od</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Data do</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Typ wiadomości</label>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Wszystkie</option>
+                  <option value="email">Email</option>
+                  <option value="sms">SMS</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </div>
+            </div>
           </div>
-        ) : history.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Brak wiadomości w wybranym okresie</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {history.map((day) => (
-              <DayGroup key={day.date} day={day} />
-            ))}
-          </div>
-        )}
+
+          {/* Error state */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+              <p className="text-red-600">Błąd ładowania danych. Spróbuj odświeżyć.</p>
+            </div>
+          )}
+
+          {/* History Timeline */}
+          {isLoading && history.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-gray-600">Ładowanie historii...</p>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-12 text-center">
+              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Brak wiadomości w wybranym okresie</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {isLoading && (
+                <div className="text-center text-sm text-gray-500 mb-4">
+                  Odświeżanie danych...
+                </div>
+              )}
+              {history.map((day) => (
+                <DayGroup key={day.date} day={day} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+}
+
+function calculateStatsFromHistory(historyData: MessageGroup[]): Stats {
+  let totalEmail = 0;
+  let totalSms = 0;
+  let totalWhatsapp = 0;
+
+  for (const day of historyData) {
+    for (const client of day.clients) {
+      for (const invoice of client.invoices) {
+        for (const message of invoice.messages) {
+          if (message.type === 'email') totalEmail++;
+          else if (message.type === 'sms') totalSms++;
+          else if (message.type === 'whatsapp') totalWhatsapp++;
+        }
+      }
+    }
+  }
+
+  const total = totalEmail + totalSms + totalWhatsapp;
+
+  return {
+    total,
+    sent: total,
+    failed: 0,
+    byType: {
+      email: totalEmail,
+      sms: totalSms,
+      whatsapp: totalWhatsapp,
+    },
+    byLevel: {
+      level1: 0,
+      level2: 0,
+      level3: 0,
+    },
+  };
 }
 
 function StatCard({ title, value, icon, color }: any) {
@@ -378,22 +321,18 @@ function StatCard({ title, value, icon, color }: any) {
 }
 
 function DayGroup({ day }: { day: MessageGroup }) {
-  // Format: dd.mm.rrrr + dzień tygodnia
   const date = new Date(day.date);
   const dayName = date.toLocaleDateString('pl-PL', { weekday: 'long' });
   const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} - ${dayName}`;
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      {/* Date Header */}
       <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 capitalize">{formattedDate}</h2>
           <span className="text-sm text-gray-600">{day.totalMessages} wiadomości</span>
         </div>
       </div>
-
-      {/* Clients */}
       <div className="divide-y divide-gray-200">
         {day.clients.map((client) => (
           <ClientGroup key={client.client_id} client={client} />
@@ -405,13 +344,10 @@ function DayGroup({ day }: { day: MessageGroup }) {
 
 function ClientGroup({ client }: { client: ClientGroup }) {
   const [expanded, setExpanded] = useState(true);
-
-  // Calculate total messages for this client
   const totalMessages = client.invoices.reduce((sum, inv) => sum + inv.messages.length, 0);
 
   return (
     <div className="p-6">
-      {/* Client Header */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between mb-4 hover:bg-gray-50 p-3 rounded-lg transition-colors"
@@ -432,7 +368,6 @@ function ClientGroup({ client }: { client: ClientGroup }) {
         <span className="text-gray-400">{expanded ? '−' : '+'}</span>
       </button>
 
-      {/* Invoices */}
       {expanded && (
         <div className="ml-16 space-y-3">
           {client.invoices.map((invoice) => (
@@ -447,7 +382,6 @@ function ClientGroup({ client }: { client: ClientGroup }) {
 function InvoiceGroup({ invoice }: { invoice: InvoiceGroup }) {
   return (
     <div className="bg-gray-50 rounded-lg p-4">
-      {/* Invoice Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <span className="font-mono text-sm font-semibold text-gray-900">{invoice.invoice_number}</span>
@@ -456,11 +390,9 @@ function InvoiceGroup({ invoice }: { invoice: InvoiceGroup }) {
           </span>
         </div>
       </div>
-
-      {/* Messages - Compact display */}
       <div className="flex flex-wrap gap-2">
-        {invoice.messages.map((message) => (
-          <MessageBadge key={message.id} message={message} />
+        {invoice.messages.map((message, idx) => (
+          <MessageBadge key={`${message.sent_at}-${idx}`} message={message} />
         ))}
       </div>
     </div>
@@ -496,8 +428,6 @@ function MessageBadge({ message }: { message: Message }) {
     return `${typeLabel}${message.level}`;
   };
 
-  // Parse sent_at and ensure it's displayed in Europe/Warsaw timezone
-  // Supabase returns UTC timestamps, we need to convert to local Polish time
   const time = new Date(message.sent_at).toLocaleTimeString('pl-PL', {
     hour: '2-digit',
     minute: '2-digit',
