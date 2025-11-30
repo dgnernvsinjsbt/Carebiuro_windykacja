@@ -221,7 +221,15 @@ export async function GET(request: NextRequest) {
         }
 
         // Ready to send!
-        const action = {
+        const action: {
+          invoice_id: number;
+          invoice_number: string;
+          action: string;
+          reason: string;
+          would_send: boolean;
+          result?: any;
+          error?: string;
+        } = {
           invoice_id: invoice.id,
           invoice_number: invoice.number,
           action: `${step.type.toUpperCase()}_${step.level}`,
