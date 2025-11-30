@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useClientOperationLock } from '@/lib/client-operation-lock';
 
@@ -10,9 +11,15 @@ interface WindykacjaToggleProps {
 }
 
 export default function WindykacjaToggle({ clientId, initialWindykacja }: WindykacjaToggleProps) {
+  const router = useRouter();
   const [isWindykacja, setIsWindykacja] = useState(initialWindykacja);
   const [isUpdating, setIsUpdating] = useState(false);
   const { lockClientOperation, unlockClientOperation, isClientLocked } = useClientOperationLock();
+
+  // Sync local state with props when they change (e.g., after navigation)
+  useEffect(() => {
+    setIsWindykacja(initialWindykacja);
+  }, [initialWindykacja]);
 
   const toggleWindykacja = async () => {
     const newValue = !isWindykacja;
@@ -37,6 +44,9 @@ export default function WindykacjaToggle({ clientId, initialWindykacja }: Windyk
         // SUKCES - zmiana UI po potwierdzeniu serwera
         setIsWindykacja(newValue);
         toast.success(newValue ? '✓ Włączona' : '✓ Wyłączona', { duration: 1500 });
+
+        // Refresh server data in background (won't reset scroll or filters)
+        router.refresh();
       } else {
         toast.error(`Błąd: ${data.error}`, { duration: 4000 });
       }
