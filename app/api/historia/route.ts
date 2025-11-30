@@ -79,11 +79,19 @@ export async function GET(request: NextRequest) {
       query = query.eq('client_id', filters.clientId);
     }
 
-    const { data: invoices, error } = await query;
+    const { data: invoices, error, count } = await query;
 
     if (error) throw error;
 
     console.log(`[Historia] Found ${invoices?.length || 0} invoices with internal_note`);
+
+    // DEBUG: Find Wilczek specifically
+    const wilczek = invoices?.find(inv => inv.buyer_name?.includes('Wilczek'));
+    if (wilczek) {
+      console.log('[Historia] Wilczek FOUND:', wilczek.id, wilczek.number);
+    } else {
+      console.log('[Historia] Wilczek NOT in results - checking why...');
+    }
 
     // DEBUG: Log first invoice details
     if (invoices && invoices.length > 0) {
@@ -195,6 +203,12 @@ export async function GET(request: NextRequest) {
         invoices_with_fiscal_sync: fiscalSyncCount,
         invoices_with_legacy_format: legacyCount,
         messages_extracted: allMessages.length,
+        wilczek_found: !!wilczek,
+        wilczek_data: wilczek ? {
+          id: wilczek.id,
+          number: wilczek.number,
+          note_preview: wilczek.internal_note?.substring(0, 200),
+        } : null,
         sample_invoice: invoices?.[0] ? {
           id: invoices[0].id,
           has_note: !!invoices[0].internal_note,
