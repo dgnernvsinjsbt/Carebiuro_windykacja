@@ -113,12 +113,15 @@ export default function HistoriaPage() {
   const [selectedType, setSelectedType] = useState<string>('all');
 
   // Initialize dates on client side only to avoid SSR timezone issues
-  // endDate is 2 days ahead to ensure all messages are visible
+  // endDate is 7 days ahead to ensure all messages are visible (timezone buffer)
   useEffect(() => {
     if (dateRange === null) {
+      const start = getDateDaysAgo(30);
+      const end = getDateDaysAhead(7);
+      console.log('[Historia] Initializing date range:', { start, end, now: new Date().toISOString() });
       setDateRange({
-        startDate: getDateDaysAgo(30),
-        endDate: getDateDaysAhead(2),
+        startDate: start,
+        endDate: end,
       });
     }
   }, [dateRange]);
