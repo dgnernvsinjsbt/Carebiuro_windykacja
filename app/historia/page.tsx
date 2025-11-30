@@ -130,7 +130,8 @@ export default function HistoriaPage() {
         selectedType,
       });
 
-      const response = await fetch(`/api/historia?${params}`, {
+      // Add timestamp to bypass all caches including Vercel Edge
+      const response = await fetch(`/api/historia?${params}&_t=${Date.now()}`, {
         cache: 'no-store',
       });
       const data = await response.json();
