@@ -124,10 +124,24 @@ export default function HistoriaPage() {
         params.append('messageType', selectedType);
       }
 
+      console.log('[Historia Frontend] Fetching with params:', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        selectedType,
+      });
+
       const response = await fetch(`/api/historia?${params}`);
       const data = await response.json();
 
+      console.log('[Historia Frontend] Response:', {
+        success: data.success,
+        total: data.total,
+        days: data.data?.length || 0,
+        data: data.data,
+      });
+
       if (data.success) {
+        console.log('[Historia Frontend] Setting history with', data.data.length, 'days');
         setHistory(data.data);
 
         // Calculate stats from the SAME data (guaranteed consistency!)

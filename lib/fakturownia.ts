@@ -185,7 +185,7 @@ export const fakturowniaApi = {
    */
   async getInvoicesByClientId(clientId: number, perPage: number = 100): Promise<FakturowniaInvoice[]> {
     return fakturowniaRequest<FakturowniaInvoice[]>(
-      `/invoices.json?client_id=${clientId}&per_page=${perPage}`
+      `/invoices.json?client_id=${clientId}&period=all&per_page=${perPage}`
     );
   },
 
