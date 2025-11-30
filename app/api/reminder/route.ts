@@ -162,6 +162,8 @@ export async function POST(request: NextRequest) {
     );
 
     // 6. Log message to history
+    let historyLogged = false;
+    let historyError: string | null = null;
     try {
       const historyEntry = prepareMessageHistoryEntry(
         invoice,
@@ -172,9 +174,11 @@ export async function POST(request: NextRequest) {
       console.log(`[Reminder] Preparing history entry:`, JSON.stringify(historyEntry));
       const result = await messageHistoryDb.logMessage(historyEntry);
       console.log(`[Reminder] Message logged to history, result:`, JSON.stringify(result));
-    } catch (historyError: any) {
-      console.error('[Reminder] Failed to log message to history:', historyError?.message || historyError);
-      // Don't fail the request if history logging fails
+      historyLogged = true;
+    } catch (err: any) {
+      historyError = err?.message || String(err);
+      console.error('[Reminder] Failed to log message to history:', historyError);
+      // Don't fail the request if history logging fails, but report it
     }
 
     console.log(`[Reminder] Successfully processed ${type}_${level} for invoice ${invoice_id}`);
@@ -190,6 +194,8 @@ export async function POST(request: NextRequest) {
         type,
         level,
         updated_internal_note: updatedInternalNote,
+        history_logged: historyLogged,
+        history_error: historyError,
       },
     });
   } catch (error: any) {
