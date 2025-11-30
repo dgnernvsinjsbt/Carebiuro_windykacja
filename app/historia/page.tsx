@@ -89,16 +89,15 @@ function parsePolishDate(polishDate: string): string | null {
 function getDateDaysAgo(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() - days);
-  // Use local timezone, not UTC
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-function getTodayDate(): string {
+function getDateDaysAhead(days: number): string {
   const date = new Date();
-  // Use local timezone, not UTC
+  date.setDate(date.getDate() + days);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -114,11 +113,12 @@ export default function HistoriaPage() {
   const [selectedType, setSelectedType] = useState<string>('all');
 
   // Initialize dates on client side only to avoid SSR timezone issues
+  // endDate is 2 days ahead to ensure all messages are visible
   useEffect(() => {
     if (dateRange === null) {
       setDateRange({
         startDate: getDateDaysAgo(30),
-        endDate: getTodayDate(),
+        endDate: getDateDaysAhead(2),
       });
     }
   }, [dateRange]);
