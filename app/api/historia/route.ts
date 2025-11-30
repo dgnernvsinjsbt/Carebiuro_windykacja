@@ -203,6 +203,7 @@ export async function GET(request: NextRequest) {
         invoices_with_fiscal_sync: fiscalSyncCount,
         invoices_with_legacy_format: legacyCount,
         messages_extracted: allMessages.length,
+        has_service_role_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
         wilczek_found: !!wilczek,
         wilczek_data: wilczek ? {
           id: wilczek.id,
