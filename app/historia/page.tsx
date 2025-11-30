@@ -110,17 +110,28 @@ export default function HistoriaPage() {
   const [history, setHistory] = useState<MessageGroup[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState({
-    startDate: getDateDaysAgo(30),
-    endDate: getTodayDate(),
-  });
+  const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string } | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
 
+  // Initialize dates on client side only to avoid SSR timezone issues
   useEffect(() => {
-    fetchHistory();
+    if (dateRange === null) {
+      setDateRange({
+        startDate: getDateDaysAgo(30),
+        endDate: getTodayDate(),
+      });
+    }
+  }, [dateRange]);
+
+  useEffect(() => {
+    if (dateRange) {
+      fetchHistory();
+    }
   }, [dateRange, selectedType]);
 
   async function fetchHistory() {
+    if (!dateRange) return;
+
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -133,6 +144,9 @@ export default function HistoriaPage() {
         params.append('messageType', selectedType);
       }
 
+      const now = new Date();
+      const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      console.log('[Historia Frontend] Browser time:', now.toISOString(), 'Local date:', localDate);
       console.log('[Historia Frontend] Fetching with params:', {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -258,8 +272,8 @@ export default function HistoriaPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Data od</label>
               <input
                 type="date"
-                value={dateRange.startDate}
-                onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
+                value={dateRange?.startDate || ''}
+                onChange={(e) => dateRange && setDateRange({ ...dateRange, startDate: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -267,8 +281,8 @@ export default function HistoriaPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Data do</label>
               <input
                 type="date"
-                value={dateRange.endDate}
-                onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
+                value={dateRange?.endDate || ''}
+                onChange={(e) => dateRange && setDateRange({ ...dateRange, endDate: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
