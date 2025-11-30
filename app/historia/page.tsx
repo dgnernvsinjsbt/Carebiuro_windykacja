@@ -132,6 +132,31 @@ export default function HistoriaPage() {
     }
   }, [dateRange, selectedType]);
 
+  // Refetch when page becomes visible (user navigates back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && dateRange) {
+        console.log('[Historia] Page visible - refetching data');
+        fetchHistory();
+      }
+    };
+
+    const handleFocus = () => {
+      if (dateRange) {
+        console.log('[Historia] Window focused - refetching data');
+        fetchHistory();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [dateRange, selectedType]);
+
   async function fetchHistory() {
     if (!dateRange) return;
 
