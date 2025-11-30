@@ -130,7 +130,9 @@ export default function HistoriaPage() {
         selectedType,
       });
 
-      const response = await fetch(`/api/historia?${params}`);
+      const response = await fetch(`/api/historia?${params}`, {
+        cache: 'no-store',
+      });
       const data = await response.json();
 
       console.log('[Historia Frontend] Response:', {

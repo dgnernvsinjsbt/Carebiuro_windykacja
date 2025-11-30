@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     // Group messages by date → client → invoices
     const grouped = groupMessagesByDateAndClient(allMessages);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: grouped,
       total: allMessages.length,
@@ -115,9 +115,15 @@ export async function GET(request: NextRequest) {
         total_in_table: totalCount,
         messages_after_filter: messages?.length || 0,
         filters_applied: filters,
-        first_3_ids: messages?.slice(0, 3).map(m => m.id) || [],
       },
     });
+
+    // Disable all caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error: any) {
     console.error('[Historia] Error:', error);
     return NextResponse.json(
