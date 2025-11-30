@@ -53,10 +53,20 @@ interface Stats {
   };
 }
 
-// SWR fetcher
+// SWR fetcher with cache buster
 const fetcher = async (url: string) => {
-  console.log('[Historia SWR] Fetching:', url);
-  const res = await fetch(url, { cache: 'no-store' });
+  // Add timestamp to bypass ALL caches (Vercel Edge, CDN, browser)
+  const cacheBuster = `_t=${Date.now()}&_r=${Math.random()}`;
+  const fullUrl = url.includes('?') ? `${url}&${cacheBuster}` : `${url}?${cacheBuster}`;
+
+  console.log('[Historia SWR] Fetching:', fullUrl);
+  const res = await fetch(fullUrl, {
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+    }
+  });
   if (!res.ok) throw new Error('Failed to fetch');
   const data = await res.json();
   console.log('[Historia SWR] Response:', { total: data.total, days: data.data?.length });
@@ -84,9 +94,9 @@ function getDateDaysAhead(days: number): string {
 export default function HistoriaPage() {
   const router = useRouter();
 
-  // Initialize dates
+  // Initialize dates - endDate 30 days ahead to ensure ALL messages are visible
   const [startDate, setStartDate] = useState(() => getDateDaysAgo(30));
-  const [endDate, setEndDate] = useState(() => getDateDaysAhead(7));
+  const [endDate, setEndDate] = useState(() => getDateDaysAhead(30));
   const [selectedType, setSelectedType] = useState<string>('all');
 
   // Build API URL
