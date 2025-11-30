@@ -169,10 +169,11 @@ export async function POST(request: NextRequest) {
         level as 1 | 2 | 3,
         { sent_by: 'manual', is_auto_initial: false }
       );
-      await messageHistoryDb.logMessage(historyEntry);
-      console.log(`[Reminder] Message logged to history`);
-    } catch (historyError) {
-      console.error('[Reminder] Failed to log message to history:', historyError);
+      console.log(`[Reminder] Preparing history entry:`, JSON.stringify(historyEntry));
+      const result = await messageHistoryDb.logMessage(historyEntry);
+      console.log(`[Reminder] Message logged to history, result:`, JSON.stringify(result));
+    } catch (historyError: any) {
+      console.error('[Reminder] Failed to log message to history:', historyError?.message || historyError);
       // Don't fail the request if history logging fails
     }
 

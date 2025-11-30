@@ -51,17 +51,18 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('sent_at', { ascending: false });
 
-    // Apply date filters - use +00:00 format to match database format
+    // Apply date filters using simple date strings (PostgreSQL handles timezone)
     if (filters.startDate) {
-      const startFilter = `${filters.startDate}T00:00:00+00:00`;
+      // Start of day in UTC
+      const startFilter = `${filters.startDate} 00:00:00`;
       console.log('[Historia] Start filter:', startFilter);
       query = query.gte('sent_at', startFilter);
     }
     if (filters.endDate) {
-      // Use next day 00:00 to include all of end date
-      const endDate = new Date(`${filters.endDate}T00:00:00Z`);
-      endDate.setDate(endDate.getDate() + 1);
-      const endFilter = endDate.toISOString().replace('Z', '+00:00');
+      // End of day - add 1 day and use less than
+      const [year, month, day] = filters.endDate.split('-').map(Number);
+      const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+      const endFilter = `${nextDay.getUTCFullYear()}-${String(nextDay.getUTCMonth() + 1).padStart(2, '0')}-${String(nextDay.getUTCDate()).padStart(2, '0')} 00:00:00`;
       console.log('[Historia] End filter:', endFilter);
       query = query.lt('sent_at', endFilter);
     }
