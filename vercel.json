@@ -9,6 +9,10 @@
       "schedule": "15 7 * * *"
     },
     {
+      "path": "/api/windykacja/auto-send-sequence",
+      "schedule": "30 7 * * *"
+    },
+    {
       "path": "/api/sync",
       "schedule": "0 23 * * *"
     }

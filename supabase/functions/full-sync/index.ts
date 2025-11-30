@@ -508,22 +508,31 @@ serve(async (req) => {
 
     const { data: allInvoices, error: fetchError } = await supabase
       .from('invoices')
-      .select('client_id, total, number')
+      .select('client_id, total, paid, number, status')
 
     if (fetchError) {
       console.error('[Sync] Warning: Could not fetch invoices for totals:', fetchError)
       console.log('[Sync] Skipping total_unpaid update')
     } else {
-      // Aggregate totals per client (excluding FK - corrective invoices)
+      // Aggregate UNPAID totals per client (excluding paid invoices and FK - corrective invoices)
       const clientTotalsMap = new Map<number, number>()
 
       for (const inv of allInvoices || []) {
         if (inv.client_id) {
+          // Skip paid invoices
+          if (inv.status === 'paid') continue
+
           // Skip corrective invoices (FK prefix) - they shouldn't affect total_unpaid
           const isCorrectiveInvoice = inv.number && inv.number.startsWith('FK')
-          if (!isCorrectiveInvoice) {
+          if (isCorrectiveInvoice) continue
+
+          // Calculate outstanding balance (total - paid)
+          const outstanding = (inv.total || 0) - (inv.paid || 0)
+
+          // Only add if there's an outstanding balance
+          if (outstanding > 0) {
             const current = clientTotalsMap.get(inv.client_id) || 0
-            clientTotalsMap.set(inv.client_id, current + (inv.total || 0))
+            clientTotalsMap.set(inv.client_id, current + outstanding)
           }
         }
       }
