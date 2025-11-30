@@ -51,20 +51,19 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('sent_at', { ascending: false });
 
-    // Apply date filters using simple date strings (PostgreSQL handles timezone)
+    // Apply date filters by comparing date part only
     if (filters.startDate) {
-      // Start of day in UTC
-      const startFilter = `${filters.startDate} 00:00:00`;
-      console.log('[Historia] Start filter:', startFilter);
-      query = query.gte('sent_at', startFilter);
+      console.log('[Historia] Start filter:', filters.startDate);
+      // Use filter with date extraction - works with timestamptz
+      query = query.filter('sent_at', 'gte', `${filters.startDate}T00:00:00Z`);
     }
     if (filters.endDate) {
-      // End of day - add 1 day and use less than
+      // Include entire end date by filtering < next day midnight UTC
       const [year, month, day] = filters.endDate.split('-').map(Number);
       const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
-      const endFilter = `${nextDay.getUTCFullYear()}-${String(nextDay.getUTCMonth() + 1).padStart(2, '0')}-${String(nextDay.getUTCDate()).padStart(2, '0')} 00:00:00`;
+      const endFilter = nextDay.toISOString();
       console.log('[Historia] End filter:', endFilter);
-      query = query.lt('sent_at', endFilter);
+      query = query.filter('sent_at', 'lt', endFilter);
     }
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
