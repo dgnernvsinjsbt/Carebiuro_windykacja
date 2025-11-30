@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
+
+// Create fresh client each time to avoid caching issues
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * GET /api/historia
@@ -69,7 +77,7 @@ export async function GET(request: NextRequest) {
     console.log('[Historia] Fetching invoices with FISCAL_SYNC flags:', filters);
 
     // Fetch invoices with internal_note (contains FISCAL_SYNC or legacy format)
-    let query = supabaseAdmin()
+    let query = getSupabaseAdmin()
       .from('invoices')
       .select('id, number, client_id, internal_note, total, currency, buyer_name, issue_date, updated_at')
       .not('internal_note', 'is', null)
