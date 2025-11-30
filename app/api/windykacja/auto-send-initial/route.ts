@@ -256,3 +256,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Vercel Cron sends GET requests by default, so we need to handle them
+export async function GET(request: NextRequest) {
+  console.log('[AutoSendInitial] GET request received, forwarding to POST handler');
+  return POST(request);
+}

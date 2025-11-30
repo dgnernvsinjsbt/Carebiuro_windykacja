@@ -1,0 +1,609 @@
+<!--
+  Google Reviews Carousel - MOBILE OPTIMIZED VERSION
+  Instructions: Copy entire file and paste into Go High Level Custom Code element
+  This version is specifically designed for mobile devices
+-->
+
+<style>
+/* ============================================
+   GOOGLE REVIEWS CAROUSEL STYLES - MOBILE
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+.reviews-carousel-container {
+  width: 100%;
+  background-color: transparent;
+  padding: 40px 15px;
+  overflow: hidden;
+}
+
+.reviews-container-inner {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.reviews-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 0 10px;
+}
+
+.reviews-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 15px 0;
+  line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.reviews-rating-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rating-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stars {
+  font-size: 24px;
+  color: #FFC107;
+  letter-spacing: 2px;
+}
+
+.review-count {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+  width: 100%;
+  text-align: center;
+  margin-top: 5px;
+}
+
+/* Carousel Wrapper */
+.carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+}
+
+/* Navigation Dots */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ddd;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  background: #00A676;
+  width: 24px;
+  border-radius: 5px;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 12px;
+  transition: transform 0.5s ease-in-out;
+  will-change: transform;
+  padding: 0 5%;
+}
+
+.carousel-track.no-transition {
+  transition: none;
+}
+
+/* Review Card - MOBILE OPTIMIZED */
+.review-card {
+  flex: 0 0 90%;
+  max-width: 90%;
+  width: 90%;
+  background: white;
+  border-radius: 12px;
+  padding: 25px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: auto;
+  position: relative;
+}
+
+/* Review Header (avatar + name + date) */
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #00A676;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.review-author-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-author-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-date {
+  font-size: 12px;
+  color: #999;
+}
+
+.review-platform {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Review Stars */
+.review-stars {
+  font-size: 16px;
+  color: #FFC107;
+  letter-spacing: 1px;
+}
+
+/* Review Text */
+.review-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+}
+
+/* Swipe indicator */
+.swipe-indicator {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  margin-top: 15px;
+  display: none;
+}
+
+/* Touch-friendly padding for swipe */
+.carousel-wrapper {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .reviews-header h2 {
+    font-size: 26px;
+  }
+
+  .rating-number {
+    font-size: 22px;
+  }
+
+  .stars {
+    font-size: 20px;
+  }
+
+  .review-card {
+    flex: 0 0 88%;
+    max-width: 88%;
+    width: 88%;
+    padding: 20px 15px;
+  }
+
+  .review-text {
+    font-size: 13px;
+  }
+
+  .carousel-track {
+    padding: 0 6%;
+    gap: 10px;
+  }
+}
+
+/* Landscape mobile */
+@media (orientation: landscape) and (max-height: 500px) {
+  .reviews-carousel-container {
+    padding: 20px 15px;
+  }
+
+  .reviews-header {
+    margin-bottom: 20px;
+  }
+
+  .review-card {
+    padding: 20px;
+    gap: 12px;
+  }
+}
+</style>
+
+<!-- HTML STRUCTURE -->
+<div class="reviews-carousel-container">
+  <div class="reviews-container-inner">
+    <div class="reviews-header">
+      <h2>Our Customers</h2>
+      <div class="reviews-rating-wrapper">
+        <span class="rating-number">5.0</span>
+        <div class="stars">★★★★★</div>
+        <span class="review-count">Based on 10 Reviews</span>
+      </div>
+    </div>
+
+    <div class="carousel-wrapper" id="carouselWrapper">
+      <div class="carousel-track" id="carouselTrack">
+        <!-- Reviews will be dynamically inserted here by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Dots Navigation -->
+    <div class="carousel-dots" id="carouselDots">
+      <!-- Dots will be dynamically inserted here -->
+    </div>
+
+    <div class="swipe-indicator">← Swipe to see more →</div>
+  </div>
+</div>
+
+<!-- JAVASCRIPT -->
+<script>
+(function() {
+  'use strict';
+
+  // ============================================
+  // CONFIGURATION - EASY TO EDIT
+  // ============================================
+  const CONFIG = {
+    autoScrollInterval: 5000,  // 5 seconds between slides (faster on mobile)
+    transitionSpeed: 500,      // 0.5 second transition (faster on mobile)
+    pauseOnHover: false,       // Disabled on mobile
+    enableSwipe: true          // Enable touch swipe
+  };
+
+  // ============================================
+  // REVIEWS DATA - EDIT THIS SECTION
+  // REPLACE WITH YOUR ACTUAL GOOGLE REVIEWS
+  // ============================================
+  const reviews = [
+    {
+      author: "Tyler Abbott",
+      initials: "TA",
+      rating: 5,
+      text: "Chandler came to my house and cleaned up my garden, mowed and edged and trimmed my trees! Yard looks 1000x times better very happy",
+      date: "6 days ago"
+    },
+    {
+      author: "Denton James",
+      initials: "DJ",
+      rating: 5,
+      text: "Amazing work. Very punctual. From the design to the finished product, every step was smooth and educational. Mr. Hunn answered all my questions throughout the entire process. 10/10!",
+      date: "4 days ago"
+    },
+    {
+      author: "Krystian K.",
+      initials: "KK",
+      rating: 5,
+      text: "Definitely the best lawn care company in the Dallas-Fort Worth area. Chandler showed up on time, cleaned everything up perfectly, and my yard has never looked better. Highly recommend if you need lawn care or weekly mowing.",
+      date: "4 days ago"
+    },
+    {
+      author: "Jacob Johnson",
+      initials: "JJ",
+      rating: 5,
+      text: "Very good and detailed oriented and gets the work done fast and clean",
+      date: "1 week ago"
+    },
+    {
+      author: "Pat Wallace",
+      initials: "PW",
+      rating: 5,
+      text: "Chandler cleaned up the flower beds around my house and pool. He communicated about his arrival time and updated when traffic slowed him down. He listened to what I wanted and didn't want. He did exactly what I wanted done. His work was excellent. He cleaned up after himself. My yard and pool area looks fantastic. I will recommend him to everyone.",
+      date: "6 days ago"
+    },
+    {
+      author: "Adr Hs",
+      initials: "AH",
+      rating: 5,
+      text: "They did an outstanding job on my lawn. The work was extremely clean, fast, and done with great attention to detail. They were very respectful throughout the entire process and made sure every task I requested was completed on time. I truly appreciate their professionalism and reliability. I would absolutely recommend their services to anyone looking for quality lawn care.",
+      date: "1 week ago"
+    },
+    {
+      author: "Terri",
+      initials: "T",
+      rating: 5,
+      text: "I highly recommend Chandler. His focus on quality is top notch. His work speak for itself. The drive to ensure his clients are thrilled shows his commitment to earning your business.",
+      date: "1 week ago"
+    },
+    {
+      author: "John",
+      initials: "J",
+      rating: 5,
+      text: "So impressed with the attention to detail. Very professional and fair pricing. You won't regret you decision. Try once and you will be a customer forever.",
+      date: "6 days ago"
+    }
+  ];
+
+  // ============================================
+  // CAROUSEL LOGIC - DO NOT EDIT BELOW
+  // ============================================
+
+  let currentIndex = 0;
+  let autoScrollTimer = null;
+  let isTransitioning = false;
+
+  // Touch/swipe variables
+  let touchStartX = 0;
+  let touchEndX = 0;
+  let touchStartY = 0;
+  let touchEndY = 0;
+
+  const track = document.getElementById('carouselTrack');
+  const dotsContainer = document.getElementById('carouselDots');
+  const wrapper = document.getElementById('carouselWrapper');
+
+  // Generate star rating HTML
+  function generateStars(rating) {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }
+
+  // Get initials from name
+  function getInitials(name) {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
+  // Create review card HTML
+  function createReviewCard(review) {
+    const initials = review.initials || getInitials(review.author);
+
+    return `
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">${initials}</div>
+          <div class="review-author-info">
+            <div class="review-author-name">${review.author}</div>
+            <div class="review-date">${review.date}</div>
+          </div>
+          <svg class="review-platform" viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+        </div>
+        <div class="review-stars">${generateStars(review.rating)}</div>
+        <div class="review-text">${review.text}</div>
+      </div>
+    `;
+  }
+
+  // Create dots
+  function createDots() {
+    dotsContainer.innerHTML = reviews.map((_, index) =>
+      `<button class="carousel-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Go to review ${index + 1}"></button>`
+    ).join('');
+
+    // Add click listeners to dots
+    const dots = dotsContainer.querySelectorAll('.carousel-dot');
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        const index = parseInt(dot.dataset.index);
+        goToSlide(index);
+      });
+    });
+  }
+
+  // Update active dot
+  function updateDots() {
+    const dots = dotsContainer.querySelectorAll('.carousel-dot');
+    dots.forEach((dot, index) => {
+      if (index === currentIndex) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+  }
+
+  // Initialize carousel
+  function initCarousel() {
+    // Render all review cards (no duplication for mobile)
+    track.innerHTML = reviews.map(review => createReviewCard(review)).join('');
+
+    // Create dots navigation
+    createDots();
+
+    // Start auto-scroll
+    startAutoScroll();
+
+    // Setup touch events
+    if (CONFIG.enableSwipe) {
+      setupTouchEvents();
+    }
+  }
+
+  // Update carousel position
+  function updateCarouselPosition(withTransition = true) {
+    if (!withTransition) {
+      track.classList.add('no-transition');
+    } else {
+      track.classList.remove('no-transition');
+    }
+
+    const card = track.querySelector('.review-card');
+    if (!card) return;
+
+    const cardWidth = card.offsetWidth;
+    const cardStyle = window.getComputedStyle(card);
+    const marginLeft = parseFloat(cardStyle.marginLeft) || 0;
+    const marginRight = parseFloat(cardStyle.marginRight) || 0;
+
+    // Get gap from track
+    const trackStyle = window.getComputedStyle(track);
+    const gap = parseFloat(trackStyle.gap) || 12;
+
+    const offset = -(currentIndex * (cardWidth + marginLeft + marginRight + gap));
+    track.style.transform = `translateX(${offset}px)`;
+
+    if (!withTransition) {
+      track.offsetHeight; // Force reflow
+    }
+
+    updateDots();
+  }
+
+  // Go to specific slide
+  function goToSlide(index) {
+    if (isTransitioning) return;
+
+    isTransitioning = true;
+    currentIndex = index;
+
+    updateCarouselPosition(true);
+
+    setTimeout(() => {
+      isTransitioning = false;
+    }, CONFIG.transitionSpeed);
+
+    startAutoScroll(); // Restart auto-scroll
+  }
+
+  // Move to next slide
+  function nextSlide() {
+    if (isTransitioning) return;
+
+    currentIndex = (currentIndex + 1) % reviews.length;
+    updateCarouselPosition(true);
+
+    setTimeout(() => {
+      isTransitioning = false;
+    }, CONFIG.transitionSpeed);
+  }
+
+  // Move to previous slide
+  function prevSlide() {
+    if (isTransitioning) return;
+
+    currentIndex = (currentIndex - 1 + reviews.length) % reviews.length;
+    updateCarouselPosition(true);
+
+    setTimeout(() => {
+      isTransitioning = false;
+    }, CONFIG.transitionSpeed);
+  }
+
+  // Touch events for swipe
+  function setupTouchEvents() {
+    wrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
+    wrapper.addEventListener('touchmove', handleTouchMove, { passive: true });
+    wrapper.addEventListener('touchend', handleTouchEnd, { passive: true });
+  }
+
+  function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    stopAutoScroll();
+  }
+
+  function handleTouchMove(e) {
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+  }
+
+  function handleTouchEnd(e) {
+    const deltaX = touchStartX - touchEndX;
+    const deltaY = touchStartY - touchEndY;
+
+    // Only trigger if horizontal swipe is more significant than vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (Math.abs(deltaX) > 50) { // Minimum swipe distance
+        if (deltaX > 0) {
+          nextSlide(); // Swipe left -> next
+        } else {
+          prevSlide(); // Swipe right -> previous
+        }
+      }
+    }
+
+    startAutoScroll();
+  }
+
+  // Auto-scroll functions
+  function startAutoScroll() {
+    stopAutoScroll();
+    autoScrollTimer = setInterval(nextSlide, CONFIG.autoScrollInterval);
+  }
+
+  function stopAutoScroll() {
+    if (autoScrollTimer) {
+      clearInterval(autoScrollTimer);
+      autoScrollTimer = null;
+    }
+  }
+
+  // Handle window resize
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      updateCarouselPosition(false);
+    }, 250);
+  });
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCarousel);
+  } else {
+    initCarousel();
+  }
+
+})();
+</script>

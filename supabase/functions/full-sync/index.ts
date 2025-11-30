@@ -314,7 +314,7 @@ serve(async (req) => {
             mobile_phone: null,
             www: null,
             fax: null,
-            note: null,
+            // note: removed - will be updated in STEP 4 with actual data from Fakturownia
             bank: null,
             bank_account: null,
             shortcut: null,
