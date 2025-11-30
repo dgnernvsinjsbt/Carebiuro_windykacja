@@ -76,29 +76,34 @@ export async function GET(request: NextRequest) {
 
     console.log('[Historia] Fetching invoices with FISCAL_SYNC flags:', filters);
 
-    // Fetch invoices with internal_note (contains FISCAL_SYNC or legacy format)
+    // Fetch ALL invoices and filter in code to avoid Supabase SDK filtering issues
     let query = getSupabaseAdmin()
       .from('invoices')
       .select('id, number, client_id, internal_note, total, currency, buyer_name, issue_date, updated_at')
-      .not('internal_note', 'is', null)
-      .limit(1000); // Explicitly set limit to avoid default pagination
+      .limit(5000); // Get all invoices
 
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
     }
 
-    const { data: invoices, error, count } = await query;
+    const { data: allInvoices, error } = await query;
 
     if (error) throw error;
 
-    console.log(`[Historia] Found ${invoices?.length || 0} invoices with internal_note`);
+    // Filter invoices with internal_note in code (to avoid Supabase SDK issues)
+    const invoices = allInvoices?.filter(inv => inv.internal_note && inv.internal_note.trim() !== '') || [];
+
+    console.log(`[Historia] Found ${allInvoices?.length || 0} total invoices, ${invoices.length} with internal_note`);
 
     // DEBUG: Find Wilczek specifically
     const wilczek = invoices?.find(inv => inv.buyer_name?.includes('Wilczek'));
+    const wilczekInAll = allInvoices?.find(inv => inv.buyer_name?.includes('Wilczek'));
     if (wilczek) {
-      console.log('[Historia] Wilczek FOUND:', wilczek.id, wilczek.number);
+      console.log('[Historia] Wilczek FOUND in filtered:', wilczek.id, wilczek.number);
+    } else if (wilczekInAll) {
+      console.log('[Historia] Wilczek in ALL but NOT in filtered - internal_note issue:', wilczekInAll.internal_note?.substring(0, 50));
     } else {
-      console.log('[Historia] Wilczek NOT in results - checking why...');
+      console.log('[Historia] Wilczek NOT in results at all');
     }
 
     // DEBUG: Log first invoice details
@@ -207,11 +212,13 @@ export async function GET(request: NextRequest) {
       data: grouped,
       total: allMessages.length,
       debug: {
-        invoices_fetched: invoices?.length || 0,
+        invoices_total: allInvoices?.length || 0,
+        invoices_with_note: invoices?.length || 0,
         invoices_with_fiscal_sync: fiscalSyncCount,
         invoices_with_legacy_format: legacyCount,
         messages_extracted: allMessages.length,
         has_service_role_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        wilczek_in_all: !!wilczekInAll,
         wilczek_found: !!wilczek,
         wilczek_data: wilczek ? {
           id: wilczek.id,
