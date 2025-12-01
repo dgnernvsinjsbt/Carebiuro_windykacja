@@ -81,6 +81,15 @@ jobs:
           curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=10" \
             -H "x-github-action: true" --max-time 150
 
+      - name: Backfill message history
+        run: |
+          echo "Waiting for sync to settle..."
+          sleep 30
+          echo "Running backfill to sync message_history from internal_note..."
+          curl -X POST "${{ secrets.VERCEL_URL }}/api/historia/backfill" \
+            -H "Content-Type: application/json" \
+            --max-time 300
+
       # Removed SMS notifications to avoid nighttime disruptions
       # - name: Send Success SMS
       #   if: success()
