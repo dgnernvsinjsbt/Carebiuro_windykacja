@@ -6,13 +6,6 @@ import { Client } from '@/types';
 import { parseWindykacja } from '@/lib/windykacja-parser';
 import WindykacjaToggle from './WindykacjaToggle';
 
-// Warm cache on component mount
-if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    fetch('/', { method: 'HEAD' }).catch(() => {});
-  }, 100);
-}
-
 interface ClientsTableProps {
   clients: Client[];
 }
@@ -76,6 +69,27 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
   const [invoiceRangeError, setInvoiceRangeError] = useState(false);
   const [saldoRangeError, setSaldoRangeError] = useState(false);
 
+  // Lokalny stan windykacji - nadpisuje dane z props po udanej zmianie
+  // Dzięki temu filtry działają natychmiast po toggle
+  const [windykacjaOverrides, setWindykacjaOverrides] = useState<Map<number, boolean>>(new Map());
+
+  // Callback dla WindykacjaToggle - aktualizuje lokalny stan natychmiast po sukcesie API
+  const handleWindykacjaChange = useCallback((clientId: number, newValue: boolean) => {
+    setWindykacjaOverrides(prev => {
+      const next = new Map(prev);
+      next.set(clientId, newValue);
+      return next;
+    });
+  }, []);
+
+  // Helper do pobierania aktualnego stanu windykacji (override > props)
+  const getWindykacjaStatus = useCallback((client: Client): boolean => {
+    if (windykacjaOverrides.has(client.id)) {
+      return windykacjaOverrides.get(client.id)!;
+    }
+    return parseWindykacja(client.note);
+  }, [windykacjaOverrides]);
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(
     Number(searchParams.get('page')) || 1
@@ -120,9 +134,9 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
         if (saldoMax !== '' && saldo > saldoMax) return false;
       }
 
-      // Windykacja filter
+      // Windykacja filter - używa lokalnego stanu (override) jeśli dostępny
       if (windykacjaFilter !== 'all') {
-        const windykacjaEnabled = parseWindykacja(client.note);
+        const windykacjaEnabled = getWindykacjaStatus(client);
         if (windykacjaFilter === 'enabled' && !windykacjaEnabled) return false;
         if (windykacjaFilter === 'disabled' && windykacjaEnabled) return false;
       }
@@ -146,7 +160,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
 
       return sortDirection === 'asc' ? compareValue : -compareValue;
     });
-  }, [clients, searchQuery, sortField, sortDirection, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax, windykacjaFilter]);
+  }, [clients, searchQuery, sortField, sortDirection, invoiceCountMin, invoiceCountMax, saldoMin, saldoMax, windykacjaFilter, getWindykacjaStatus]);
 
   // Paginate clients
   const paginatedClients = useMemo(() => {
@@ -581,7 +595,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
               </tr>
             ) : (
               paginatedClients.map((client) => {
-                const windykacjaEnabled = parseWindykacja(client.note);
+                const windykacjaEnabled = getWindykacjaStatus(client);
 
                 return (
                   <tr
@@ -602,6 +616,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                         <WindykacjaToggle
                           clientId={client.id}
                           initialWindykacja={windykacjaEnabled}
+                          onWindykacjaChange={handleWindykacjaChange}
                         />
                       </div>
                     </td>

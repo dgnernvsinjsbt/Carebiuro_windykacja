@@ -8,9 +8,10 @@ import { useClientOperationLock } from '@/lib/client-operation-lock';
 interface WindykacjaToggleProps {
   clientId: number;
   initialWindykacja: boolean;
+  onWindykacjaChange?: (clientId: number, newValue: boolean) => void;
 }
 
-export default function WindykacjaToggle({ clientId, initialWindykacja }: WindykacjaToggleProps) {
+export default function WindykacjaToggle({ clientId, initialWindykacja, onWindykacjaChange }: WindykacjaToggleProps) {
   const router = useRouter();
   const [isWindykacja, setIsWindykacja] = useState(initialWindykacja);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -43,6 +44,10 @@ export default function WindykacjaToggle({ clientId, initialWindykacja }: Windyk
       if (data.success) {
         // SUKCES - zmiana UI po potwierdzeniu serwera
         setIsWindykacja(newValue);
+
+        // Natychmiast powiadom parent (ClientsTable) o zmianie - dla filtrów
+        onWindykacjaChange?.(clientId, newValue);
+
         toast.success(newValue ? '✓ Włączona' : '✓ Wyłączona', { duration: 1500 });
 
         // Refresh server data in background (won't reset scroll or filters)
