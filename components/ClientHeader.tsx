@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Client } from '@/types';
 import WindykacjaToggle from './WindykacjaToggle';
 import { parseWindykacja } from '@/lib/windykacja-parser';
@@ -16,6 +16,19 @@ export default function ClientHeader({ client, unpaidBalance }: ClientHeaderProp
     email?: string;
     phone?: string;
   }>({});
+
+  // Lokalny stan windykacji - aktualizuje się natychmiast po zmianie toggle
+  const [windykacjaEnabled, setWindykacjaEnabled] = useState(() => parseWindykacja(client.note));
+
+  // Sync z props gdy klient się zmieni (np. nawigacja)
+  useEffect(() => {
+    setWindykacjaEnabled(parseWindykacja(client.note));
+  }, [client.note]);
+
+  // Callback dla WindykacjaToggle - aktualizuje label natychmiast
+  const handleWindykacjaChange = useCallback((_clientId: number, newValue: boolean) => {
+    setWindykacjaEnabled(newValue);
+  }, []);
 
   useEffect(() => {
     // Fetch client details from Fakturownia in the background
@@ -39,8 +52,6 @@ export default function ClientHeader({ client, unpaidBalance }: ClientHeaderProp
     fetchClientDetails();
   }, [client.id]);
 
-  const windykacjaEnabled = parseWindykacja(client.note);
-
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
@@ -58,6 +69,7 @@ export default function ClientHeader({ client, unpaidBalance }: ClientHeaderProp
           <WindykacjaToggle
             clientId={client.id}
             initialWindykacja={windykacjaEnabled}
+            onWindykacjaChange={handleWindykacjaChange}
           />
         </div>
       </div>
