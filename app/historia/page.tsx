@@ -1,9 +1,8 @@
-import { Suspense } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle, TrendingUp, ArrowLeft, RefreshCw } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import HistoriaFilters from './HistoriaFilters';
 import Link from 'next/link';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // Force dynamic rendering - no caching
 export const dynamic = 'force-dynamic';
@@ -34,13 +33,6 @@ interface PageProps {
   }>;
 }
 
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
 function getDateDaysAgo(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() - days);
@@ -54,7 +46,7 @@ function getDateDaysAhead(days: number): string {
 }
 
 async function fetchMessages(startDate: string, endDate: string, messageType?: string) {
-  const supabase = getSupabaseAdmin();
+  const supabase = supabaseAdmin();
 
   console.log('[Historia Server] Fetching messages:', { startDate, endDate, messageType });
 
