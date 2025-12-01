@@ -1,0 +1,63 @@
+name: Daily Windykacja Auto-Send
+
+on:
+  schedule:
+    # 7:00 UTC = 8:00 CET (zima) / 9:00 CEST (lato)
+    - cron: '0 7 * * *'
+  workflow_dispatch:  # Manual trigger for testing
+
+jobs:
+  auto-send-reminders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Log start time
+        run: |
+          echo "Starting daily windykacja at $(TZ='Europe/Warsaw' date)"
+          echo "UTC time: $(date -u)"
+
+      - name: Send E1/S1 for overdue invoices
+        run: |
+          echo "Calling auto-send-overdue endpoint..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.VERCEL_URL }}/api/windykacja/auto-send-overdue" \
+            -H "Content-Type: application/json" \
+            --max-time 300)
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Response code: $HTTP_CODE"
+          echo "Response body: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error: API returned $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Wait before sequence
+        run: |
+          echo "Waiting 2 minutes before sending sequence..."
+          sleep 120
+
+      - name: Send E2/E3/S2/S3 sequence
+        run: |
+          echo "Calling auto-send-sequence endpoint..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.VERCEL_URL }}/api/windykacja/auto-send-sequence" \
+            -H "Content-Type: application/json" \
+            --max-time 300)
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Response code: $HTTP_CODE"
+          echo "Response body: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error: API returned $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Log completion
+        run: |
+          echo "Daily windykacja completed at $(TZ='Europe/Warsaw' date)"
