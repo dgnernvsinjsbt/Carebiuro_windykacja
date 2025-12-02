@@ -21,6 +21,34 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Fetch all clients using pagination (Supabase has 1000 row limit per query)
+async function fetchAllClients(supabase: any) {
+  const allClients: any[] = [];
+  const pageSize = 1000;
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, name, note')
+      .range(offset, offset + pageSize - 1)
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      allClients.push(...data);
+      offset += pageSize;
+      hasMore = data.length === pageSize;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allClients;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[AutoSendOverdue] Starting daily windykacja run...');
@@ -31,21 +59,19 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // 1. Get all clients from Supabase (need to override default 1000 limit)
-    const { data: allClients, error: clientsError } = await supabase
-      .from('clients')
-      .select('id, name, note')
-      .limit(10000);
-
-    if (clientsError) {
-      console.error('[AutoSendOverdue] Error fetching clients:', clientsError);
+    // 1. Get all clients from Supabase using pagination (Supabase has 1000 row limit)
+    let allClients: any[];
+    try {
+      allClients = await fetchAllClients(supabase);
+    } catch (error: any) {
+      console.error('[AutoSendOverdue] Error fetching clients:', error);
       return NextResponse.json(
-        { success: false, error: clientsError.message },
+        { success: false, error: error.message },
         { status: 500 }
       );
     }
 
-    if (!allClients || allClients.length === 0) {
+    if (allClients.length === 0) {
       console.log('[AutoSendOverdue] No clients found');
       return NextResponse.json({
         success: true,

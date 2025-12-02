@@ -94,6 +94,34 @@ function getDateFromFiscalSync(fiscalSync: any, dateField: string): Date | null 
   return new Date(dateValue);
 }
 
+// Fetch all clients using pagination (Supabase has 1000 row limit per query)
+async function fetchAllClients(supabase: any) {
+  const allClients: any[] = [];
+  const pageSize = 1000;
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, name, note')
+      .range(offset, offset + pageSize - 1)
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      allClients.push(...data);
+      offset += pageSize;
+      hasMore = data.length === pageSize;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allClients;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[AutoSendSequence] Starting 14-day sequence check...');
@@ -103,21 +131,19 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // 1. Get all clients with windykacja enabled (override default 1000 limit)
-    const { data: allClients, error: clientsError } = await supabase
-      .from('clients')
-      .select('id, name, note')
-      .limit(10000);
-
-    if (clientsError) {
-      console.error('[AutoSendSequence] Error fetching clients:', clientsError);
+    // 1. Get all clients using pagination (Supabase has 1000 row limit)
+    let allClients: any[];
+    try {
+      allClients = await fetchAllClients(supabase);
+    } catch (error: any) {
+      console.error('[AutoSendSequence] Error fetching clients:', error);
       return NextResponse.json(
-        { success: false, error: clientsError.message },
+        { success: false, error: error.message },
         { status: 500 }
       );
     }
 
-    const clients = (allClients || []).filter(client => {
+    const clients = allClients.filter(client => {
       const flags = parseClientFlags(client.note);
       return flags.windykacja === true;
     });
@@ -132,7 +158,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`[AutoSendSequence] Found ${clients.length} clients with windykacja enabled`);
+    console.log(`[AutoSendSequence] Found ${clients.length} clients with windykacja enabled (out of ${allClients.length} total)`);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
