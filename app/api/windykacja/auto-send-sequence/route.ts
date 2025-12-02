@@ -103,10 +103,11 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // 1. Get all clients with windykacja enabled
+    // 1. Get all clients with windykacja enabled (override default 1000 limit)
     const { data: allClients, error: clientsError } = await supabase
       .from('clients')
-      .select('id, name, note');
+      .select('id, name, note')
+      .limit(10000);
 
     if (clientsError) {
       console.error('[AutoSendSequence] Error fetching clients:', clientsError);
