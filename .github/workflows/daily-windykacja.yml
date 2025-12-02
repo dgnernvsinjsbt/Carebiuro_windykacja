@@ -20,7 +20,7 @@ jobs:
       - name: Send E1/S1 for overdue invoices
         run: |
           echo "Calling auto-send-overdue endpoint..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.VERCEL_URL }}/api/windykacja/auto-send-overdue" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://carebiuro-windykacja.vercel.app/api/windykacja/auto-send-overdue" \
             -H "Content-Type: application/json" \
             --max-time 300)
 
@@ -43,7 +43,7 @@ jobs:
       - name: Send E2/E3/S2/S3 sequence
         run: |
           echo "Calling auto-send-sequence endpoint..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.VERCEL_URL }}/api/windykacja/auto-send-sequence" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://carebiuro-windykacja.vercel.app/api/windykacja/auto-send-sequence" \
             -H "Content-Type: application/json" \
             --max-time 300)
 
