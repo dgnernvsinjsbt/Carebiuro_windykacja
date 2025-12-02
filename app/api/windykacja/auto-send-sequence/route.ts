@@ -72,14 +72,17 @@ const SEQUENCE: SequenceStep[] = [
 ];
 
 function getE1Date(invoice: any, fiscalSync: any): Date | null {
-  // Check if E1 was sent by our system
-  if (fiscalSync?.EMAIL_1 && fiscalSync?.EMAIL_1_DATE) {
-    return new Date(fiscalSync.EMAIL_1_DATE);
-  }
+  // Priority: Fakturownia's sent_time first (actual email sent date)
+  // Then our system's EMAIL_1_DATE (may be later if we just marked it)
 
   // Check if email was sent by Fakturownia (email_status = 'sent')
   if (invoice.email_status === 'sent' && invoice.sent_time) {
     return new Date(invoice.sent_time);
+  }
+
+  // Fallback: Check if E1 was sent by our system
+  if (fiscalSync?.EMAIL_1 && fiscalSync?.EMAIL_1_DATE && fiscalSync.EMAIL_1_DATE !== 'NULL') {
+    return new Date(fiscalSync.EMAIL_1_DATE);
   }
 
   return null;

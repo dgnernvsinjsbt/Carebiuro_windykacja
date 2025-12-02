@@ -140,7 +140,10 @@ export async function POST(request: NextRequest) {
 
           try {
             // Send E1 if not already sent
-            if (!fiscalSync?.EMAIL_1) {
+            // Check both: our system (EMAIL_1) AND Fakturownia (email_status='sent')
+            const e1AlreadySent = fiscalSync?.EMAIL_1 || invoice.email_status === 'sent';
+
+            if (!e1AlreadySent) {
               console.log(`[AutoSendOverdue] Sending E1 for invoice ${invoice.id} (${invoiceNumber})`);
 
               const apiUrl = process.env.NODE_ENV === 'development'
