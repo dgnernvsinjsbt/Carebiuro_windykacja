@@ -20,6 +20,7 @@ async function fetchAllClients() {
     const { data, error } = await supabaseAdmin()
       .from('clients')
       .select('*')
+      .order('id', { ascending: true })
       .range(page * pageSize, (page + 1) * pageSize - 1);
 
     if (error) {
@@ -63,6 +64,7 @@ async function fetchAllUnpaidInvoices() {
       .neq('status', 'paid')
       .neq('kind', 'canceled')
       .neq('kind', 'correction')
+      .order('id', { ascending: true })
       .range(page * pageSize, (page + 1) * pageSize - 1);
 
     if (error) {
