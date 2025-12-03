@@ -1,11 +1,44 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { parseClientFlags } from '@/lib/client-flags-v2';
+import { parseWindykacja } from '@/lib/windykacja-parser';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-// Fetch all clients using pagination (Supabase has 1000 row limit per query)
-async function fetchAllClients(supabase: any) {
+// EXACT same function as app/page.tsx fetchAllClients
+async function fetchAllClientsLikeMainPage() {
+  const pageSize = 1000;
+  let allClients: Array<any> = [];
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabaseAdmin()
+      .from('clients')
+      .select('*')
+      .order('id', { ascending: true })
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+
+    if (error) {
+      console.error('[fetchAllClients] Error:', error);
+      break;
+    }
+
+    if (data && data.length > 0) {
+      allClients = allClients.concat(data);
+      page++;
+      hasMore = data.length === pageSize;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allClients;
+}
+
+// Debug endpoint pagination (anon key)
+async function fetchAllClientsDebug(supabase: any) {
   const allClients: any[] = [];
   const pageSize = 1000;
   let offset = 0;
@@ -44,20 +77,33 @@ export async function GET() {
       .from('clients')
       .select('*', { count: 'exact', head: true });
 
-    // Fetch all clients using pagination
-    const allClients = await fetchAllClients(supabase);
+    // Fetch using BOTH methods
+    const clientsDebug = await fetchAllClientsDebug(supabase);
+    const clientsMainPage = await fetchAllClientsLikeMainPage();
 
-    // Filter by windykacja
-    const windykacjaClients = allClients.filter(client => {
-      const flags = parseClientFlags(client.note);
-      return flags.windykacja === true;
-    });
+    // Filter using BOTH parsers
+    const windykacjaDebug = clientsDebug.filter(c => parseClientFlags(c.note).windykacja === true);
+    const windykacjaMainPageV1 = clientsMainPage.filter(c => parseWindykacja(c.note)); // ClientsTable uses this
+    const windykacjaMainPageV2 = clientsMainPage.filter(c => parseClientFlags(c.note).windykacja === true);
 
     return NextResponse.json({
-      total_clients_fetched: allClients.length,
       total_in_db: count,
-      windykacja_enabled: windykacjaClients.length,
-      sample_windykacja: windykacjaClients.slice(0, 10).map(c => ({
+
+      // Debug method (anon key, select id,name,note)
+      debug_method: {
+        fetched: clientsDebug.length,
+        windykacja_parseClientFlags: windykacjaDebug.length,
+      },
+
+      // Main page method (service key, select *)
+      mainpage_method: {
+        fetched: clientsMainPage.length,
+        windykacja_parseWindykacja: windykacjaMainPageV1.length,
+        windykacja_parseClientFlags: windykacjaMainPageV2.length,
+      },
+
+      // Sample from main page method with parseWindykacja (what ClientsTable uses)
+      sample_windykacja: windykacjaMainPageV1.slice(0, 10).map(c => ({
         id: c.id,
         name: c.name,
         note_preview: c.note?.substring(0, 100) || null
