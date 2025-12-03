@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { clientsDb, invoicesDb, supabase } from '@/lib/supabase';
+import { clientsDb, invoicesDb, supabaseAdmin } from '@/lib/supabase';
 import { Client, Invoice, FakturowniaInvoice, FakturowniaClient } from '@/types';
 
 /**
@@ -215,15 +215,36 @@ export async function POST(request: NextRequest) {
     // STEP 4: Calculate total_unpaid for all clients by querying Supabase invoices
     console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...');
 
-    // Fetch all invoices grouped by client_id (excluding corrective invoices FK)
-    const { data: allInvoices, error: fetchError } = await supabase()
-      .from('invoices')
-      .select('client_id, total, number');
+    // Fetch all invoices with pagination (to avoid 1000 row limit)
+    const allInvoices: Array<{ client_id: number | null; total: number | null; number: string | null }> = [];
+    let invoicePage = 0;
+    let hasMoreInvoices = true;
+    const invoicePageSize = 1000;
 
-    if (fetchError) {
-      console.error('[Sync] Warning: Could not fetch invoices for totals:', fetchError);
-      console.log('[Sync] Skipping total_unpaid update');
-    } else {
+    while (hasMoreInvoices) {
+      const { data: invoiceBatch, error: fetchError } = await supabaseAdmin()
+        .from('invoices')
+        .select('client_id, total, number')
+        .order('id', { ascending: true })
+        .range(invoicePage * invoicePageSize, (invoicePage + 1) * invoicePageSize - 1);
+
+      if (fetchError) {
+        console.error('[Sync] Warning: Could not fetch invoices for totals:', fetchError);
+        break;
+      }
+
+      if (invoiceBatch && invoiceBatch.length > 0) {
+        allInvoices.push(...invoiceBatch);
+        invoicePage++;
+        hasMoreInvoices = invoiceBatch.length === invoicePageSize;
+      } else {
+        hasMoreInvoices = false;
+      }
+    }
+
+    console.log(`[Sync] Fetched ${allInvoices.length} invoices for total_unpaid calculation`);
+
+    if (allInvoices.length > 0) {
       // Aggregate totals per client (excluding FK - corrective invoices)
       const clientTotalsMap = new Map<number, number>();
 
@@ -240,12 +261,36 @@ export async function POST(request: NextRequest) {
 
       console.log(`[Sync] ✓ Calculated totals for ${clientTotalsMap.size} clients, updating...`);
 
-      // Fetch existing clients to preserve their data
-      const { data: existingClients } = await supabase()
-        .from('clients')
-        .select('*');
+      // Fetch existing clients with pagination (to avoid 1000 row limit)
+      const existingClients: Client[] = [];
+      let clientPage = 0;
+      let hasMoreClients = true;
+      const clientPageSize = 1000;
 
-      const clientsToUpdate: Client[] = (existingClients || []).map(client => ({
+      while (hasMoreClients) {
+        const { data: clientBatch, error: clientFetchError } = await supabaseAdmin()
+          .from('clients')
+          .select('*')
+          .order('id', { ascending: true })
+          .range(clientPage * clientPageSize, (clientPage + 1) * clientPageSize - 1);
+
+        if (clientFetchError) {
+          console.error('[Sync] Error fetching clients:', clientFetchError);
+          break;
+        }
+
+        if (clientBatch && clientBatch.length > 0) {
+          existingClients.push(...clientBatch);
+          clientPage++;
+          hasMoreClients = clientBatch.length === clientPageSize;
+        } else {
+          hasMoreClients = false;
+        }
+      }
+
+      console.log(`[Sync] Fetched ${existingClients.length} clients for update`);
+
+      const clientsToUpdate: Client[] = existingClients.map(client => ({
         ...client, // Keep all existing fields
         note: clientNotesMap.get(client.id) || client.note || null, // Update note from Fakturownia
         total_unpaid: clientTotalsMap.get(client.id) || 0, // Update calculated total
