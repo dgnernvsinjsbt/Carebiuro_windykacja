@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle,
-  ChevronDown, ChevronRight, Table, Clock, Columns, X, Check
+  ChevronDown, ChevronRight, Table, Clock, Columns, X, Check, Search
 } from 'lucide-react';
 
 interface MessageHistoryRow {
@@ -49,9 +49,42 @@ interface HistoriaViewsProps {
 export default function HistoriaViews({ messages, groupedHistory }: HistoriaViewsProps) {
   const [currentView, setCurrentView] = useState<ViewType>('table');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [clientSearch, setClientSearch] = useState('');
   const [selectedMessage, setSelectedMessage] = useState<MessageHistoryRow | null>(
     messages.length > 0 ? messages[0] : null
   );
+
+  // Filter messages by client name
+  const filteredMessages = useMemo(() => {
+    if (!clientSearch.trim()) return messages;
+    const searchLower = clientSearch.toLowerCase().trim();
+    return messages.filter(msg =>
+      msg.client_name.toLowerCase().includes(searchLower)
+    );
+  }, [messages, clientSearch]);
+
+  // Filter grouped history by client name
+  const filteredGroupedHistory = useMemo(() => {
+    if (!clientSearch.trim()) return groupedHistory;
+    const searchLower = clientSearch.toLowerCase().trim();
+
+    return groupedHistory
+      .map(day => ({
+        ...day,
+        clients: day.clients.filter(client =>
+          client.client_name.toLowerCase().includes(searchLower)
+        ),
+      }))
+      .filter(day => day.clients.length > 0)
+      .map(day => ({
+        ...day,
+        totalMessages: day.clients.reduce(
+          (sum, client) => sum + client.invoices.reduce(
+            (invSum, inv) => invSum + inv.messages.length, 0
+          ), 0
+        ),
+      }));
+  }, [groupedHistory, clientSearch]);
 
   const toggleRow = (id: number) => {
     const newExpanded = new Set(expandedRows);
@@ -63,10 +96,35 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
     setExpandedRows(newExpanded);
   };
 
+  const clearSearch = () => {
+    setClientSearch('');
+  };
+
   return (
     <div>
-      {/* View Toggle */}
-      <div className="flex justify-end mb-4">
+      {/* Search and View Toggle */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4">
+        {/* Client Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Szukaj klienta..."
+            value={clientSearch}
+            onChange={(e) => setClientSearch(e.target.value)}
+            className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+          />
+          {clientSearch && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* View Toggle */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex gap-1">
           <button
             onClick={() => setCurrentView('table')}
@@ -104,27 +162,52 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
         </div>
       </div>
 
+      {/* Search Results Count */}
+      {clientSearch && (
+        <div className="mb-4 text-sm text-gray-600">
+          Znaleziono <span className="font-semibold">{filteredMessages.length}</span> wiadomości
+          {filteredMessages.length !== messages.length && (
+            <span> (z {messages.length} wszystkich)</span>
+          )}
+          {filteredMessages.length > 0 && (
+            <span> dla klienta zawierającego &quot;{clientSearch}&quot;</span>
+          )}
+        </div>
+      )}
+
       {/* Empty State */}
-      {messages.length === 0 ? (
+      {filteredMessages.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
           <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Brak wiadomości w wybranym okresie</p>
+          <p className="text-gray-600">
+            {clientSearch
+              ? `Brak wiadomości dla klienta "${clientSearch}"`
+              : 'Brak wiadomości w wybranym okresie'}
+          </p>
+          {clientSearch && (
+            <button
+              onClick={clearSearch}
+              className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              Wyczyść wyszukiwanie
+            </button>
+          )}
         </div>
       ) : (
         <>
           {currentView === 'table' && (
             <TableView
-              messages={messages}
+              messages={filteredMessages}
               expandedRows={expandedRows}
               toggleRow={toggleRow}
             />
           )}
           {currentView === 'timeline' && (
-            <TimelineView groupedHistory={groupedHistory} />
+            <TimelineView groupedHistory={filteredGroupedHistory} />
           )}
           {currentView === 'split' && (
             <SplitView
-              messages={messages}
+              messages={filteredMessages}
               selectedMessage={selectedMessage}
               setSelectedMessage={setSelectedMessage}
             />
