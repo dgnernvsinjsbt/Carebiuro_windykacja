@@ -1,0 +1,8 @@
+Regime,Conditions,Strategy,Direction,Position_Size,Leverage,Stop_Loss,Take_Profit,Rationale
+BULL_RUN,"Price > EMA50, EMA20 > EMA50, ADX > 25, Low chop",Trend Following Pullbacks,LONG,10%,3x,3%,6%,"Buy pullbacks to EMA20 in confirmed uptrend. Based on July 2025 success (+556%). Conservative sizing for survivability."
+BEAR_TREND,"Price < EMA50, EMA20 < EMA50, ADX > 25, Low chop",Trend Following Rallies,SHORT,10%,3x,3%,6%,"Sell rallies to EMA20 in confirmed downtrend. Based on February & May 2025 where shorts outperformed. Match bull strategy sizing."
+HIGH_VOL_BULL,"Price > EMA50 but ATR > 75th percentile",Sit Out,CASH,0%,1x,0%,0%,"High volatility makes entries unpredictable. Market archaeology showed losses in explosive periods. Preserve capital."
+HIGH_VOL_BEAR,"Price < EMA50, ATR > 75th percentile",Sit Out,CASH,0%,1x,0%,0%,"Bearish + volatile = dangerous. February showed -66% move with huge losses even on 'good' strategies. Stay flat."
+CHOP_ZONE,"ADX < 20, Multiple EMA crosses, No clear trend",Sit Out,CASH,0%,1x,0%,0%,"No edge in choppy markets. Most FARTCOIN months showed this pattern with negative results. Wait for clarity."
+TRANSITION,"Between regimes, Mixed signals",Sit Out,CASH,0%,1x,0%,0%,"Unclear market structure. Don't force trades. Wait for confident regime identification (>50% confidence)."
+WARMUP,"First 200 bars of data",Sit Out,CASH,0%,1x,0%,0%,"Indicators need warm-up period. No trades until EMA200 and ADX are properly calculated."
