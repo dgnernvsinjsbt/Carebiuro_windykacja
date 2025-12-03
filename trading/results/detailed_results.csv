@@ -1,0 +1,8 @@
+strategy,exit_method,session,total_trades,total_return_pct,win_rate,profit_factor,avg_win,avg_loss,max_drawdown,sharpe_ratio,avg_duration,largest_win,largest_loss
+ema50_pullback,time_based_8,all,442,70.56,23.53,1.32,2.29,-0.52,16.41,1.07,3.7,25.3,-3.43
+ema50_pullback,time_based_4,all,497,44.05,29.78,1.24,1.4,-0.48,15.31,1.0,2.5,12.42,-3.43
+ema50_pullback,fixed_rr_1.5,all,534,14.97,38.2,1.08,0.99,-0.56,15.84,0.47,2.5,11.6,-4.13
+ema_10_50_cross,time_based_8,all,118,8.95,43.22,1.1,1.89,-1.33,21.33,0.71,6.6,7.93,-4.99
+ema_10_50_cross,trail_atr_2.0,all,120,-20.31,33.33,0.76,1.68,-1.09,31.03,-1.34,6.5,11.13,-4.7
+ema_10_50_cross,trail_atr_1.5,all,121,-25.66,30.58,0.54,0.95,-0.76,29.81,-3.34,3.9,6.25,-3.48
+ema50_pullback,trail_atr_1.5,all,498,-42.78,24.5,0.67,0.97,-0.46,43.63,-1.88,2.6,7.58,-3.43

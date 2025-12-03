@@ -1,6 +1,7 @@
-import { Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle, TrendingUp, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Mail, MessageSquare, Phone, TrendingUp, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import HistoriaFilters from './HistoriaFilters';
+import HistoriaViews from './HistoriaViews';
 import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -138,15 +139,16 @@ function groupMessagesByDate(messages: MessageHistoryRow[]) {
 }
 
 function calculateStats(messages: MessageHistoryRow[]) {
-  let email = 0, sms = 0, whatsapp = 0;
+  let email = 0, sms = 0, whatsapp = 0, failed = 0;
 
   for (const msg of messages) {
     if (msg.message_type === 'email') email++;
     else if (msg.message_type === 'sms') sms++;
     else if (msg.message_type === 'whatsapp') whatsapp++;
+    if (msg.status === 'failed') failed++;
   }
 
-  return { total: messages.length, email, sms, whatsapp };
+  return { total: messages.length, email, sms, whatsapp, failed };
 }
 
 export default async function HistoriaPage({ searchParams }: PageProps) {
@@ -165,10 +167,11 @@ export default async function HistoriaPage({ searchParams }: PageProps) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="flex-1 p-6 lg:p-8">
+        {/* WIDER CONTAINER: max-w-[1600px] instead of max-w-7xl (1280px) */}
+        <div className="max-w-[1600px] mx-auto">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Link
               href="/"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
@@ -176,10 +179,10 @@ export default async function HistoriaPage({ searchParams }: PageProps) {
               <ArrowLeft className="w-4 h-4" />
               Powrót do listy klientów
             </Link>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Historia wysyłek</h1>
-                <p className="text-gray-600">
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">Historia wysyłek</h1>
+                <p className="text-gray-600 text-sm">
                   Wszystkie wiadomości wysłane przez system
                   <span className="ml-2 text-xs text-gray-400">
                     (Załadowano: {new Date().toLocaleTimeString('pl-PL')})
@@ -188,7 +191,7 @@ export default async function HistoriaPage({ searchParams }: PageProps) {
               </div>
               <Link
                 href={`/historia?startDate=${startDate}&endDate=${endDate}&type=${messageType}&_t=${Date.now()}`}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-medium self-start lg:self-auto"
               >
                 <RefreshCw className="w-4 h-4" />
                 Odśwież
@@ -196,8 +199,8 @@ export default async function HistoriaPage({ searchParams }: PageProps) {
             </div>
           </div>
 
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Statistics Cards - 5 columns on xl screens */}
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
             <StatCard
               title="Wszystkie"
               value={stats.total}
@@ -222,6 +225,13 @@ export default async function HistoriaPage({ searchParams }: PageProps) {
               icon={<MessageSquare className="w-5 h-5" />}
               color="emerald"
             />
+            <StatCard
+              title="Błędy"
+              value={stats.failed}
+              icon={<AlertCircle className="w-5 h-5" />}
+              color="red"
+              highlight={stats.failed > 0}
+            />
           </div>
 
           {/* Filters - Client Component */}
@@ -231,41 +241,42 @@ export default async function HistoriaPage({ searchParams }: PageProps) {
             currentType={messageType}
           />
 
-          {/* History Timeline */}
-          {groupedHistory.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Brak wiadomości w wybranym okresie</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {groupedHistory.map((day) => (
-                <DayGroup key={day.date} day={day} />
-              ))}
-            </div>
-          )}
+          {/* History Views - Client Component with Table/Timeline/Split toggle */}
+          <HistoriaViews
+            messages={messages}
+            groupedHistory={groupedHistory}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: string }) {
+function StatCard({ title, value, icon, color, highlight = false }: {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  color: string;
+  highlight?: boolean;
+}) {
   const colorClasses: Record<string, string> = {
     blue: 'bg-blue-50 text-blue-600',
     purple: 'bg-purple-50 text-purple-600',
     green: 'bg-green-50 text-green-600',
     emerald: 'bg-emerald-50 text-emerald-600',
+    red: 'bg-red-50 text-red-600',
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{title}</p>
+          <p className={`text-2xl font-bold mt-1 ${highlight && value > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+            {value}
+          </p>
         </div>
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+        <div className={`p-2.5 rounded-lg ${colorClasses[color]}`}>
           {icon}
         </div>
       </div>
@@ -273,116 +284,3 @@ function StatCard({ title, value, icon, color }: { title: string; value: number;
   );
 }
 
-function DayGroup({ day }: { day: any }) {
-  const date = new Date(day.date);
-  const dayName = date.toLocaleDateString('pl-PL', { weekday: 'long' });
-  const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} - ${dayName}`;
-
-  return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 capitalize">{formattedDate}</h2>
-          <span className="text-sm text-gray-600">{day.totalMessages} wiadomości</span>
-        </div>
-      </div>
-      <div className="divide-y divide-gray-200">
-        {day.clients.map((client: any) => (
-          <ClientGroup key={client.client_id} client={client} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ClientGroup({ client }: { client: any }) {
-  const totalMessages = client.invoices.reduce((sum: number, inv: any) => sum + inv.messages.length, 0);
-
-  return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-          <span className="text-blue-600 font-semibold text-sm">
-            {client.client_name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900">{client.client_name}</h3>
-          <p className="text-sm text-gray-600">
-            {client.invoices.length} {client.invoices.length === 1 ? 'faktura' : 'faktury'} • {totalMessages} {totalMessages === 1 ? 'wiadomość' : 'wiadomości'}
-          </p>
-        </div>
-      </div>
-
-      <div className="ml-13 space-y-3">
-        {client.invoices.map((invoice: any) => (
-          <InvoiceGroup key={invoice.invoice_id} invoice={invoice} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function InvoiceGroup({ invoice }: { invoice: any }) {
-  return (
-    <div className="bg-gray-50 rounded-lg p-4 ml-13">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <span className="font-mono text-sm font-semibold text-gray-900">{invoice.invoice_number}</span>
-          <span className="ml-3 text-sm text-gray-600">
-            {parseFloat(invoice.invoice_total).toFixed(2)} {invoice.invoice_currency}
-          </span>
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {invoice.messages.map((message: any, idx: number) => (
-          <MessageBadge key={`${message.sent_at}-${idx}`} message={message} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MessageBadge({ message }: { message: any }) {
-  const getIcon = () => {
-    switch (message.message_type) {
-      case 'email': return <Mail className="w-3 h-3" />;
-      case 'sms': return <Phone className="w-3 h-3" />;
-      case 'whatsapp': return <MessageSquare className="w-3 h-3" />;
-    }
-  };
-
-  const getColor = () => {
-    if (message.status === 'failed') return 'bg-red-100 text-red-700 border-red-200';
-    switch (message.message_type) {
-      case 'email': return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'sms': return 'bg-green-100 text-green-700 border-green-200';
-      case 'whatsapp': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    }
-  };
-
-  const getLabel = () => {
-    const typeLabel = message.message_type === 'email' ? 'E' : message.message_type === 'sms' ? 'S' : 'W';
-    return `${typeLabel}${message.level}`;
-  };
-
-  const time = new Date(message.sent_at).toLocaleTimeString('pl-PL', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Europe/Warsaw',
-  });
-
-  return (
-    <div
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${getColor()}`}
-      title={message.error_message || `Wysłano: ${time}`}
-    >
-      {getIcon()}
-      <span>{getLabel()}</span>
-      {message.status === 'failed' && <AlertCircle className="w-3 h-3" />}
-      {message.status === 'sent' && <CheckCircle className="w-3 h-3" />}
-      {message.is_auto_initial && message.level !== 1 && <span className="ml-1 text-[10px]">🤖</span>}
-      <span className="text-[10px] opacity-70">{time}</span>
-    </div>
-  );
-}

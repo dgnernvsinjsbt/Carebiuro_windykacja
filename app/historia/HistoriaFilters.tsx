@@ -31,32 +31,32 @@ export default function HistoriaFilters({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Data od</label>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex-1 min-w-[150px]">
+          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Data od</label>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Data do</label>
+        <div className="flex-1 min-w-[150px]">
+          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Data do</label>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Typ wiadomości</label>
+        <div className="flex-1 min-w-[150px]">
+          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Typ wiadomości</label>
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="all">Wszystkie</option>
             <option value="email">Email</option>
@@ -64,14 +64,12 @@ export default function HistoriaFilters({
             <option value="whatsapp">WhatsApp</option>
           </select>
         </div>
-        <div className="flex items-end">
-          <button
-            onClick={applyFilters}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Zastosuj filtry
-          </button>
-        </div>
+        <button
+          onClick={applyFilters}
+          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm whitespace-nowrap"
+        >
+          Zastosuj
+        </button>
       </div>
     </div>
   );
