@@ -5,16 +5,21 @@ import { parseClientFlags } from '@/lib/client-flags-v2';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * Auto-send E1 + S1 for all overdue invoices for clients with windykacja enabled
+ * Auto-send E1 + S1 for invoices 30+ days old for clients with windykacja enabled
  *
- * Runs daily at 8:00 AM via Vercel cron
+ * Runs daily at 7:15 AM via Vercel cron
  *
  * Logic:
- * 1. Find all clients with windykacja_enabled = true
+ * 1. Find all clients with windykacja = true (from client note)
  * 2. For each client, fetch invoices from Fakturownia
- * 3. Filter overdue invoices (payment_to < today)
- * 4. Send E1 + S1 if not already sent and STOP = false
- * 5. Update [FISCAL_SYNC] in Fakturownia
+ * 3. Filter qualifying invoices:
+ *    - Open (not paid, not canceled)
+ *    - Has unpaid balance
+ *    - issue_date is 30+ days ago (NOT payment_to)
+ *    - STOP flag is not set
+ * 4. Send E1 if not already sent (check Fakturownia sent_time first, then our EMAIL_1)
+ * 5. Send S1 if not already sent
+ * 6. Update [FISCAL_SYNC] in Fakturownia
  */
 
 // Force dynamic rendering
@@ -99,9 +104,11 @@ export async function POST(request: NextRequest) {
 
     console.log(`[AutoSendOverdue] Found ${clients.length} clients with windykacja enabled (out of ${allClients.length} total)`);
 
-    // Today's date for overdue check
+    // Calculate date threshold: 30 days ago
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     let totalEmailSent = 0;
     let totalSmsSent = 0;
@@ -123,8 +130,8 @@ export async function POST(request: NextRequest) {
 
         console.log(`[AutoSendOverdue] Found ${invoices.length} total invoices for client ${client.id}`);
 
-        // 3. Filter overdue invoices
-        const overdueInvoices = invoices.filter((invoice) => {
+        // 3. Filter qualifying invoices (30+ days since issue_date)
+        const qualifyingInvoices = invoices.filter((invoice) => {
           // Skip paid invoices
           if (invoice.status === 'paid') return false;
 
@@ -135,11 +142,11 @@ export async function POST(request: NextRequest) {
           const balance = parseFloat(invoice.price_gross || '0') - parseFloat(invoice.paid || '0');
           if (balance <= 0) return false;
 
-          // Check if overdue
-          if (!invoice.payment_to) return false;
-          const paymentDate = new Date(invoice.payment_to);
-          paymentDate.setHours(0, 0, 0, 0);
-          if (paymentDate >= today) return false; // Not overdue yet
+          // Check if invoice is 30+ days old (from issue_date)
+          if (!invoice.issue_date) return false;
+          const issueDate = new Date(invoice.issue_date);
+          issueDate.setHours(0, 0, 0, 0);
+          if (issueDate > thirtyDaysAgo) return false; // Not 30 days old yet
 
           // Parse fiscal sync
           const fiscalSync = parseFiscalSync(invoice.internal_note);
@@ -153,12 +160,12 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`[AutoSendOverdue] Found ${overdueInvoices.length} overdue invoices for client ${client.id}`);
+        console.log(`[AutoSendOverdue] Found ${qualifyingInvoices.length} qualifying invoices for client ${client.id}`);
 
-        if (overdueInvoices.length === 0) continue;
+        if (qualifyingInvoices.length === 0) continue;
 
-        // 4. Send E1 + S1 for each overdue invoice
-        for (const invoice of overdueInvoices) {
+        // 4. Send E1 + S1 for each qualifying invoice
+        for (const invoice of qualifyingInvoices) {
           const invoiceNumber = invoice.number || `INV-${invoice.id}`;
           const fiscalSync = parseFiscalSync(invoice.internal_note);
 
@@ -269,7 +276,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Daily windykacja completed: ${totalSent} messages sent, ${totalFailed} failed`,
+      message: `Daily windykacja completed: ${totalSent} messages sent (E1: ${totalEmailSent}, S1: ${totalSmsSent}), ${totalFailed} failed`,
       sent: {
         email: totalEmailSent,
         sms: totalSmsSent,

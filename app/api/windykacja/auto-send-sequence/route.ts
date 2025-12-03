@@ -6,23 +6,23 @@ import { createClient } from '@supabase/supabase-js';
 import type { FiscalSyncData } from '@/types';
 
 /**
- * Auto-send sequence: E2, E3, S1, S2 based on 14-day intervals
+ * Auto-send sequence: E2, E3, S2, S3 based on 14-day intervals
  *
- * Runs daily at 8:30 AM via Vercel cron (after auto-send-overdue at 8:15)
+ * Runs daily at 7:30 AM via Vercel cron (after auto-send-overdue at 7:15)
  *
- * Sequence:
- * - Day 0:  E1 sent (by Fakturownia or auto-send-overdue)
- * - Day 14: E2 automatically sent
- * - Day 28: E3 automatically sent
- * - Day 42: S1 automatically sent
- * - Day 56: S2 automatically sent
+ * Two parallel tracks (emails and SMS have same logic):
+ * - Day 0:  E1 + S1 sent (by auto-send-overdue)
+ * - Day 14: E2 + S2 automatically sent
+ * - Day 28: E3 + S3 automatically sent
  *
- * Logic:
- * 1. Find all clients with windykacja enabled
- * 2. For each client, fetch invoices from Fakturownia
- * 3. Filter overdue invoices with STOP = false
- * 4. Check the last action date (E1/E2/E3/S1) and send next step if > 14 days
- * 5. Only one action per invoice per day
+ * E2/E3/S2/S3 only check:
+ * 1. Is windykacja enabled on client? (checked in client filter)
+ * 2. Was previous step (E1/E2/S1/S2) sent 14+ days ago?
+ * 3. Is invoice open (not paid, not canceled, has balance)?
+ * 4. Is STOP flag false?
+ *
+ * NOTE: The 30-day issue_date check is ONLY for E1/S1 (auto-send-overdue).
+ * Once E1/S1 is sent, the sequence continues based on 14-day intervals only.
  */
 
 // Force dynamic rendering
@@ -39,7 +39,10 @@ interface SequenceStep {
   prevCheck?: keyof FiscalSyncData;  // Previous step that must be completed
 }
 
-// Sequence definition: E1 → E2 → E3 → S1 → S2
+// Sequence definition - Two parallel tracks:
+// Email track: E1 → E2 → E3 (14 days apart)
+// SMS track: S1 → S2 → S3 (14 days apart)
+// E1 + S1 are sent by auto-send-overdue on day 0
 const SEQUENCE: SequenceStep[] = [
   {
     check: 'EMAIL_2',
@@ -56,18 +59,18 @@ const SEQUENCE: SequenceStep[] = [
     prevCheck: 'EMAIL_2'
   },
   {
-    check: 'SMS_1',
-    dateField: 'EMAIL_3_DATE',
-    type: 'sms',
-    level: '1',
-    prevCheck: 'EMAIL_3'
-  },
-  {
     check: 'SMS_2',
     dateField: 'SMS_1_DATE',
     type: 'sms',
     level: '2',
     prevCheck: 'SMS_1'
+  },
+  {
+    check: 'SMS_3',
+    dateField: 'SMS_2_DATE',
+    type: 'sms',
+    level: '3',
+    prevCheck: 'SMS_2'
   },
 ];
 
@@ -183,19 +186,19 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // 3. Filter overdue invoices
-        const overdueInvoices = invoices.filter((invoice) => {
+        // 3. Filter qualifying invoices (open, has balance, STOP not set)
+        // NOTE: No 30-day check here - that's only for E1/S1 in auto-send-overdue
+        const qualifyingInvoices = invoices.filter((invoice) => {
+          // Skip paid invoices
           if (invoice.status === 'paid') return false;
+          // Skip canceled invoices
           if (invoice.kind === 'canceled') return false;
 
+          // Skip if no unpaid balance
           const balance = parseFloat(invoice.price_gross || '0') - parseFloat(invoice.paid || '0');
           if (balance <= 0) return false;
 
-          if (!invoice.payment_to) return false;
-          const paymentDate = new Date(invoice.payment_to);
-          paymentDate.setHours(0, 0, 0, 0);
-          if (paymentDate >= today) return false;
-
+          // Skip if STOP flag is set
           const fiscalSync = parseFiscalSync(invoice.internal_note);
           if (fiscalSync?.STOP === true) {
             console.log(`[AutoSendSequence] Skipping invoice ${invoice.id} - STOP enabled`);
@@ -205,10 +208,10 @@ export async function POST(request: NextRequest) {
           return true;
         });
 
-        console.log(`[AutoSendSequence] Found ${overdueInvoices.length} overdue invoices for client ${client.id}`);
+        console.log(`[AutoSendSequence] Found ${qualifyingInvoices.length} qualifying invoices for client ${client.id}`);
 
         // 4. Check sequence for each invoice
-        for (const invoice of overdueInvoices) {
+        for (const invoice of qualifyingInvoices) {
           const invoiceNumber = invoice.number || `INV-${invoice.id}`;
           const fiscalSync = parseFiscalSync(invoice.internal_note);
 
