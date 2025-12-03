@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import {
   Mail, MessageSquare, Phone, Calendar, AlertCircle, CheckCircle,
-  ChevronDown, ChevronRight, Table, Clock, Columns, X, Check, Search
+  ChevronDown, ChevronRight, Table, Clock, Columns, X, Check, Search,
+  ChevronLeft, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 
 interface MessageHistoryRow {
@@ -46,10 +47,14 @@ interface HistoriaViewsProps {
   groupedHistory: GroupedDay[];
 }
 
+const ITEMS_PER_PAGE_OPTIONS = [50, 100, 250, 1000] as const;
+
 export default function HistoriaViews({ messages, groupedHistory }: HistoriaViewsProps) {
   const [currentView, setCurrentView] = useState<ViewType>('table');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [clientSearch, setClientSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(100);
   const [selectedMessage, setSelectedMessage] = useState<MessageHistoryRow | null>(
     messages.length > 0 ? messages[0] : null
   );
@@ -62,6 +67,27 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
       msg.client_name.toLowerCase().includes(searchLower)
     );
   }, [messages, clientSearch]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  // Paginated messages for Table and Split views
+  const paginatedMessages = useMemo(() => {
+    return filteredMessages.slice(startIndex, endIndex);
+  }, [filteredMessages, startIndex, endIndex]);
+
+  // Reset to page 1 when search or items per page changes
+  const handleSearchChange = (value: string) => {
+    setClientSearch(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
+  };
 
   // Filter grouped history by client name
   const filteredGroupedHistory = useMemo(() => {
@@ -98,6 +124,7 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
 
   const clearSearch = () => {
     setClientSearch('');
+    setCurrentPage(1);
   };
 
   return (
@@ -111,7 +138,7 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
             type="text"
             placeholder="Szukaj klienta..."
             value={clientSearch}
-            onChange={(e) => setClientSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
           />
           {clientSearch && (
@@ -124,41 +151,59 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
           )}
         </div>
 
-        {/* View Toggle */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex gap-1">
-          <button
-            onClick={() => setCurrentView('table')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-              currentView === 'table'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Table className="w-4 h-4" />
-            Tabela
-          </button>
-          <button
-            onClick={() => setCurrentView('timeline')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-              currentView === 'timeline'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Clock className="w-4 h-4" />
-            Timeline
-          </button>
-          <button
-            onClick={() => setCurrentView('split')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-              currentView === 'split'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Columns className="w-4 h-4" />
-            Split
-          </button>
+        <div className="flex items-center gap-3">
+          {/* Items per page selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Pokaż:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+              className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* View Toggle */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex gap-1">
+            <button
+              onClick={() => setCurrentView('table')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                currentView === 'table'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Table className="w-4 h-4" />
+              Tabela
+            </button>
+            <button
+              onClick={() => setCurrentView('timeline')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                currentView === 'timeline'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+              Timeline
+            </button>
+            <button
+              onClick={() => setCurrentView('split')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                currentView === 'split'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Columns className="w-4 h-4" />
+              Split
+            </button>
+          </div>
         </div>
       </div>
 
@@ -197,7 +242,7 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
         <>
           {currentView === 'table' && (
             <TableView
-              messages={filteredMessages}
+              messages={paginatedMessages}
               expandedRows={expandedRows}
               toggleRow={toggleRow}
             />
@@ -207,10 +252,70 @@ export default function HistoriaViews({ messages, groupedHistory }: HistoriaView
           )}
           {currentView === 'split' && (
             <SplitView
-              messages={filteredMessages}
+              messages={paginatedMessages}
               selectedMessage={selectedMessage}
               setSelectedMessage={setSelectedMessage}
             />
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+              <div className="text-sm text-gray-600">
+                Pokazuje <span className="font-semibold">{startIndex + 1}</span> - <span className="font-semibold">{Math.min(endIndex, filteredMessages.length)}</span> z <span className="font-semibold">{filteredMessages.length}</span> wiadomości
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Pierwsza strona"
+                >
+                  <ChevronsLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Poprzednia strona"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-1 px-2">
+                  <span className="text-sm text-gray-600">Strona</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const page = parseInt(e.target.value);
+                      if (page >= 1 && page <= totalPages) {
+                        setCurrentPage(page);
+                      }
+                    }}
+                    className="w-14 px-2 py-1 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <span className="text-sm text-gray-600">z {totalPages}</span>
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Następna strona"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Ostatnia strona"
+                >
+                  <ChevronsRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
         </>
       )}
