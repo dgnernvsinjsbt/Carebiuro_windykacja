@@ -86,6 +86,16 @@ export async function GET() {
     const windykacjaMainPageV1 = clientsMainPage.filter(c => parseWindykacja(c.note)); // ClientsTable uses this
     const windykacjaMainPageV2 = clientsMainPage.filter(c => parseClientFlags(c.note).windykacja === true);
 
+    // Find clients that are in debug (anon) but NOT in mainpage (service) - these are the missing 12
+    const debugIds = new Set(windykacjaDebug.map(c => c.id));
+    const mainpageIds = new Set(windykacjaMainPageV1.map(c => c.id));
+    const missingInMainpage = windykacjaDebug.filter(c => !mainpageIds.has(c.id));
+
+    // Compare note field for a specific missing client
+    const missingClientId = missingInMainpage[0]?.id;
+    const clientDebug = clientsDebug.find(c => c.id === missingClientId);
+    const clientMainpage = clientsMainPage.find(c => c.id === missingClientId);
+
     return NextResponse.json({
       total_in_db: count,
 
@@ -100,6 +110,17 @@ export async function GET() {
         fetched: clientsMainPage.length,
         windykacja_parseWindykacja: windykacjaMainPageV1.length,
         windykacja_parseClientFlags: windykacjaMainPageV2.length,
+      },
+
+      // MISSING CLIENTS - in anon but not in service
+      missing_clients: {
+        count: missingInMainpage.length,
+        ids: missingInMainpage.map(c => c.id),
+        first_missing: missingClientId ? {
+          id: missingClientId,
+          note_anon: clientDebug?.note,
+          note_service: clientMainpage?.note,
+        } : null,
       },
 
       // Sample from main page method with parseWindykacja (what ClientsTable uses)
