@@ -57,7 +57,11 @@ export async function GET() {
       total_clients_fetched: allClients.length,
       total_in_db: count,
       windykacja_enabled: windykacjaClients.length,
-      sample_windykacja: windykacjaClients.slice(0, 10).map(c => ({ id: c.id, name: c.name })),
+      sample_windykacja: windykacjaClients.slice(0, 10).map(c => ({
+        id: c.id,
+        name: c.name,
+        note_preview: c.note?.substring(0, 100) || null
+      })),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
