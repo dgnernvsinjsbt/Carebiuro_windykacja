@@ -99,6 +99,13 @@ export async function GET() {
     return NextResponse.json({
       total_in_db: count,
 
+      // Environment info
+      env: {
+        supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 40) + '...',
+        has_service_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        service_key_prefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 50) + '...',
+      },
+
       // Debug method (anon key, select id,name,note)
       debug_method: {
         fetched: clientsDebug.length,
