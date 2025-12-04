@@ -539,12 +539,36 @@ serve(async (req) => {
 
       console.log(`[Sync] ✓ Calculated totals for ${clientTotalsMap.size} clients, updating...`)
 
-      // Fetch existing clients to preserve their data
-      const { data: existingClients } = await supabase
-        .from('clients')
-        .select('*')
+      // Fetch ALL existing clients with pagination (Supabase default limit is 1000)
+      const existingClients: any[] = []
+      const pageSize = 1000
+      let offset = 0
+      let hasMoreClients = true
 
-      const clientsToUpdate: Client[] = (existingClients || []).map((client: any) => {
+      while (hasMoreClients) {
+        const { data: clientPage, error: fetchError } = await supabase
+          .from('clients')
+          .select('*')
+          .range(offset, offset + pageSize - 1)
+          .order('id', { ascending: true })
+
+        if (fetchError) {
+          console.error('[Sync] Error fetching clients page:', fetchError)
+          break
+        }
+
+        if (clientPage && clientPage.length > 0) {
+          existingClients.push(...clientPage)
+          offset += pageSize
+          hasMoreClients = clientPage.length === pageSize
+        } else {
+          hasMoreClients = false
+        }
+      }
+
+      console.log(`[Sync] Fetched ${existingClients.length} existing clients for update`)
+
+      const clientsToUpdate: Client[] = existingClients.map((client: any) => {
         const nameData = clientNamesMap.get(client.id)
         return {
           ...client,

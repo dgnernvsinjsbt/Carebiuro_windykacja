@@ -24,20 +24,37 @@ export async function POST(request: NextRequest) {
     const fakturowniaClients = await fakturowniaApi.fetchAllClients();
     console.log(`[SyncClientNotes] Fetched ${fakturowniaClients.length} clients from Fakturownia`);
 
-    // Pobierz wszystkich klientów z Supabase
-    const { data: supabaseClients, error: supabaseError } = await supabaseAdmin()
-      .from('clients')
-      .select('id, note');
+    // Pobierz WSZYSTKICH klientów z Supabase (z paginacją - limit domyślny to 1000)
+    const supabaseClients: Array<{ id: number; note: string | null }> = [];
+    const pageSize = 1000;
+    let offset = 0;
+    let hasMore = true;
 
-    if (supabaseError || !supabaseClients) {
-      console.error('[SyncClientNotes] Error fetching clients from Supabase:', supabaseError);
-      return NextResponse.json(
-        { success: false, error: 'Error fetching clients from Supabase' },
-        { status: 500 }
-      );
+    while (hasMore) {
+      const { data: clientPage, error: pageError } = await supabaseAdmin()
+        .from('clients')
+        .select('id, note')
+        .range(offset, offset + pageSize - 1)
+        .order('id', { ascending: true });
+
+      if (pageError) {
+        console.error('[SyncClientNotes] Error fetching clients page:', pageError);
+        return NextResponse.json(
+          { success: false, error: 'Error fetching clients from Supabase' },
+          { status: 500 }
+        );
+      }
+
+      if (clientPage && clientPage.length > 0) {
+        supabaseClients.push(...clientPage);
+        offset += pageSize;
+        hasMore = clientPage.length === pageSize;
+      } else {
+        hasMore = false;
+      }
     }
 
-    console.log(`[SyncClientNotes] Fetched ${supabaseClients.length} clients from Supabase`);
+    console.log(`[SyncClientNotes] Fetched ${supabaseClients.length} clients from Supabase (paginated)`);
 
     // Stwórz mapę: clientId → note (z Fakturowni)
     const clientNotesMap = new Map<number, string>();
