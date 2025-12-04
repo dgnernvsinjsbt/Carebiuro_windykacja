@@ -122,27 +122,6 @@ interface Client {
   total_unpaid: number
 }
 
-// Helper: Send SMS notification
-async function sendSMS(message: string, smsFrom: string, smsToken: string) {
-  try {
-    const formData = new URLSearchParams()
-    formData.append('from', smsFrom)
-    formData.append('to', '+48536214664')
-    formData.append('msg', message)
-
-    await fetch('https://api2.smsplanet.pl/sms', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer ${smsToken}`,
-      },
-      body: formData.toString(),
-    })
-  } catch (error) {
-    console.error('[Sync] SMS alert failed:', error)
-  }
-}
-
 // Helper: Fakturownia API request
 async function fakturowniaRequest<T>(endpoint: string, fakturowniaApiToken: string): Promise<T> {
   // Add api_token as query parameter (not header!)
@@ -223,8 +202,6 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const fakturowniaApiToken = Deno.env.get('FAKTUROWNIA_API_TOKEN')!
-    const smsFrom = Deno.env.get('SMSPLANET_FROM') || 'Cbb-Office'
-    const smsToken = Deno.env.get('SMSPLANET_API_TOKEN')!
 
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -592,13 +569,6 @@ serve(async (req) => {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)
     console.log(`[Sync] Synchronization complete in ${duration}s`)
 
-    // Send success SMS
-    await sendSMS(
-      `FULL SYNC COMPLETE! ${totalInvoices} invoices, ${totalClients} clients in ${duration}s`,
-      smsFrom,
-      smsToken
-    )
-
     return new Response(
       JSON.stringify({
         success: true,
@@ -612,19 +582,6 @@ serve(async (req) => {
     )
   } catch (error: any) {
     console.error('[Sync] Error:', error)
-
-    // Send SMS alert on failure
-    try {
-      const smsFrom = Deno.env.get('SMSPLANET_FROM') || 'Cbb-Office'
-      const smsToken = Deno.env.get('SMSPLANET_API_TOKEN')!
-      await sendSMS(
-        `FULL SYNC FAILED: ${error.message.slice(0, 120)}`,
-        smsFrom,
-        smsToken
-      )
-    } catch (smsError) {
-      console.error('[Sync] SMS alert failed:', smsError)
-    }
 
     return new Response(
       JSON.stringify({
