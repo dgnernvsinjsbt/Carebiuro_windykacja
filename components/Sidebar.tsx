@@ -1,13 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        toast.success('Wylogowano pomyślnie');
+        router.push('/login');
+        router.refresh();
+      } else {
+        toast.error('Błąd podczas wylogowania');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Błąd połączenia z serwerem');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col relative">
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
@@ -161,6 +190,34 @@ export default function Sidebar() {
           Szablony
         </Link>
       </nav>
+
+      {/* Logout Button - Fixed at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+        <button
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="
+            w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+            text-red-700 hover:bg-red-50 font-medium
+            disabled:opacity-50 disabled:cursor-not-allowed
+          "
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+          {isLoggingOut ? 'Wylogowywanie...' : 'Wyloguj'}
+        </button>
+      </div>
     </div>
   );
 }
