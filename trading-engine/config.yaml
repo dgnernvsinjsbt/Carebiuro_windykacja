@@ -1,0 +1,142 @@
+# Trading Engine Configuration
+
+# Trading Configuration
+trading:
+  enabled: false  # Set to true for live trading
+  testnet: true   # Use testnet for testing
+
+  symbols:
+    - FARTCOINUSDT
+
+  strategies:
+    multi_timeframe_long:
+      enabled: true
+      base_risk_pct: 1.0
+      max_risk_pct: 3.0
+      max_positions: 1
+
+      # Strategy parameters (from backtest)
+      body_threshold: 1.2        # Min body % for entry
+      volume_multiplier: 3.0     # Min volume surge
+      wick_threshold: 0.35       # Max wick as % of body
+      rsi_long_min: 45           # Min RSI for long
+      stop_atr_mult: 3.0         # Stop loss distance (ATR)
+      target_atr_mult: 12.0      # Take profit distance (ATR)
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: true    # Enable trailing stops
+      use_partial_exits: true    # Enable partial profit taking
+      max_hold_hours: 24         # Max time in trade
+
+      # 5-min filter
+      rsi_5min_min: 57           # Min 5-min RSI for entry
+      distance_from_sma: 0.6     # Min % distance from 50 SMA
+
+    trend_distance_short:
+      enabled: true
+      base_risk_pct: 1.5
+      max_risk_pct: 4.0
+      max_positions: 1
+
+      # Strategy parameters
+      body_threshold: 1.2        # Min body % for entry
+      volume_multiplier: 3.0     # Min volume surge
+      wick_threshold: 0.35       # Max wick as % of body
+      rsi_short_min: 25          # Min RSI for short
+      rsi_short_max: 55          # Max RSI for short
+      stop_atr_mult: 3.0         # Stop loss distance (ATR)
+      target_atr_mult: 15.0      # Take profit distance (ATR)
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: true    # Enable trailing stops
+      use_partial_exits: true    # Enable partial profit taking
+      max_hold_hours: 24         # Max time in trade
+
+      # Trend filter
+      distance_from_50sma: 2.0   # Min % below 50 SMA
+      below_200sma: true         # Must be below 200 SMA
+
+  risk_management:
+    max_portfolio_risk: 5.0     # % of account
+    max_drawdown: 10.0          # % before emergency stop
+    cooldown_after_loss: 60     # minutes
+    max_consecutive_losses: 3   # Stop after N losses
+    max_daily_loss_pct: 5.0     # Max daily loss %
+    max_position_size_pct: 40   # Max % of capital per position
+
+# Data Feed
+data:
+  provider: binance  # binance, coinbase, etc.
+  websocket_url: wss://stream.binance.com:9443/ws
+  rest_api_url: https://api.binance.com/api/v3
+
+  candle_interval: 1m
+  buffer_size: 300  # Keep last 300 candles
+
+  # Data validation
+  max_price_change_pct: 20.0   # Flag if price changes > 20%
+  min_volume_threshold: 100    # Min volume per candle
+
+  # Reconnection
+  reconnect_attempts: 5
+  reconnect_delay_seconds: 5
+  max_reconnect_delay: 60
+
+# BingX API (to be filled)
+bingx:
+  api_key: YOUR_API_KEY_HERE
+  api_secret: YOUR_API_SECRET_HERE
+  testnet: true
+  base_url: https://open-api.bingx.com
+
+  # Rate limiting
+  requests_per_minute: 1200
+
+  # Leverage
+  default_leverage: 1  # 1x = spot, >1 = margin
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  console_output: true
+  file_output: true
+  file_path: ./logs/trading-engine.log
+  max_size_mb: 50
+  backup_count: 5
+
+  # Structured logging format
+  json_format: false  # Set true for production
+
+  # Performance dashboard
+  dashboard_interval_minutes: 60  # Print status every N minutes
+
+# Database
+database:
+  type: sqlite  # or postgresql
+  path: ./data/trades.db
+
+  # For PostgreSQL (uncomment and configure):
+  # host: localhost
+  # port: 5432
+  # database: trading
+  # user: trader
+  # password: secret
+
+  # Performance
+  echo: false  # Set true to see SQL queries
+  pool_size: 5
+  max_overflow: 10
+
+# Safety Features
+safety:
+  dry_run: true  # Log signals without executing trades
+
+  # Emergency stop
+  stop_file: ./STOP  # Create this file to halt trading
+  emergency_stop_enabled: true
+
+  # Pre-flight checks
+  min_account_balance: 100.0  # Min USDT balance to trade
+  check_existing_positions: true
+
+  # Graceful shutdown
+  close_positions_on_shutdown: false  # Close all positions on SIGTERM
+  max_shutdown_wait_seconds: 30
