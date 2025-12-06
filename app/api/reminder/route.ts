@@ -46,6 +46,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 1b. Validate invoice is not canceled
+    if (invoice.kind === 'canceled') {
+      console.error(`[Reminder] ❌ Cannot send reminder for canceled invoice ${invoice_id}`);
+      return NextResponse.json(
+        { success: false, error: 'Nie można wysłać przypomnienia dla anulowanej faktury' },
+        { status: 400 }
+      );
+    }
+
     // 2. Send notification
     if (type === 'sms') {
       // Send SMS directly via SMS Planet API (using template from message_templates)
