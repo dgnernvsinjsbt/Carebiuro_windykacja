@@ -1,0 +1,20 @@
+[Unit]
+Description=Crypto Trading Engine
+After=network.target
+
+[Service]
+Type=simple
+User=trader
+WorkingDirectory=/path/to/trading-engine
+ExecStart=/path/to/trading-engine/run.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
