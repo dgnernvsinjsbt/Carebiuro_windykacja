@@ -1,0 +1,1213 @@
+📊 RAPORT WINDYKACJA
+
+================================================================================
+
+✅ Znaleziono 70 klientów z flagą windykacja=true
+
+
+📈 STATYSTYKI:
+================================================================================
+Klienci windykacja:           70
+Nieopłacone faktury:          492
+Kwota do odzyskania:          77374.81 PLN
+Faktury bez wysyłki:          87
+
+
+📋 SZCZEGÓŁY KLIENTÓW:
+================================================================================
+
+👤 Adam Cecelski (ID: 113906677)
+   Email: adamcecelski01@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1255.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2024/07/001324 | 2024-07-31 | 1255.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adam Czechowski (ID: 186777511)
+   Email: adam.czechowski12@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 731.08 PLN
+
+   📄 Nieopłacone faktury (6):
+      FP2025/06/001200 | 2025-06-25 | 235.54 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/06/001200 | 2025-06-25 | 235.54 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/001031 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/001088 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/001151 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000042 | 2025-04-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Daniel Krol (ID: 190442900)
+   Email: adam.krol.bau@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1455.00 PLN
+
+   📄 Nieopłacone faktury (7):
+      FP2025/07/001220 | 2025-07-14 | 565.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/07/001220 | 2025-07-14 | 565.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/001059 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/001091 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/001148 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/001234 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/001178 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Fras (ID: 114000321)
+   Email: adamfrasoksa@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 545.00 PLN
+
+   📄 Nieopłacone faktury (2):
+      FP2024/01/001130 | 2024-01-11 | 480.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000277 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Kamil Tkacz (ID: 190187380)
+   Email: adam.tkaczadam@interia.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 1095.00 PLN
+
+   📄 Nieopłacone faktury (6):
+      FP2025/07/001225 | 2025-07-15 | 410.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/07/001225 | 2025-07-15 | 425.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/001049 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/001080 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/001138 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000026 | 2025-05-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Kordek (ID: 116233771)
+   Email: n-nero1991@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 2780.00 PLN
+
+   📄 Nieopłacone faktury (11):
+      FP2025/11/000884 | 2025-11-30 | 1100.00 PLN | ❌ NIE wysłana 
+      FP2024/08/001567 | 2025-08-22 | 580.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/001567 | 2024-08-22 | 580.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000445 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000433 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000409 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000410 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000427 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000506 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000546 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/08/000041 | 2023-08-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 3 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Kudlak (ID: 114009603)
+   Email: coolfrostserwis@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 2960.00 PLN
+
+   📄 Nieopłacone faktury (11):
+      FP2025/11/000885 | 2025-11-30 | 1160.00 PLN | ❌ NIE wysłana 
+      FP2024/01/000271 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000343 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/001043 | 2023-11-08 | 640.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/001043 | 2023-11-08 | 640.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2023/11/000380 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000386 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000346 | 2023-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/08/000487 | 2023-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000751 | 2023-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000299 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 3 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Lendzioszek (ID: 114162494)
+   Email: adamlendzioszek@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/07/000397 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Lis (ID: 209540998)
+   Email: adamlisu@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 130.00 PLN
+
+   📄 Nieopłacone faktury (2):
+      FP2025/12/000775 | 2025-12-01 | 65.00 PLN | ✅ Wysłana 
+      FP2025/11/000809 | 2025-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adam Metelski (ID: 121854450)
+   Email: metelskiadam@interia.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 260.00 PLN
+
+   📄 Nieopłacone faktury (4):
+      FP2025/12/000671 | 2025-12-01 | 65.00 PLN | ✅ Wysłana 
+      FP2025/11/000704 | 2025-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/001055 | 2025-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000002 | 2023-11-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Miskiewicz (ID: 123074807)
+   Email: adammiskiewicz33@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/10/000919 | 2023-10-02 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adam Mizerski (ID: 114005568)
+   Email: adamwawa22@o2.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 780.00 PLN
+
+   📄 Nieopłacone faktury (6):
+      FP2025/04/001175 | 2025-04-02 | 260.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001175 | 2025-04-02 | 260.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000265 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000245 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000229 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000292 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Niezgoda (ID: 116513715)
+   Email: niezgodaadam69@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/08/000098 | 2023-08-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Nowakowski (ID: 114912361)
+   Email: xadamx176@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 130.00 PLN
+
+   📄 Nieopłacone faktury (2):
+      FP2025/12/000105 | 2025-12-01 | 65.00 PLN | ✅ Wysłana 
+      FP2024/02/000393 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adam Olkowicz (ID: 148631882)
+   Email: adamolkowicz_gmbh@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/06/000599 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adam Pazdzior (ID: 121857925)
+   Email: daskokekehd@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 3275.00 PLN
+
+   📄 Nieopłacone faktury (16):
+      FP2024/09/000500 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001568 | 2024-08-22 | 1095.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+       FP2024/08/001568 | 2024-08-22 | 1095.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/000537 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000528 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000534 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000621 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000614 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000611 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000628 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/001244 | 2024-01-19 | 240.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000670 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000757 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000795 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000813 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000028 | 2023-10-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Sorzycki (ID: 113629763)
+   Email: adamsorzycki@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 130.00 PLN
+
+   📄 Nieopłacone faktury (2):
+      FP2024/06/000224 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000286 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Stanislaw Lewandowski (ID: 153849351)
+   Email: adamlewandowski86@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/11/000399 | 2025-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adam Tadeusz Wasilowicz (ID: 113974359)
+   Email: j.franczok@gmx.net
+   Telefon: BRAK
+   Kwota do zapłaty: 4515.00 PLN
+
+   📄 Nieopłacone faktury (19):
+      FP2024/09/000448 | 2024-09-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/001570 | 2024-08-22 | 115.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/001570 | 2024-08-22 | 115.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/001569 | 2024-08-22 | 1655.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/001569 | 2024-08-22 | 1655.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/000478 | 2024-08-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/07/000469 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000469 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000553 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000544 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000537 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000547 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000579 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000664 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000703 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000719 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000693 | 2023-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/08/000839 | 2023-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000246 | 2023-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 6 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Wawrzyniak (ID: 118952314)
+   Email: adamww1980@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 1870.00 PLN
+
+   📄 Nieopłacone faktury (16):
+      FP2024/09/000458 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000491 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000482 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000482 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000567 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000558 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000551 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/001052 | 2024-02-07 | 480.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/02/001052 | 2024-02-07 | 480.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000562 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000597 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000682 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000722 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000738 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000709 | 2023-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000023 | 2023-09-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adam Wilczek (ID: 129131873)
+   Email: wilczekadam9@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1230.00 PLN
+
+   📄 Nieopłacone faktury (8):
+      FP2025/04/001176 | 2025-04-02 | 420.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001176 | 2025-04-02 | 420.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000899 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000906 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000937 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/001004 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/001084 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000101 | 2023-12-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Astachow (ID: 139347048)
+   Email: adrlisowski8@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1520.00 PLN
+
+   📄 Nieopłacone faktury (8):
+      FP2025/09/000367 | 2025-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/001161 | 2025-08-14 | 565.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/08/001161 | 2025-08-14 | 565.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/000443 | 2025-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000483 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000484 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000507 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000543 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Bakalarz (ID: 144121031)
+   Email: adrian.bakalarz00@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 3010.00 PLN
+
+   📄 Nieopłacone faktury (18):
+      FP2025/07/000563 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000566 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000594 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/001177 | 2025-04-02 | 985.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001177 | 2025-04-02 | 985.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000633 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000650 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000661 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000775 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000815 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000889 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000929 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/001022 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001097 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/001124 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/001140 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/001246 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000090 | 2024-05-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Chrabaszczewski (ID: 149114807)
+   Email: adriannn1221@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 2585.00 PLN
+
+   📄 Nieopłacone faktury (13):
+      FP2025/04/001178 | 2025-04-03 | 935.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001178 | 2025-04-03 | 935.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000688 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000708 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000721 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000850 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000888 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000964 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/001013 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/001110 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001190 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/001220 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000054 | 2024-06-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Franczak (ID: 127304106)
+   Email: adrian.franciz@icloud.com
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/12/000042 | 2023-12-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Hetka (ID: 122639693)
+   Email: adri444@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 3940.00 PLN
+
+   📄 Nieopłacone faktury (24):
+      FP2025/08/000263 | 2025-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000294 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000287 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000303 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000334 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000333 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000345 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000461 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000491 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000549 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001571 | 2024-08-24 | 1255.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/08/001571 | 2024-08-22 | 1255.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000591 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000586 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000591 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000684 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000680 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000676 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000701 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000754 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000837 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000879 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000895 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000112 | 2023-10-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Izydor Zwolik (ID: 164543571)
+   Email: adrianzwoli@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1585.00 PLN
+
+   📄 Nieopłacone faktury (9):
+      FP2025/04/001179 | 2025-04-03 | 565.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001179 | 2025-04-03 | 565.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000934 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000959 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000989 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/001137 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/001183 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/001272 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000031 | 2024-11-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Mostek (ID: 113743157)
+   Email: adrianmostek88@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/09/000026 | 2023-09-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Piskula (ID: 136422702)
+   Email: apiskula076@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1085.00 PLN
+
+   📄 Nieopłacone faktury (7):
+      FP2024/08/001572 | 2024-08-22 | 695.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000870 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000885 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000893 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000998 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/001007 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/001019 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adrian Rolbiecki (ID: 114011527)
+   Email: arolbiecki02@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 4385.00 PLN
+
+   📄 Nieopłacone faktury (21):
+      FP2025/04/001180 | 2025-04-03 | 1575.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001180 | 2025-04-03 | 1575.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000138 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000134 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000141 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000144 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000176 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000203 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000214 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000241 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000272 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000252 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000237 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000313 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000294 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000270 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000266 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000277 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000348 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000386 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000306 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Wincenty Czarnik (ID: 159710979)
+   Email: alicjamrowiec@workforsuccess.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 1790.00 PLN
+
+   📄 Nieopłacone faktury (10):
+      FP2025/04/001181 | 2025-04-03 | 635.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001181 | 2025-04-03 | 635.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000876 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000900 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000926 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/001070 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/001117 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/001203 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/001267 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000023 | 2024-10-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Adrian Wojcik (ID: 123593702)
+   Email: adrianwojcik1105@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 855.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2024/08/001573 | 2024-08-22 | 855.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Adrian Wysocki (ID: 141566031)
+   Email: adekwys88@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 2200.00 PLN
+
+   📄 Nieopłacone faktury (12):
+      FP2025/04/001182 | 2025-04-03 | 775.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001182 | 2025-04-03 | 775.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000555 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000566 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000577 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000670 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000708 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000773 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000804 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000889 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000953 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000035 | 2024-04-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Agnieszka Kancelarczyk (ID: 142763952)
+   Email: krystyna.riekes@t-online.de
+   Telefon: BRAK
+   Kwota do zapłaty: 90.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2024/06/001248 | 2024-06-26 | 90.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Agnieszka Rozmus (ID: 192213656)
+   Email: agnieszkarozmus@hotmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 590.03 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/05/001162 | 2025-05-08 | 590.03 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Ala Krotki (ID: 198267631)
+   Email: alawec460@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1130.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/06/001193 | 2025-06-24 | 1130.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Ala Wolska (ID: 184667664)
+   Email: wolska.ala.67@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 760.04 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/03/001157 | 2025-03-10 | 760.04 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Alan Modrzyk (ID: 113909137)
+   Email: alanmodrzyk1@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 3195.00 PLN
+
+   📄 Nieopłacone faktury (29):
+      FP2025/08/000074 | 2025-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000092 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000073 | 2025-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000079 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000100 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000092 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000097 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000083 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000113 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000134 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000138 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000155 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000180 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000156 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000138 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000212 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000189 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000164 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/001053 | 2024-02-07 | 720.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+       FP2024/02/001053 | 2024-02-07 | 720.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/02/000153 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000155 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000224 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000259 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000258 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000208 | 2023-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/08/000348 | 2023-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000607 | 2023-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000151 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Aleksander Klimowicz (ID: 123949459)
+   Email: olekklimowicz@op.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/11/000062 | 2023-11-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Aleksander Warda (ID: 113684847)
+   Email: owarda@outlook.com
+   Telefon: BRAK
+   Kwota do zapłaty: 480.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2024/02/001054 | 2024-02-07 | 480.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Aleksander Wirtel (ID: 197489239)
+   Email: janusz.wirtelspoczko@o2.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 920.08 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/06/001171 | 2025-06-17 | 920.08 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Aleksandra Kapala (ID: 173168201)
+   Email: okapala4@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 412.58 PLN
+
+   📄 Nieopłacone faktury (7):
+      FP2025/11/000886 | 2025-11-30 | 206.29 PLN | ❌ NIE wysłana 
+      FP2025/11/000512 | 2025-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/10/000500 | 2025-10-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/09/000659 | 2025-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/000796 | 2025-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000903 | 2025-06-01 | 23.78 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/001011 | 2025-04-01 | 22.51 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Aleksandra Mackowiak-Radeberg (ID: 127661947)
+   Email: olamara2245@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 600.00 PLN
+
+   📄 Nieopłacone faktury (15):
+      INVOICE_OTHER2025/12/000002 | 2025-12-01 | 40.00 PLN | ✅ Wysłana 
+      INVOICE_OTHER2025/11/000002 | 2025-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/000333 | 2025-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000368 | 2025-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000364 | 2025-06-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000384 | 2025-05-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000415 | 2025-04-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000419 | 2025-03-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000432 | 2025-02-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000494 | 2025-01-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000526 | 2024-12-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000583 | 2024-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000616 | 2024-10-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000686 | 2024-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000002 | 2024-01-01 | 40.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Aleksandra Malgorzata Wlodarczyk (ID: 219148210)
+   Email: a.margarettewlodarczyk@gmail.com
+   Telefon: +48786465547
+   Kwota do zapłaty: 40.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/12/000848 | 2025-12-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Aleksandra Oleksiak (ID: 114180584)
+   Email: ola295@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 1545.00 PLN
+
+   📄 Nieopłacone faktury (13):
+      FP2025/09/001324 | 2025-09-20 | 635.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/04/001171 | 2025-04-02 | 470.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000192 | 2025-04-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000189 | 2025-03-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000196 | 2025-02-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000205 | 2025-01-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000237 | 2024-12-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000269 | 2024-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000319 | 2024-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000349 | 2024-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000334 | 2024-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000872 | 2023-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000421 | 2023-07-01 | 40.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Aleksandra Pusdrowska (ID: 198718703)
+   Email: pusdrowska.aleksandra1997@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 80.00 PLN
+
+   📄 Nieopłacone faktury (2):
+      FP2025/12/000639 | 2025-12-01 | 40.00 PLN | ✅ Wysłana 
+      FP2025/11/000671 | 2025-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Aleksandra Stopaj (ID: 192208059)
+   Email: mstopaj@interia.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 470.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/05/001160 | 2025-05-08 | 470.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Alicja Ogloza (ID: 118212484)
+   Email: ogloza0505@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1770.00 PLN
+
+   📄 Nieopłacone faktury (27):
+      FP2025/08/000218 | 2025-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000246 | 2025-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000238 | 2025-06-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000250 | 2025-05-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000280 | 2025-04-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000276 | 2025-03-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000288 | 2025-02-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000308 | 2025-01-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000342 | 2024-12-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000381 | 2024-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000401 | 2024-10-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000451 | 2024-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000483 | 2024-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000473 | 2024-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000473 | 2024-06-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000558 | 2024-05-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000549 | 2024-04-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000542 | 2024-03-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/001056 | 2024-02-07 | 385.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/02/001056 | 2024-02-07 | 385.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000552 | 2024-02-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000586 | 2024-01-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000670 | 2023-12-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000709 | 2023-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000725 | 2023-10-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000698 | 2023-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000012 | 2023-09-01 | 40.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Ogonowski (ID: 118952570)
+   Email: andrzej.01984@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 325.00 PLN
+
+   📄 Nieopłacone faktury (5):
+      FP2024/01/000598 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000683 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000723 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000739 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000024 | 2023-09-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Piszczek (ID: 145999186)
+   Email: andrzejpiszczek73@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 860.00 PLN
+
+   📄 Nieopłacone faktury (6):
+      FP2024/12/001290 | 2024-12-04 | 300.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+       FP2024/12/001290 | 2024-12-04 | 300.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/10/000957 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/001051 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001129 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/001156 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Sadkowski (ID: 139436128)
+   Email: fillyfischi@hotmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1170.00 PLN
+
+   📄 Nieopłacone faktury (6):
+      FP2025/11/000887 | 2025-11-30 | 455.00 PLN | ❌ NIE wysłana 
+      FP2025/05/001177 | 2025-05-13 | 260.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/001177 | 2025-05-13 | 260.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/05/000577 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000615 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000630 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Stachura (ID: 119874876)
+   Email: andrzejstachura@onet.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 65.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2023/09/000061 | 2023-09-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Szablowski (ID: 198042191)
+   Email: aszablowski119@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1155.00 PLN
+
+   📄 Nieopłacone faktury (8):
+      FP2025/12/000883 | 2025-12-03 | 700.00 PLN | ❌ NIE wysłana 
+      FP2025/12/000655 | 2025-12-01 | 65.00 PLN | ✅ Wysłana 
+      FP2025/11/000687 | 2025-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/10/000684 | 2025-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/09/000872 | 2025-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/001038 | 2025-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000048 | 2025-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/07/001163 | 2025-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Tutka (ID: 114119721)
+   Email: frutek077@icloud.com
+   Telefon: BRAK
+   Kwota do zapłaty: 3380.00 PLN
+
+   📄 Nieopłacone faktury (22):
+      FP2025/01/000169 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000201 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000232 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000244 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000277 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000309 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000290 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000274 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000351 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000334 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000309 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000306 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000318 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/001122 | 2023-12-29 | 1040.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2023/12/001122 | 2023-12-29 | 1040.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000391 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000431 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000437 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/09/000400 | 2023-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/08/000542 | 2023-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000807 | 2023-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000356 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Tysiac (ID: 151042767)
+   Email: andrzejtysiac83@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 2545.00 PLN
+
+   📄 Nieopłacone faktury (13):
+      FP2025/05/001178 | 2025-05-13 | 915.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/05/001178 | 2025-05-13 | 915.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000666 | 2025-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/04/000710 | 2025-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000731 | 2025-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000743 | 2025-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000875 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000915 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000991 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/001044 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/001140 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001222 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000042 | 2024-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Waclaw Filipiak (ID: 187669834)
+   Email: andrzejfilipiak760@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 425.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2025/04/001166 | 2025-04-02 | 425.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Andrzej Werner (ID: 171741638)
+   Email: rudolf197619w@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 580.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2024/12/001276 | 2024-12-03 | 580.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Aneta Bernecka (ID: 114150165)
+   Email: aneta.bernecka@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 1225.00 PLN
+
+   📄 Nieopłacone faktury (14):
+      FP2025/09/001072 | 2025-09-19 | 725.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/09/000095 | 2025-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/08/000128 | 2025-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/07/000151 | 2025-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/06/000138 | 2025-06-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/05/000149 | 2025-05-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/03/000172 | 2025-03-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000179 | 2025-02-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000187 | 2025-01-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000219 | 2024-12-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000250 | 2024-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000264 | 2024-10-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000300 | 2024-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000330 | 2024-08-01 | 20.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Aneta Justyna Gorgon (ID: 208301418)
+   Email: aneta.t@op.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 160.00 PLN
+
+   📄 Nieopłacone faktury (3):
+      FP2025/12/000885 | 2025-12-03 | 80.00 PLN | ❌ NIE wysłana 
+      FP2025/12/000744 | 2025-12-01 | 40.00 PLN | ✅ Wysłana 
+      FP2025/11/000777 | 2025-11-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Anita Jolanta Kielar (ID: 113800663)
+   Email: anita.kielar@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 305.00 PLN
+
+   📄 Nieopłacone faktury (4):
+      FP2025/12/000884 | 2025-12-03 | 185.00 PLN | ❌ NIE wysłana 
+      FP2023/09/000126 | 2023-09-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/08/000259 | 2023-08-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000514 | 2023-07-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Arkadiusz Maciejewski (ID: 116545254)
+   Email: arkadiusz.maciejewski1984@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 780.00 PLN
+
+   📄 Nieopłacone faktury (12):
+      FP2024/08/000583 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000577 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000582 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000675 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000671 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000666 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/000690 | 2024-02-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/000742 | 2024-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/12/000826 | 2023-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/11/000868 | 2023-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000883 | 2023-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000099 | 2023-10-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Arkadiusz Nyka (ID: 189888994)
+   Email: nyka.arek13@wp.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 260.00 PLN
+
+   📄 Nieopłacone faktury (4):
+      FP2025/12/000564 | 2025-12-01 | 65.00 PLN | ✅ Wysłana 
+      FP2025/11/000588 | 2025-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/10/000583 | 2025-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/09/000763 | 2025-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Arkadiusz Sliwa (ID: 144057111)
+   Email: ai.transport@ogarnij.se
+   Telefon: BRAK
+   Kwota do zapłaty: 495.00 PLN
+
+   📄 Nieopłacone faktury (1):
+      FP2024/08/001542 | 2024-08-20 | 495.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+   ---------------------------------------------------------------------------
+
+👤 Arkadiusz Suchodolski (ID: 143991128)
+   Email: areksu38@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 1605.00 PLN
+
+   📄 Nieopłacone faktury (11):
+      FP2025/01/001283 | 2025-01-29 | 510.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/01/001283 | 2025-01-29 | 510.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/01/000754 | 2025-01-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/12/000792 | 2024-12-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/11/000863 | 2024-11-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/000899 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000992 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/001062 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/001084 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000046 | 2024-05-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/04/001205 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Artur Idzi (ID: 114162900)
+   Email: artur.idzi@onet.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 580.00 PLN
+
+   📄 Nieopłacone faktury (5):
+      FP2024/05/000379 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/04/000364 | 2024-04-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/03/000340 | 2024-03-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/02/001164 | 2024-02-21 | 320.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000398 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Artur Krawczyk (ID: 173369022)
+   Email: ar.krawczyk1976@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 270.00 PLN
+
+   📄 Nieopłacone faktury (3):
+      FP2025/04/001188 | 2025-04-04 | 190.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/001073 | 2025-02-01 | 40.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2025/02/000002 | 2025-02-01 | 40.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Bartlomiej Strajch (ID: 113910014)
+   Email: smielyr@gmail.com
+   Telefon: BRAK
+   Kwota do zapłaty: 130.00 PLN
+
+   📄 Nieopłacone faktury (2):
+      FP2023/08/000350 | 2023-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/07/000153 | 2023-07-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 1 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 Kamil Sadkowski (ID: 120243986)
+   Email: kamilsad2@onet.pl
+   Telefon: BRAK
+   Kwota do zapłaty: 1815.00 PLN
+
+   📄 Nieopłacone faktury (10):
+      FP2024/10/001320 | 2024-10-01 | 615.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/10/001320 | 2024-10-01 | 615.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2024/10/000477 | 2024-10-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/09/000529 | 2024-09-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/08/000569 | 2024-08-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/07/000562 | 2024-07-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/06/000567 | 2024-06-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/05/000659 | 2024-05-01 | 65.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2024/01/001068 | 2024-01-08 | 130.00 PLN | ✅ Wysłana ⚠️ PO TERMINIE
+      FP2023/10/000075 | 2023-10-01 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 2 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+👤 test testowski (ID: 211779362)
+   Email: krystian.todoraszko@gmail.com
+   Telefon: 536214664
+   Kwota do zapłaty: 546.00 PLN
+
+   📄 Nieopłacone faktury (9):
+      FP2025/10/000851 | 2025-10-10 | 66.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000849 | 2025-10-10 | 66.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000848 | 2025-10-10 | 77.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000847 | 2025-10-10 | 88.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000846 | 2025-10-10 | 99.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000837 | 2025-10-06 | 10.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000836 | 2025-10-06 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000829 | 2025-10-05 | 10.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+      FP2025/10/000828 | 2025-10-05 | 65.00 PLN | ❌ NIE wysłana ⚠️ PO TERMINIE
+
+   ⚠️  UWAGA: 9 faktur NIE zostało wysłanych!
+   ---------------------------------------------------------------------------
+
+
+🎯 PODSUMOWANIE:
+================================================================================
+
+❌ 48 klientów ma faktury które nie zostały wysłane:
+   - Adam Czechowski: 2 faktur bez wysyłki
+   - Adam Daniel Krol: 1 faktur bez wysyłki
+   - Adam Fras: 1 faktur bez wysyłki
+   - Adam Kamil Tkacz: 2 faktur bez wysyłki
+   - Adam Kordek: 3 faktur bez wysyłki
+   - Adam Kudlak: 3 faktur bez wysyłki
+   - Adam Lendzioszek: 1 faktur bez wysyłki
+   - Adam Metelski: 1 faktur bez wysyłki
+   - Adam Mizerski: 2 faktur bez wysyłki
+   - Adam Niezgoda: 1 faktur bez wysyłki
+   - Adam Pazdzior: 2 faktur bez wysyłki
+   - Adam Sorzycki: 1 faktur bez wysyłki
+   - Adam Tadeusz Wasilowicz: 6 faktur bez wysyłki
+   - Adam Wawrzyniak: 2 faktur bez wysyłki
+   - Adam Wilczek: 2 faktur bez wysyłki
+   - Adrian Astachow: 1 faktur bez wysyłki
+   - Adrian Bakalarz: 2 faktur bez wysyłki
+   - Adrian Chrabaszczewski: 2 faktur bez wysyłki
+   - Adrian Franczak: 1 faktur bez wysyłki
+   - Adrian Hetka: 2 faktur bez wysyłki
+   - Adrian Izydor Zwolik: 2 faktur bez wysyłki
+   - Adrian Mostek: 1 faktur bez wysyłki
+   - Adrian Rolbiecki: 2 faktur bez wysyłki
+   - Adrian Wincenty Czarnik: 2 faktur bez wysyłki
+   - Adrian Wysocki: 2 faktur bez wysyłki
+   - Alan Modrzyk: 2 faktur bez wysyłki
+   - Aleksander Klimowicz: 1 faktur bez wysyłki
+   - Aleksandra Kapala: 1 faktur bez wysyłki
+   - Aleksandra Mackowiak-Radeberg: 1 faktur bez wysyłki
+   - Aleksandra Oleksiak: 2 faktur bez wysyłki
+   - Alicja Ogloza: 2 faktur bez wysyłki
+   - Andrzej Ogonowski: 1 faktur bez wysyłki
+   - Andrzej Piszczek: 1 faktur bez wysyłki
+   - Andrzej Sadkowski: 2 faktur bez wysyłki
+   - Andrzej Stachura: 1 faktur bez wysyłki
+   - Andrzej Szablowski: 2 faktur bez wysyłki
+   - Andrzej Tutka: 2 faktur bez wysyłki
+   - Andrzej Tysiac: 2 faktur bez wysyłki
+   - Aneta Bernecka: 1 faktur bez wysyłki
+   - Aneta Justyna Gorgon: 1 faktur bez wysyłki
+   - Anita Jolanta Kielar: 1 faktur bez wysyłki
+   - Arkadiusz Maciejewski: 1 faktur bez wysyłki
+   - Arkadiusz Suchodolski: 2 faktur bez wysyłki
+   - Artur Idzi: 1 faktur bez wysyłki
+   - Artur Krawczyk: 1 faktur bez wysyłki
+   - Bartlomiej Strajch: 1 faktur bez wysyłki
+   - Kamil Sadkowski: 2 faktur bez wysyłki
+   - test testowski: 9 faktur bez wysyłki
+
+

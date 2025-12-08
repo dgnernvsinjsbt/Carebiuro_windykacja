@@ -1,0 +1,14 @@
+
+XLM/USDT TEST RESULTS
+==================================================
+Strategy: EMA20 Pullback
+SL: 2x ATR | TP: 4x ATR
+
+Trades: 81
+Win Rate: 19.8%
+Total P&L: -93.0%
+Max DD: 93.0%
+R:R Ratio: -1.00
+Final Equity: $70.10
+
+❌ FAIL (Target: R:R >= 2.0, WR >= 50%)

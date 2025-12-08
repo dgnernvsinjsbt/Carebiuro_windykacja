@@ -165,6 +165,12 @@ class BacktestEngine:
                         exit_price = position['target']
                         exit_reason = 'target'
 
+                elif exit_config['type'] == 'fixed_pct':
+                    # Fixed percentage take profit
+                    if row['high'] >= position['target']:
+                        exit_price = position['target']
+                        exit_reason = 'target_pct'
+
                 elif exit_config['type'] == 'trail_atr':
                     # Update highest price
                     position['highest'] = max(position['highest'], row['high'])
@@ -230,6 +236,8 @@ class BacktestEngine:
                 # Calculate target based on exit method
                 if exit_config['type'] == 'fixed_rr':
                     target = fixed_rr_exit(row['close'], row['stop_loss'], exit_config['ratio'])
+                elif exit_config['type'] == 'fixed_pct':
+                    target = row['close'] * (1 + exit_config['target_pct'])
                 else:
                     target = None
 
@@ -259,7 +267,7 @@ class BacktestEngine:
         if len(trades_df) == 0:
             return {
                 'strategy': strategy_name,
-                'exit_method': f"{exit_config['type']}_{exit_config.get('ratio', exit_config.get('multiplier', exit_config.get('candles', '')))}",
+                'exit_method': f"{exit_config['type']}_{exit_config.get('ratio', exit_config.get('multiplier', exit_config.get('candles', exit_config.get('target_pct', ''))))}",
                 'session': f"{session_hours[0]}-{session_hours[1]}" if session_hours else "all",
                 'total_trades': 0,
                 'total_return_pct': 0,
@@ -313,7 +321,7 @@ class BacktestEngine:
 
         return {
             'strategy': strategy_name,
-            'exit_method': f"{exit_config['type']}_{exit_config.get('ratio', exit_config.get('multiplier', exit_config.get('candles', '')))}",
+            'exit_method': f"{exit_config['type']}_{exit_config.get('ratio', exit_config.get('multiplier', exit_config.get('candles', exit_config.get('target_pct', ''))))}",
             'session': f"{session_hours[0]}-{session_hours[1]}" if session_hours else "all",
             'total_trades': total_trades,
             'total_return_pct': round(total_return_pct, 2),

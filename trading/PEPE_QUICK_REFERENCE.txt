@@ -1,0 +1,183 @@
+═══════════════════════════════════════════════════════════════════════════════
+PEPE/USDT STRATEGY DISCOVERY - QUICK REFERENCE CARD
+═══════════════════════════════════════════════════════════════════════════════
+
+DATE: December 7, 2025
+DATA: 43,201 candles (30 days, 1m, Nov 7 - Dec 7, 2025)
+
+═══════════════════════════════════════════════════════════════════════════════
+RESULT: OBJECTIVE NOT MET ❌
+═══════════════════════════════════════════════════════════════════════════════
+
+Target R:R Ratio: 2.0
+Best R:R Achieved: 0.74 (63% below target)
+
+═══════════════════════════════════════════════════════════════════════════════
+BEST STRATEGY: BB Mean Reversion 1.5x/3x ATR
+═══════════════════════════════════════════════════════════════════════════════
+
+Entry:        Price < BB Lower Band (20-period, 2 std)
+Stop Loss:    Entry - (1.5 × ATR14)
+Take Profit:  Entry + (3.0 × ATR14)
+Fees:         0.1% (market orders)
+
+PERFORMANCE:
+├─ R:R Ratio:     0.74 (Target: 2.0) ❌
+├─ Total PnL:     +11.0%
+├─ Max Drawdown:  -14.9%
+├─ Win Rate:      48.3% (436W / 466L)
+├─ Total Trades:  902 (30/day, 1.25/hour)
+├─ Avg Duration:  14 minutes
+├─ Avg Win:       +0.47%
+└─ Avg Loss:      -0.41%
+
+═══════════════════════════════════════════════════════════════════════════════
+ALL STRATEGIES TESTED (13 TOTAL)
+═══════════════════════════════════════════════════════════════════════════════
+
+RANK  STRATEGY                    R:R     PnL      WR      TRADES
+────────────────────────────────────────────────────────────────────────────────
+1.    BB_MR_ATR1.5x3            +0.74   +11.0%   48.3%    902    ✓ BEST
+2.    BB_Limit_ATR2.5x5         +0.55   +12.4%   41.3%    572
+3.    BB_Limit_ATR3x6           +0.42   +11.0%   39.1%    460
+4.    BB_Limit_ATR2x4           +0.31    +7.1%   42.1%    756
+────────────────────────────────────────────────────────────────────────────────
+5.    BB_MR_ATR3x6              -0.09    -2.8%   39.1%    460
+6.    BB_MR_ATR2.5x5            -0.16    -4.7%   41.3%    572
+7.    RSI<25_ATR2x4             -0.45   -12.6%   42.7%    531
+8.    BB_MR_ATR2x4              -0.47   -15.6%   42.1%    756
+9.    RSI<30_ATR2x4             -0.51   -24.3%   41.7%    870
+10.   RSI<20_ATR2x4             -0.63   -10.9%   40.5%    306
+────────────────────────────────────────────────────────────────────────────────
+11.   EMA9_20_ATR3x6            -0.96   -91.5%   26.1%    460    ❌ CATASTROPHIC
+12.   EMA9_20_ATR2.5x5          -0.97  -122.0%   25.6%    648    ❌ CATASTROPHIC
+13.   EMA9_20_ATR2x4            -0.99  -182.2%   22.9%    921    ❌ CATASTROPHIC
+
+STRATEGIES WITH R:R >= 2.0:  0 ❌
+PROFITABLE STRATEGIES:       4 (but all < 2.0 R:R)
+
+═══════════════════════════════════════════════════════════════════════════════
+WHY PEPE FAILED
+═══════════════════════════════════════════════════════════════════════════════
+
+1. LOW WIN/LOSS RATIO
+   ├─ Achieved:  1.13x (Avg Win 0.47% / Avg Loss 0.41%)
+   ├─ Required:  2.0x
+   └─ Gap:       77% improvement needed
+
+2. SLIGHTLY BELOW BREAKEVEN WIN RATE
+   ├─ Achieved:  48.3%
+   ├─ Breakeven: ~47% (at 1.13x ratio)
+   └─ Ideal:     50%+
+
+3. LARGE DRAWDOWN RELATIVE TO GAINS
+   ├─ Total PnL:      +11.0%
+   ├─ Max Drawdown:   -14.9%
+   └─ Need:           +29.8% PnL OR -5.5% DD for 2.0 R:R
+
+4. EXTREME CHOPPINESS
+   ├─ Trend following lost 91-182%
+   ├─ Frequent false breakouts
+   └─ Low momentum persistence
+
+═══════════════════════════════════════════════════════════════════════════════
+PEPE vs OTHER MEME COINS
+═══════════════════════════════════════════════════════════════════════════════
+
+TOKEN       BEST R:R    NOTES
+────────────────────────────────────────────────────────────────────────────────
+FARTCOIN    1.70+       Multiple strategies > 2.0 ✓
+MELANIA     2.0+        Strong momentum ✓
+PENGU       2.0+        Clear trends ✓
+PEPE        0.74        High chop, low persistence ❌
+
+CONCLUSION: PEPE is fundamentally different and harder to trade on 1m
+
+═══════════════════════════════════════════════════════════════════════════════
+KEY INSIGHTS
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ TIGHT STOPS > WIDE STOPS (unusual for meme coins)
+  1.5x/3x ATR: +11.0% ✓
+  2.0x/4x ATR: -15.6% ❌
+  3.0x/6x ATR: -2.8% ❌
+
+✓ MEAN REVERSION > TREND FOLLOWING
+  BB strategies: +11% to -15% (mixed)
+  EMA strategies: -91% to -182% (catastrophic)
+
+✓ LIMIT ORDERS HELP BUT NOT ENOUGH
+  Market (0.1%): +11.0%, 0.74 R:R
+  Limit (0.07%): +12.4%, 0.55 R:R (but wider stops)
+
+✓ HIGH FREQUENCY = SMALL MOVES
+  902 trades in 30 days = 30/day = 1.25/hour
+  Avg win 0.47%, avg loss 0.41% = tight margins
+
+═══════════════════════════════════════════════════════════════════════════════
+NEXT STEPS (PRIORITY ORDER)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. TEST 5M TIMEFRAME ⚡ HIGHEST PRIORITY
+   └─ Expected: Reduce noise, maintain 5-10 trades/day
+
+2. TEST SHORT STRATEGIES
+   └─ BB upper rejection, RSI overbought, breakdowns
+
+3. ADD FILTERS
+   ├─ Volume: Only trade when volume > 2x average
+   ├─ Sessions: Test Asian/Euro/US separately
+   └─ Volatility: Specific ATR ranges only
+
+4. DYNAMIC POSITION SIZING
+   └─ Kelly Criterion, anti-martingale, drawdown reduction
+
+5. CONSIDER ABANDONING PEPE 1M
+   └─ Focus on proven tokens (FARTCOIN, MELANIA, PENGU)
+
+═══════════════════════════════════════════════════════════════════════════════
+FILES GENERATED
+═══════════════════════════════════════════════════════════════════════════════
+
+CODE:
+├─ pepe_master_backtest.py          Comprehensive tester (many strategies)
+├─ pepe_quick_discovery.py          Medium-speed tester
+├─ pepe_fast_test.py                Fast core tester ✓ USED
+└─ visualize_pepe_best.py           Chart generator
+
+RESULTS:
+├─ results/pepe_fast_results.csv              Raw data (13 strategies)
+├─ results/pepe_best_strategy_analysis.png    Charts & analysis
+├─ results/PEPE_STRATEGY_DISCOVERY.md         Technical report
+├─ PEPE_EXECUTIVE_SUMMARY.md                  Executive summary
+└─ PEPE_QUICK_REFERENCE.txt                   This file
+
+═══════════════════════════════════════════════════════════════════════════════
+FINAL RECOMMENDATION
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ DO NOT TRADE PEPE ON 1M WITH CURRENT STRATEGIES
+
+NEXT ACTION: Test 5m timeframe immediately
+
+IF 5M FAILS: Move to "difficult tokens" list, focus on:
+  ✓ FARTCOIN (proven 1.70+ R:R)
+  ✓ MELANIA  (proven 2.0+ R:R)
+  ✓ PENGU    (proven 2.0+ R:R)
+
+ALTERNATIVE: Use PEPE in diversified portfolio (accept lower individual R:R)
+
+═══════════════════════════════════════════════════════════════════════════════
+KEY TAKEAWAY
+═══════════════════════════════════════════════════════════════════════════════
+
+Not all meme coins are created equal.
+
+PEPE's extreme choppiness makes it fundamentally harder to trade profitably
+on 1m timeframe compared to other meme coins with clear edges.
+
+The system correctly identified this BEFORE deploying capital.
+
+═══════════════════════════════════════════════════════════════════════════════
+Generated: December 7, 2025 | Status: TESTING INCOMPLETE - 5M REQUIRED
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,236 @@
+{
+  "categories": [
+    {
+      "name": "USDT-M Perp Futures",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/openApi/spot/v1/trade/batchOrders",
+          "category": "Spot",
+          "section": "interface"
+        },
+        {
+          "method": "POST",
+          "path": "/openApi/swap/v2/trade/order",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/swap/v1/trade/positionHistory",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/cswap/v1/trade/marginType",
+          "category": "Standard Futures",
+          "section": "interface"
+        },
+        {
+          "method": "POST",
+          "path": "/openApi/cswap/v1/trade/positionMargin",
+          "category": "Standard Futures",
+          "section": "interface"
+        },
+        {
+          "method": "POST",
+          "path": "/openApi/cswap/v1/trade/order",
+          "category": "Standard Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/swap/v2/trade/openOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/api/v3/capital/withdraw/history",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/api/v3/capital/deposit/hisrec",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/spot/v1/trade/myTrades",
+          "category": "Spot",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/openApi/swap/v1/market/historicalTrades",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/trade/allOpenOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/twap/order",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/twap/openOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/twap/historyOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/twap/orderDetail",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/twap/cancelOrder",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/trade/allOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/trade/fullOrder",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v1/positionMargin/history",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/trade/forceOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/trade/allFillOrders",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/trade/fillHistory",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v3/user/balance",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/user/positions",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/spot/v1/common/symbols",
+          "category": "Spot",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/swap/v2/quote/contracts",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v3/capital/withdraw/history",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v3/capital/deposit/hisrec",
+          "category": "USDT-M Perp Futures",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/spot/v1/trade/cancelOpenOrders",
+          "category": "Spot",
+          "section": "interface"
+        },
+        {
+          "method": "",
+          "path": "/openApi/spot/v1/user/commissionRate",
+          "category": "Spot",
+          "section": "interface"
+        }
+      ],
+      "sections": [
+        "interface",
+        "Authentication",
+        "General Info",
+        "Market Data",
+        "Account Endpoints",
+        "Trades Endpoints",
+        "Socket API Reference"
+      ]
+    },
+    {
+      "name": "Spot",
+      "endpoints": [],
+      "sections": [
+        "General Info",
+        "Authentication",
+        "Market Data",
+        "Wallet deposits and withdrawals",
+        "Account assets",
+        "Trades Endpoints",
+        "Socket API Reference"
+      ]
+    },
+    {
+      "name": "Standard Futures",
+      "endpoints": [],
+      "sections": [
+        "interface",
+        "Authentication",
+        "General Info",
+        "Market Data",
+        "Trades Endpoints",
+        "Socket API Reference"
+      ]
+    },
+    {
+      "name": "Copy Trading",
+      "endpoints": [],
+      "sections": []
+    }
+  ],
+  "scraped_at": "2025-12-04T20:04:56.499467",
+  "total_unique_endpoints": 31
+}

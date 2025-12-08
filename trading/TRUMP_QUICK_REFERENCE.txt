@@ -1,0 +1,134 @@
+================================================================================
+                      TRUMP TRADING QUICK REFERENCE
+================================================================================
+
+COIN CHARACTER: Mean-Reverting Low-Volatility Scalping Coin
+
+BEST STRATEGY: Scalping (8.5/10)
+BEST SESSION:  US Hours (14:00-21:00 UTC)
+BEST EDGE:     RSI < 30 reversions (55% win rate)
+
+================================================================================
+                           TOP 4 TRADING SETUPS
+================================================================================
+
+SETUP #1: RSI OVERSOLD REVERSION
+---------------------------------
+Entry:    RSI < 30 during US session
+Direction: LONG
+Exit:     +0.05% to +0.1% profit OR -0.15% stop
+Win Rate: 55.0%
+Sample:   5,209 occurrences
+Notes:    Use limit orders only (high slippage risk)
+
+SETUP #2: RSI OVERBOUGHT REVERSION
+-----------------------------------
+Entry:    RSI > 70 during US session
+Direction: SHORT
+Exit:     -0.05% to -0.1% profit OR +0.15% stop
+Win Rate: 52.8%
+Sample:   4,318 occurrences
+Notes:    Quick exits - mean reversion is fast
+
+SETUP #3: 5 CONSECUTIVE RED CANDLES
+------------------------------------
+Entry:    After 5 straight red candles
+Direction: LONG
+Exit:     +0.05% profit OR -0.15% stop
+Pattern:  51.6% continuation, 48.4% reversal
+Sample:   1,836 occurrences
+Notes:    Slight edge for continuation, but take profits fast
+
+SETUP #4: US SESSION VOLUME ADVANTAGE
+--------------------------------------
+Entry:    Any setup during 14:00-21:00 UTC
+Advantage: 47% higher volume, 0.1479% ATR (best session)
+Best Hour: 19:00 UTC (+0.003% avg return)
+Avoid:    20:00 UTC (-0.002% avg return)
+Notes:    All strategies perform better in US session
+
+================================================================================
+                            RISK MANAGEMENT
+================================================================================
+
+Position Size:     0.5-1% of capital per trade MAX
+Stop Loss:         -0.15% (tight due to low volatility)
+Take Profit:       +0.05% to +0.1% (quick scalps)
+Time Stop:         Exit if no movement in 10 candles
+Order Type:        LIMIT ONLY (sporadic volume = high slippage)
+
+Profit Factor:     0.99x (winners = losers, need high win rate)
+Max Loss Seen:     -4.44% (rare black swan)
+Max Win Seen:      +2.45%
+
+================================================================================
+                             SESSION TIMES
+================================================================================
+
+TRADE:    US Session      (14:00-21:00 UTC) - BEST
+CAUTION:  Europe Session  (08:00-14:00 UTC) - OK
+AVOID:    Overnight       (21:00-00:00 UTC) - WORST
+          Asia Session    (00:00-08:00 UTC) - LOW VOLUME
+
+================================================================================
+                          WHAT NOT TO DO
+================================================================================
+
+❌ Don't trade breakouts (range coin, not breakout coin)
+❌ Don't use market orders (high slippage from sporadic volume)
+❌ Don't hold overnight (worst session performance)
+❌ Don't expect big moves (avg candle body only 0.074%)
+❌ Don't trust BB touches alone (only 8-11% reversion rate)
+❌ Don't be greedy (profit factor 0.99x = take profits fast)
+
+================================================================================
+                        REGIME DISTRIBUTION
+================================================================================
+
+Mean Reverting:    39.8% of time (PRIMARY)
+Trending Up:       20.9% of time
+Trending Down:     24.2% of time
+Choppy:            15.1% of time (AVOID)
+Explosive:         0.01% of time (RARE)
+
+Strategy: Build regime detector to avoid CHOPPY periods
+
+================================================================================
+                         BEHAVIORAL TRAITS
+================================================================================
+
+Volatility:        GRADUAL - smooth mover (0.01% explosive candles)
+Liquidity:         SPORADIC - high volume variance (CV 2.69)
+Momentum:          QUICK REVERSION - take profits fast (0.99x PF)
+Risk:              LOW BLACK SWAN - predictable ranges
+
+Daily Range:       165.86% cumulative (avg 0.12% per candle)
+Win Rate:          45.2% (need tight stops to offset)
+
+================================================================================
+                          FILES REFERENCE
+================================================================================
+
+Executive Summary:      ./results/TRUMP_EXECUTIVE_SUMMARY.md
+Full Analysis:          ./results/TRUMP_PATTERN_ANALYSIS.md
+Session Stats:          ./results/TRUMP_session_stats.csv
+Sequential Patterns:    ./results/TRUMP_sequential_patterns.csv
+Regime Analysis:        ./results/TRUMP_regime_analysis.csv
+Statistical Edges:      ./results/TRUMP_statistical_edges.csv
+Behavioral Metrics:     ./results/TRUMP_pattern_stats.csv
+
+Analysis Script:        ./pattern_discovery_TRUMP.py
+
+================================================================================
+                          VERDICT
+================================================================================
+
+TRADEABLE: Yes, with discipline
+DIFFICULTY: Advanced (requires precision execution)
+BEST FOR: Experienced scalpers who can trade US hours
+CAPITAL ALLOCATION: 10-20% of portfolio (support strategy)
+
+PRIMARY EDGE: RSI mean reversion during US session
+EXECUTION: Limit orders only, tight stops, quick profits
+
+================================================================================

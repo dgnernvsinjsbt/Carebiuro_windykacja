@@ -1,0 +1,55 @@
+========================================
+UNI/USDT VOLUME ZONES - QUICK REFERENCE
+========================================
+
+✅ VERDICT: HIGHLY TRADEABLE (Best R/DD of all tokens!)
+
+📊 PERFORMANCE
+--------------
+Return:     +31.99%
+Max DD:     -1.78%
+Return/DD:  17.98x ⭐ (BEST!)
+Win Rate:   45.1%
+Trades:     195 (30 days)
+
+🎯 BEST CONFIG
+--------------
+Volume:     1.3x (20-period MA)
+Min Bars:   3 consecutive
+Stop:       1.0x ATR
+Target:     4:1 R:R (4x ATR distance)
+Session:    Asia/EU (00:00-14:00 UTC)
+Max Hold:   90 minutes
+
+📈 TRADE STATS
+--------------
+Avg Winner: +0.73%
+Avg Loser:  -0.31%
+W:L Ratio:  2.35x (excellent!)
+Avg Duration: 15.3 minutes
+TP Hit:     44.1%
+SL Hit:     54.9%
+
+🏆 RANKING (Return/DD)
+----------------------
+1. UNI    17.98x ⭐
+2. TRUMP  10.56x
+3. DOGE    7.15x
+4. PEPE    6.80x
+5. PENGU   4.35x
+6. ETH     3.60x
+
+💡 WHY IT WORKS
+---------------
+- Clear institutional volume patterns
+- 6.5 signals/day (high activity)
+- Winner 2.35x bigger than loser
+- ATR stops adapt to volatility
+- Asia/EU session cleaner than US
+
+📁 FILES
+--------
+Results: trading/results/UNI_volume_zones_optimization.csv
+Trades:  trading/results/UNI_volume_zones_trades.csv
+Code:    trading/uni_volume_zones_optimize.py
+Report:  trading/results/UNI_EXECUTIVE_SUMMARY.md

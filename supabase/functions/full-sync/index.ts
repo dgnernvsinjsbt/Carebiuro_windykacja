@@ -474,6 +474,83 @@ serve(async (req) => {
       console.log('[Sync] STEP 3: Skipped (test mode)')
     }
 
+    // STEP 3.5: Update client notes immediately (independent of total_unpaid calculation)
+    if (!isTestMode && (clientNotesMap.size > 0 || clientNamesMap.size > 0)) {
+      console.log('[Sync] STEP 3.5: Updating client notes and names in Supabase...')
+
+      // Fetch existing clients with pagination to avoid 1000-row limit
+      const pageSize = 1000
+      let offset = 0
+      let hasMoreClients = true
+      let updatedCount = 0
+
+      while (hasMoreClients) {
+        const { data: clientPage, error: fetchError } = await supabase
+          .from('clients')
+          .select('id, note, name, first_name, last_name')
+          .range(offset, offset + pageSize - 1)
+          .order('id', { ascending: true })
+
+        if (fetchError) {
+          console.error('[Sync] Error fetching clients for notes update:', fetchError)
+          break
+        }
+
+        if (clientPage && clientPage.length > 0) {
+          // Build update batch for this page
+          const clientsToUpdate: Array<{ id: number; note: string | null; name: string; first_name: string | null; last_name: string | null; updated_at: string }> = []
+
+          for (const client of clientPage) {
+            const fakturowniaNote = clientNotesMap.get(client.id)
+            const nameData = clientNamesMap.get(client.id)
+
+            // Update if note or name data changed
+            const noteChanged = fakturowniaNote !== undefined && fakturowniaNote !== client.note
+            const nameChanged = nameData && (
+              nameData.name !== client.name ||
+              nameData.first_name !== client.first_name ||
+              nameData.last_name !== client.last_name
+            )
+
+            if (noteChanged || nameChanged) {
+              clientsToUpdate.push({
+                id: client.id,
+                note: fakturowniaNote !== undefined ? fakturowniaNote : client.note,
+                name: nameData?.name || client.name,
+                first_name: nameData?.first_name || client.first_name || null,
+                last_name: nameData?.last_name || client.last_name || null,
+                updated_at: new Date().toISOString(),
+              })
+            }
+          }
+
+          // Update this batch
+          if (clientsToUpdate.length > 0) {
+            const { error: updateError } = await supabase
+              .from('clients')
+              .upsert(clientsToUpdate)
+
+            if (updateError) {
+              console.error('[Sync] Failed to update client batch:', updateError)
+            } else {
+              updatedCount += clientsToUpdate.length
+            }
+          }
+
+          offset += pageSize
+          hasMoreClients = clientPage.length === pageSize
+        } else {
+          hasMoreClients = false
+        }
+      }
+
+      console.log(`[Sync] ✓ STEP 3.5 complete: Updated notes/names for ${updatedCount} clients`)
+    } else if (!isTestMode) {
+      console.log('[Sync] STEP 3.5: No client notes or names to update')
+    } else {
+      console.log('[Sync] STEP 3.5: Skipped (test mode)')
+    }
+
     // STEP 4: Calculate total_unpaid for all clients
     if (!isTestMode) {
       console.log('[Sync] STEP 4: Calculating total_unpaid for all clients from Supabase invoices...')

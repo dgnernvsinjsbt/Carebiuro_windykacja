@@ -1,0 +1,14 @@
+{
+  "total_unique_endpoints": 31,
+  "by_method": {
+    "POST": 4,
+    "GET": 9,
+    "UNKNOWN": 18
+  },
+  "by_category": {
+    "Spot": 5,
+    "USDT-M Perp Futures": 23,
+    "Standard Futures": 3
+  },
+  "scraped_at": "2025-12-04T20:06:57.934395"
+}

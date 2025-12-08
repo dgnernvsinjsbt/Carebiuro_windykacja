@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Chatbot Widget Embed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #1e3a8a;
+    }
+    .content {
+      background: #f9fafb;
+      padding: 30px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    code {
+      background: #e5e7eb;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test Strona - Chatbot Widget Embed</h1>
+
+  <div class="content">
+    <h2>Witaj!</h2>
+    <p>To jest przykładowa strona testowa do sprawdzenia czy widget chatbota działa poprawnie.</p>
+    <p>Widget powinien pojawić się jako <strong>floating button</strong> w prawym dolnym rogu ekranu.</p>
+
+    <h3>Jak przetestować:</h3>
+    <ol>
+      <li>Sprawdź czy przycisk 💬 jest widoczny w prawym dolnym rogu</li>
+      <li>Kliknij na przycisk, aby otworzyć okno chatu</li>
+      <li>Wyślij wiadomość: <code>Czy moje zatrudnienie jest w pełni legalne?</code></li>
+      <li>Sprawdź czy otrzymujesz odpowiedź ze streaming</li>
+      <li>Zamknij okno chatu klikając ✕</li>
+    </ol>
+
+    <h3>Test FAQ:</h3>
+    <p>Wypróbuj te pytania (powinny być obsłużone natychmiast przez FAQ):</p>
+    <ul>
+      <li>Czy moje zatrudnienie jest w pełni legalne?</li>
+      <li>Jakie ubezpieczenie jest zapewnione?</li>
+      <li>Co obejmuje wsparcie w ramach Gewerbe?</li>
+      <li>Jak długo trwa proces rejestracji Gewerbe?</li>
+    </ul>
+
+    <h3>Informacje techniczne:</h3>
+    <p>Widget ładuje się przez <code>&lt;script src="http://localhost:3001/api/widget.js"&gt;&lt;/script&gt;</code></p>
+    <p>API endpoint: <code>http://localhost:3001/api/chat</code></p>
+  </div>
+
+  <div class="content">
+    <h2>Treść przykładowa</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    <p>Przewiń w dół, aby sprawdzić czy widget jest zawsze widoczny...</p>
+    <br><br><br><br><br><br><br><br><br><br>
+    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <br><br><br><br><br><br><br><br><br><br>
+    <p><strong>Koniec strony</strong> - widget powinien być nadal widoczny!</p>
+  </div>
+
+  <!-- Load chatbot widget -->
+  <script src="http://localhost:3001/api/widget.js"></script>
+</body>
+</html>

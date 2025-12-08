@@ -1,0 +1,7 @@
+Configuration,Description,Total_Return_%,Win_Rate_%,Sharpe_Ratio,Max_DD_%,Total_Trades,Avg_Trade_%,Fees_%,Key_Feature
+Original,Market orders baseline,38.79,61.8,0.11,-6.84,923,0.042,0.07,Market orders (taker fees)
+Asia_Session_Only,Session filter,16.90,65.0,0.16,-2.64,294,0.058,0.07,Best individual session
+SMA50+ADX20,Multi-filter,2.06,63.0,0.22,-1.28,27,0.076,0.07,Highest Sharpe but few trades
+Limit_0.05pct,Limit -0.05%,112.55,69.1,0.34,-4.61,918,0.123,0.03,Better entry + lower fees
+Limit_0.10pct,Limit -0.10%,151.35,75.7,0.46,-3.32,934,0.162,0.03,Improved entry quality
+Limit_0.15pct,Limit -0.15% (BEST),190.93,81.8,0.60,-3.35,960,0.199,0.03,Optimal limit offset

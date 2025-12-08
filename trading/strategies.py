@@ -1,7 +1,7 @@
 """
 Trading Strategy Implementations for FARTCOIN/USDT Backtesting
 
-Each strategy returns entry signals and stop loss levels.
+Each strategy returns entry signals and stop loss levels as DataFrames.
 """
 
 import pandas as pd
@@ -39,8 +39,8 @@ def calculate_indicators(df: pd.DataFrame) -> pd.DataFrame:
     )
     data['atr_14'] = data['tr'].rolling(window=14).mean()
 
-    # Period highs/lows
-    for period in [4, 8, 12, 20]:
+    # Period highs/lows - include more periods for flexibility
+    for period in [2, 4, 6, 8, 12, 20]:
         data[f'high_{period}'] = data['high'].rolling(window=period).max()
         data[f'low_{period}'] = data['low'].rolling(window=period).min()
 
@@ -460,4 +460,7 @@ EXIT_CONFIGS = {
     'trail_atr_1.5x': {'type': 'trail_atr', 'multiplier': 1.5},
     'time_4_candles': {'type': 'time_based', 'candles': 4},
     'time_8_candles': {'type': 'time_based', 'candles': 8},
+    'tp_5pct': {'type': 'fixed_pct', 'target_pct': 0.05},
+    'tp_10pct': {'type': 'fixed_pct', 'target_pct': 0.10},
+    'tp_15pct': {'type': 'fixed_pct', 'target_pct': 0.15},
 }

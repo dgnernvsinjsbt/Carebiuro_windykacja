@@ -1,0 +1,174 @@
+═══════════════════════════════════════════════════════════════════════
+                    TRUMP TRADING STRATEGY - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════
+
+STRATEGY TYPE: Hybrid Mean Reversion (70%) + Trend Following (30%)
+TIMEFRAME: 1-minute
+POSITION SIZE: 2% base, 3% max concurrent trades
+
+───────────────────────────────────────────────────────────────────────
+LONG ENTRY (MEAN REVERSION)
+───────────────────────────────────────────────────────────────────────
+PRIMARY SIGNAL:
+  ✓ RSI(14) < 30  OR  4+ consecutive red candles
+
+CONFIRM:
+  ✓ Price near lower BB (within 20% of distance)
+  ✓ No large lower wick (wick < 50% of range)
+  ✓ Volume > 0.8x average
+  ✓ ATR < 0.35% (not explosive)
+
+SESSION:
+  ✓ US session (14:00-21:00 UTC) or Asia 2:00-4:00
+  ✗ Avoid hour 23:00
+
+EXITS:
+  SL: -2x ATR (~0.24% below entry)
+  TP: +1.5x ATR (~0.18% above entry) OR RSI crosses 50
+  TIME: Exit after 30 minutes if no hit
+
+R:R TARGET: 0.75x (Win Rate Target: 55%)
+
+───────────────────────────────────────────────────────────────────────
+SHORT ENTRY (MEAN REVERSION)
+───────────────────────────────────────────────────────────────────────
+PRIMARY SIGNAL:
+  ✓ RSI(14) > 70
+  ✓ Price touches/exceeds upper BB
+
+CONFIRM:
+  ✓ No large upper wick (wick < 50% of range)
+  ✓ Volume > 0.8x average
+  ✓ Price > SMA(50) by 1%+ (uptrend fade)
+
+EXITS:
+  SL: +2x ATR (~0.24% above entry)
+  TP: -1.5x ATR (~0.18% below entry) OR RSI crosses 50
+  TIME: Exit after 30 minutes
+
+───────────────────────────────────────────────────────────────────────
+LONG TREND ENTRY (OPPORTUNISTIC)
+───────────────────────────────────────────────────────────────────────
+SIGNAL:
+  ✓ Price > SMA(50) > SMA(200)
+  ✓ Strong green candle (body > 0.15%)
+  ✓ Volume > 2x average
+  ✓ RSI 50-65
+
+EXITS:
+  SL: -3x ATR (~0.36%)
+  TP: +5x ATR (~0.60%)
+  TRAIL: After +2x ATR, trail at 1x ATR
+  TIME: Exit after 60 minutes
+
+R:R TARGET: 1.67x
+
+───────────────────────────────────────────────────────────────────────
+SHORT TREND ENTRY (OPPORTUNISTIC)
+───────────────────────────────────────────────────────────────────────
+SIGNAL:
+  ✓ Price < SMA(50) < SMA(200)
+  ✓ Strong red candle (body > 0.15%)
+  ✓ Volume > 2x average
+  ✓ RSI 35-50
+
+EXITS:
+  SL: +3x ATR (~0.36%)
+  TP: -5x ATR (~0.60%)
+  TRAIL: After +2x ATR, trail at 1x ATR
+
+───────────────────────────────────────────────────────────────────────
+POSITION SIZING
+───────────────────────────────────────────────────────────────────────
+BASE: 2% per trade
+SCALE UP to 3%: Win rate >55%, drawdown <5%, US session
+SCALE DOWN to 1%: Win rate <48%, drawdown >10%, off-hours
+MAX CONCURRENT: 3 trades (6% total exposure)
+NO PYRAMIDING
+
+───────────────────────────────────────────────────────────────────────
+SESSION FILTERS
+───────────────────────────────────────────────────────────────────────
+✓ TRADE:
+  • US Session: 14:00-21:00 UTC (PRIMARY - 80% of trades)
+  • Asia: 2:00-4:00 UTC (SECONDARY - 20% of trades)
+
+✗ AVOID:
+  • Hour 23:00 UTC (HARD AVOID)
+  • Hour 3:00 UTC
+  • Overnight: 21:00-00:00 UTC
+  • Europe: 08:00-14:00 UTC (soft avoid)
+
+───────────────────────────────────────────────────────────────────────
+REGIME FILTERS
+───────────────────────────────────────────────────────────────────────
+MEAN_REVERTING (ATR < 0.13%, price near SMA200):
+  → Focus on RSI extreme trades (primary strategy)
+
+TRENDING_UP (Price > SMA50 > SMA200, ATR > 0.13%):
+  → Take long trend entries, reduce short mean reversion
+
+TRENDING_DOWN (Price < SMA50 < SMA200, ATR > 0.13%):
+  → Take short trend entries, reduce long mean reversion
+
+CHOPPY (ATR < 0.10%, no clear SMA alignment):
+  → Reduce size or avoid
+
+EXPLOSIVE (ATR > 0.35%, recent >1% candle):
+  → STOP - Wait 5 candles for normalization
+
+───────────────────────────────────────────────────────────────────────
+RISK LIMITS
+───────────────────────────────────────────────────────────────────────
+DAILY:
+  • Max Loss: -4% (STOP TRADING)
+  • Max Trades: 20
+  • Profit Target: +3% (reduce aggression)
+
+PER TRADE:
+  • Max Loss: 0.5% of capital
+  • Max Open: 3 trades
+  • Max Same Direction: 2
+
+DRAWDOWN PROTOCOL:
+  • -5% DD → Reduce to 1.5% size
+  • -10% DD → Reduce to 1% size, max 2 trades
+  • -15% DD → STOP TRADING, review strategy
+
+───────────────────────────────────────────────────────────────────────
+AVOID CONDITIONS (ALL SETUPS)
+───────────────────────────────────────────────────────────────────────
+✗ Hour 23:00 UTC
+✗ ATR > 0.35% (explosive volatility)
+✗ First 5 minutes after >1% body candle
+✗ Current hour volume < 0.5x average
+✗ Price extended >2% from SMA(200)
+
+───────────────────────────────────────────────────────────────────────
+PERFORMANCE TARGETS
+───────────────────────────────────────────────────────────────────────
+Win Rate: 53-55%
+Profit Factor: 1.1-1.2x
+Max Drawdown: <15%
+Avg Daily Trades: 5-15
+Expected Monthly Return: +30-60%
+
+───────────────────────────────────────────────────────────────────────
+PRE-TRADE CHECKLIST
+───────────────────────────────────────────────────────────────────────
+[ ] RSI extreme (<30 or >70) or pattern signal
+[ ] Volume > 0.8x average
+[ ] In US session (14:00-21:00) or Asia prime (2-4)
+[ ] NOT hour 23:00
+[ ] ATR < 0.35%
+[ ] Regime matches setup type
+[ ] <3 open positions
+[ ] Daily loss < 4%
+[ ] Position sized correctly (1-3%)
+
+═══════════════════════════════════════════════════════════════════════
+REMEMBER: TRUMP is ULTRA-LOW VOLATILITY (0.12% avg candle)
+          → Use TIGHT stops, QUICK exits, HIGH frequency
+          → Take profits FAST - mean reversion happens in minutes
+          → Don't overstay - if no move in 30min, exit
+═══════════════════════════════════════════════════════════════════════

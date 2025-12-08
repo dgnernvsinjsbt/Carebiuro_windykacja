@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historia wysyłek - Redesign Mockup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          maxWidth: {
+            '8xl': '88rem',
+            '9xl': '96rem',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar for split view */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Expandable row animation */
+    .expandable-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .expandable-content.expanded {
+      max-height: 500px;
+    }
+
+    /* View toggle active state */
+    .view-btn.active {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    /* Hide views by default */
+    .view-content { display: none; }
+    .view-content.active { display: block; }
+
+    /* Row hover highlight for table */
+    .table-row-hover:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Selected row in split view */
+    .split-item.selected {
+      background-color: #eff6ff;
+      border-left-color: #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- DESIGN ANNOTATIONS -->
+  <div class="bg-amber-50 border-b border-amber-200 px-6 py-4">
+    <div class="max-w-9xl mx-auto">
+      <h2 class="text-amber-800 font-semibold mb-2">Design Mockup - Historia wysyłek Redesign</h2>
+      <div class="text-amber-700 text-sm space-y-1">
+        <p><strong>Problem:</strong> Current max-w-7xl (1280px) wastes space on wide screens. Message badges are too compact.</p>
+        <p><strong>Solution:</strong> Full-width layout (max-w-9xl = 1536px), 3 view alternatives with toggle, expandable details.</p>
+        <p><strong>Key changes:</strong> Better information density, clearer status indicators, hover/expand for details.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex">
+    <!-- Sidebar placeholder -->
+    <div class="w-64 bg-slate-800 min-h-screen p-4 hidden lg:block">
+      <div class="text-white font-bold text-xl mb-8">Windykacja</div>
+      <nav class="space-y-2">
+        <a href="#" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          Klienci
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2 bg-slate-700 text-white rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Historia wysyłek
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          Ustawienia
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main content area - FULL WIDTH -->
+    <div class="flex-1 p-6 lg:p-8">
+      <!-- ANNOTATION: Using max-w-9xl (1536px) instead of max-w-7xl (1280px) -->
+      <div class="max-w-9xl mx-auto">
+
+        <!-- Header -->
+        <div class="mb-6">
+          <a href="#" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Powrót do listy klientów
+          </a>
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">Historia wysyłek</h1>
+              <p class="text-gray-600 text-sm">Wszystkie wiadomości wysłane przez system</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- View toggle buttons -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex gap-1">
+                <button onclick="switchView('table')" class="view-btn active px-3 py-1.5 text-sm font-medium rounded-md transition-colors" data-view="table">
+                  <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                  Tabela
+                </button>
+                <button onclick="switchView('timeline')" class="view-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 transition-colors" data-view="timeline">
+                  <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  Timeline
+                </button>
+                <button onclick="switchView('split')" class="view-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 transition-colors" data-view="split">
+                  <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+                  Split
+                </button>
+              </div>
+              <button class="px-4 py-2 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-2 text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Odśwież
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Cards - ANNOTATION: 5 columns on xl screens -->
+        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Wszystkie</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">127</p>
+              </div>
+              <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">68</p>
+              </div>
+              <div class="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">SMS</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">42</p>
+              </div>
+              <div class="p-2.5 bg-green-50 text-green-600 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">WhatsApp</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">17</p>
+              </div>
+              <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 col-span-2 md:col-span-4 xl:col-span-1">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Błędy</p>
+                <p class="text-2xl font-bold text-red-600 mt-1">3</p>
+              </div>
+              <div class="p-2.5 bg-red-50 text-red-600 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+          <div class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[150px]">
+              <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Data od</label>
+              <input type="date" value="2025-11-03" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </div>
+            <div class="flex-1 min-w-[150px]">
+              <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Data do</label>
+              <input type="date" value="2025-12-03" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </div>
+            <div class="flex-1 min-w-[150px]">
+              <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Typ</label>
+              <select class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option>Wszystkie</option>
+                <option>Email</option>
+                <option>SMS</option>
+                <option>WhatsApp</option>
+              </select>
+            </div>
+            <div class="flex-1 min-w-[150px]">
+              <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Status</label>
+              <select class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option>Wszystkie</option>
+                <option>Wysłane</option>
+                <option>Błędy</option>
+              </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Szukaj</label>
+              <input type="text" placeholder="Klient, faktura..." class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </div>
+            <button class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm whitespace-nowrap">
+              Zastosuj
+            </button>
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- VIEW 1: TABLE VIEW (Default) -->
+        <!-- ============================================ -->
+        <div id="view-table" class="view-content active">
+          <!-- ANNOTATION: Table view maximizes data density, shows all info at a glance -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Data/Czas</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Klient</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Faktura</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Kwota</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Typ</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Poziom</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nadawca</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-10"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <!-- Row 1 -->
+                  <tr class="table-row-hover cursor-pointer" onclick="toggleRowDetails(this)">
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">03.12.2025</div>
+                      <div class="text-xs text-gray-500">09:15</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-blue-600 font-semibold text-xs">P</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-900">PREMIUM FOODS SP. Z O.O.</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="font-mono text-sm text-gray-700">FV/2025/11/0847</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-sm font-semibold text-gray-900">4 250,00 PLN</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Email
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <!-- ANNOTATION: Level indicator with color gradient for severity -->
+                      <span class="inline-flex items-center justify-center w-7 h-7 bg-green-100 text-green-700 rounded-lg text-xs font-bold">1</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Wysłano
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs text-gray-500">System</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <svg class="w-4 h-4 text-gray-400 transition-transform expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </td>
+                  </tr>
+                  <!-- Expandable details row -->
+                  <tr class="hidden details-row bg-gray-50">
+                    <td colspan="9" class="px-4 py-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Odbiorca</p>
+                          <p class="text-gray-900">kontakt@premiumfoods.pl</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Temat</p>
+                          <p class="text-gray-900">Przypomnienie o płatności - FV/2025/11/0847</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Pełna data wysyłki</p>
+                          <p class="text-gray-900">03.12.2025, 09:15:32</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Row 2 -->
+                  <tr class="table-row-hover cursor-pointer" onclick="toggleRowDetails(this)">
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">03.12.2025</div>
+                      <div class="text-xs text-gray-500">09:16</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-blue-600 font-semibold text-xs">P</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-900">PREMIUM FOODS SP. Z O.O.</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="font-mono text-sm text-gray-700">FV/2025/11/0847</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-sm font-semibold text-gray-900">4 250,00 PLN</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        SMS
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center justify-center w-7 h-7 bg-green-100 text-green-700 rounded-lg text-xs font-bold">1</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Wysłano
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs text-gray-500">System</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <svg class="w-4 h-4 text-gray-400 transition-transform expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </td>
+                  </tr>
+                  <tr class="hidden details-row bg-gray-50">
+                    <td colspan="9" class="px-4 py-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Odbiorca</p>
+                          <p class="text-gray-900">+48 601 234 567</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Treść</p>
+                          <p class="text-gray-900 truncate">Przypominamy o zaległej płatności 4250,00 PLN...</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Pełna data wysyłki</p>
+                          <p class="text-gray-900">03.12.2025, 09:16:05</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Row 3 - Level 2 -->
+                  <tr class="table-row-hover cursor-pointer" onclick="toggleRowDetails(this)">
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">03.12.2025</div>
+                      <div class="text-xs text-gray-500">14:30</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-blue-600 font-semibold text-xs">P</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-900">PREMIUM FOODS SP. Z O.O.</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="font-mono text-sm text-gray-700">FV/2025/11/0912</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-sm font-semibold text-gray-900">1 890,00 PLN</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Email
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <!-- Level 2 - Yellow/Orange -->
+                      <span class="inline-flex items-center justify-center w-7 h-7 bg-yellow-100 text-yellow-700 rounded-lg text-xs font-bold">2</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Wysłano
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs text-gray-500">Jan K.</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <svg class="w-4 h-4 text-gray-400 transition-transform expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </td>
+                  </tr>
+                  <tr class="hidden details-row bg-gray-50">
+                    <td colspan="9" class="px-4 py-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Odbiorca</p>
+                          <p class="text-gray-900">kontakt@premiumfoods.pl</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Temat</p>
+                          <p class="text-gray-900">PILNE: Drugie przypomnienie - FV/2025/11/0912</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Pełna data wysyłki</p>
+                          <p class="text-gray-900">03.12.2025, 14:30:18</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Row 4 - FAILED -->
+                  <tr class="table-row-hover cursor-pointer bg-red-50/50" onclick="toggleRowDetails(this)">
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">03.12.2025</div>
+                      <div class="text-xs text-gray-500">10:00</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-orange-600 font-semibold text-xs">A</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-900">AUTO-CZĘŚCI KOWALSKI</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="font-mono text-sm text-gray-700">FV/2025/10/1234</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-sm font-semibold text-gray-900">12 500,00 PLN</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Email
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <!-- Level 3 - Orange -->
+                      <span class="inline-flex items-center justify-center w-7 h-7 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold">3</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <!-- ANNOTATION: Clear error state with icon and different color -->
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        Błąd
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs text-gray-500">System</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <svg class="w-4 h-4 text-gray-400 transition-transform expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </td>
+                  </tr>
+                  <tr class="hidden details-row bg-red-50">
+                    <td colspan="9" class="px-4 py-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Odbiorca</p>
+                          <p class="text-gray-900">info@auto-czesci.p</p>
+                        </div>
+                        <div>
+                          <p class="text-red-600 text-xs uppercase tracking-wide mb-1">Błąd</p>
+                          <p class="text-red-700 font-medium">Invalid email address - missing domain extension</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Próba wysyłki</p>
+                          <p class="text-gray-900">03.12.2025, 10:00:42</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Row 5 - WhatsApp -->
+                  <tr class="table-row-hover cursor-pointer" onclick="toggleRowDetails(this)">
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">03.12.2025</div>
+                      <div class="text-xs text-gray-500">10:05</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-orange-600 font-semibold text-xs">A</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-900">AUTO-CZĘŚCI KOWALSKI</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="font-mono text-sm text-gray-700">FV/2025/10/1234</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-sm font-semibold text-gray-900">12 500,00 PLN</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        WhatsApp
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center justify-center w-7 h-7 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold">3</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Wysłano
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs text-gray-500">System</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <svg class="w-4 h-4 text-gray-400 transition-transform expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </td>
+                  </tr>
+                  <tr class="hidden details-row bg-gray-50">
+                    <td colspan="9" class="px-4 py-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Odbiorca</p>
+                          <p class="text-gray-900">+48 502 345 678</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Treść</p>
+                          <p class="text-gray-900 truncate">WAŻNE: Prosimy o pilną płatność faktury FV/2025/10/1234...</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Pełna data wysyłki</p>
+                          <p class="text-gray-900">03.12.2025, 10:05:11</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Row 6 - Previous day -->
+                  <tr class="table-row-hover cursor-pointer" onclick="toggleRowDetails(this)">
+                    <td class="px-4 py-3">
+                      <div class="text-sm font-medium text-gray-900">02.12.2025</div>
+                      <div class="text-xs text-gray-500">08:00</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-teal-600 font-semibold text-xs">B</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-900">BIURO RACHUNKOWE NOWAK</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="font-mono text-sm text-gray-700">FV/2025/11/0756</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-sm font-semibold text-gray-900">890,00 PLN</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Email
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center justify-center w-7 h-7 bg-green-100 text-green-700 rounded-lg text-xs font-bold">1</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Wysłano
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs text-gray-500">System</span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <svg class="w-4 h-4 text-gray-400 transition-transform expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </td>
+                  </tr>
+                  <tr class="hidden details-row bg-gray-50">
+                    <td colspan="9" class="px-4 py-4">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Odbiorca</p>
+                          <p class="text-gray-900">biuro@nowak-rachunkowosc.pl</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Temat</p>
+                          <p class="text-gray-900">Przypomnienie o płatności - FV/2025/11/0756</p>
+                        </div>
+                        <div>
+                          <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Pełna data wysyłki</p>
+                          <p class="text-gray-900">02.12.2025, 08:00:15</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- VIEW 2: TIMELINE VIEW (Enhanced current) -->
+        <!-- ============================================ -->
+        <div id="view-timeline" class="view-content">
+          <!-- ANNOTATION: Timeline view groups by date like current, but with better message cards -->
+          <div class="space-y-6">
+            <!-- Day 1 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div class="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-semibold text-gray-900">03.12.2025 - Wtorek</h2>
+                      <p class="text-sm text-gray-500">5 wiadomości wysłanych</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">2 email</span>
+                    <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">1 sms</span>
+                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">1 whatsapp</span>
+                    <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">1 błąd</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divide-y divide-gray-100">
+                <!-- Client 1 -->
+                <div class="p-6">
+                  <div class="flex items-start gap-4 mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span class="text-blue-600 font-bold text-lg">P</span>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-lg font-semibold text-gray-900">PREMIUM FOODS SP. Z O.O.</h3>
+                      <p class="text-sm text-gray-500">2 faktury • 3 wiadomości</p>
+                    </div>
+                  </div>
+
+                  <!-- Invoice 1 -->
+                  <div class="ml-16 space-y-3">
+                    <div class="bg-gray-50 rounded-xl p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                          <span class="font-mono text-sm font-semibold text-gray-900">FV/2025/11/0847</span>
+                          <span class="text-sm font-semibold text-blue-600">4 250,00 PLN</span>
+                        </div>
+                      </div>
+                      <!-- ANNOTATION: Enhanced message cards with more visible information -->
+                      <div class="flex flex-wrap gap-3">
+                        <!-- Email Level 1 -->
+                        <div class="group relative">
+                          <div class="flex items-center gap-2 px-3 py-2 bg-white border border-purple-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-900">Email</span>
+                                <span class="w-5 h-5 bg-green-100 text-green-700 rounded text-xs font-bold flex items-center justify-center">1</span>
+                              </div>
+                              <div class="flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                09:15
+                              </div>
+                            </div>
+                          </div>
+                          <!-- Hover tooltip -->
+                          <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                            <div class="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                              <p><strong>Odbiorca:</strong> kontakt@premiumfoods.pl</p>
+                              <p><strong>Wysłano:</strong> 03.12.2025, 09:15:32</p>
+                              <p><strong>Przez:</strong> System</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- SMS Level 1 -->
+                        <div class="group relative">
+                          <div class="flex items-center gap-2 px-3 py-2 bg-white border border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-900">SMS</span>
+                                <span class="w-5 h-5 bg-green-100 text-green-700 rounded text-xs font-bold flex items-center justify-center">1</span>
+                              </div>
+                              <div class="flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                09:16
+                              </div>
+                            </div>
+                          </div>
+                          <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                            <div class="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                              <p><strong>Odbiorca:</strong> +48 601 234 567</p>
+                              <p><strong>Wysłano:</strong> 03.12.2025, 09:16:05</p>
+                              <p><strong>Przez:</strong> System</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Invoice 2 -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                          <span class="font-mono text-sm font-semibold text-gray-900">FV/2025/11/0912</span>
+                          <span class="text-sm font-semibold text-blue-600">1 890,00 PLN</span>
+                        </div>
+                      </div>
+                      <div class="flex flex-wrap gap-3">
+                        <!-- Email Level 2 -->
+                        <div class="group relative">
+                          <div class="flex items-center gap-2 px-3 py-2 bg-white border border-purple-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-900">Email</span>
+                                <span class="w-5 h-5 bg-yellow-100 text-yellow-700 rounded text-xs font-bold flex items-center justify-center">2</span>
+                              </div>
+                              <div class="flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                14:30
+                              </div>
+                            </div>
+                          </div>
+                          <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                            <div class="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                              <p><strong>Odbiorca:</strong> kontakt@premiumfoods.pl</p>
+                              <p><strong>Wysłano:</strong> 03.12.2025, 14:30:18</p>
+                              <p><strong>Przez:</strong> Jan K.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Client 2 -->
+                <div class="p-6">
+                  <div class="flex items-start gap-4 mb-4">
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span class="text-orange-600 font-bold text-lg">A</span>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-lg font-semibold text-gray-900">AUTO-CZĘŚCI KOWALSKI</h3>
+                      <p class="text-sm text-gray-500">1 faktura • 2 wiadomości</p>
+                    </div>
+                  </div>
+
+                  <div class="ml-16 space-y-3">
+                    <div class="bg-gray-50 rounded-xl p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                          <span class="font-mono text-sm font-semibold text-gray-900">FV/2025/10/1234</span>
+                          <span class="text-sm font-semibold text-blue-600">12 500,00 PLN</span>
+                        </div>
+                      </div>
+                      <div class="flex flex-wrap gap-3">
+                        <!-- Email Level 3 - FAILED -->
+                        <div class="group relative">
+                          <div class="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-300 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                              <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-red-900">Email</span>
+                                <span class="w-5 h-5 bg-orange-100 text-orange-700 rounded text-xs font-bold flex items-center justify-center">3</span>
+                              </div>
+                              <div class="flex items-center gap-1 text-xs text-red-600">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                10:00 - Błąd
+                              </div>
+                            </div>
+                          </div>
+                          <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                            <div class="bg-red-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap max-w-xs">
+                              <p><strong>Odbiorca:</strong> info@auto-czesci.p</p>
+                              <p><strong>Błąd:</strong> Invalid email - missing domain</p>
+                              <p><strong>Próba:</strong> 03.12.2025, 10:00:42</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- WhatsApp Level 3 -->
+                        <div class="group relative">
+                          <div class="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            </div>
+                            <div>
+                              <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-900">WhatsApp</span>
+                                <span class="w-5 h-5 bg-orange-100 text-orange-700 rounded text-xs font-bold flex items-center justify-center">3</span>
+                              </div>
+                              <div class="flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                10:05
+                              </div>
+                            </div>
+                          </div>
+                          <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                            <div class="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                              <p><strong>Odbiorca:</strong> +48 502 345 678</p>
+                              <p><strong>Wysłano:</strong> 03.12.2025, 10:05:11</p>
+                              <p><strong>Przez:</strong> System</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div class="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-semibold text-gray-900">02.12.2025 - Poniedziałek</h2>
+                      <p class="text-sm text-gray-500">2 wiadomości wysłane</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">1 email</span>
+                    <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">1 sms</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6">
+                <div class="flex items-start gap-4 mb-4">
+                  <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span class="text-teal-600 font-bold text-lg">B</span>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900">BIURO RACHUNKOWE NOWAK</h3>
+                    <p class="text-sm text-gray-500">1 faktura • 2 wiadomości</p>
+                  </div>
+                </div>
+
+                <div class="ml-16 space-y-3">
+                  <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="flex items-center gap-3">
+                        <span class="font-mono text-sm font-semibold text-gray-900">FV/2025/11/0756</span>
+                        <span class="text-sm font-semibold text-blue-600">890,00 PLN</span>
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                      <div class="group relative">
+                        <div class="flex items-center gap-2 px-3 py-2 bg-white border border-purple-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                          <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                          </div>
+                          <div>
+                            <div class="flex items-center gap-2">
+                              <span class="text-sm font-medium text-gray-900">Email</span>
+                              <span class="w-5 h-5 bg-green-100 text-green-700 rounded text-xs font-bold flex items-center justify-center">1</span>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs text-gray-500">
+                              <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                              08:00
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="group relative">
+                        <div class="flex items-center gap-2 px-3 py-2 bg-white border border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                          </div>
+                          <div>
+                            <div class="flex items-center gap-2">
+                              <span class="text-sm font-medium text-gray-900">SMS</span>
+                              <span class="w-5 h-5 bg-green-100 text-green-700 rounded text-xs font-bold flex items-center justify-center">1</span>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs text-gray-500">
+                              <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                              08:01
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- VIEW 3: SPLIT VIEW (Email client style) -->
+        <!-- ============================================ -->
+        <div id="view-split" class="view-content">
+          <!-- ANNOTATION: Split view like email client - list on left, details on right -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="flex" style="height: 600px;">
+              <!-- Left panel - message list -->
+              <div class="w-2/5 border-r border-gray-200 overflow-y-auto custom-scrollbar">
+                <div class="divide-y divide-gray-100">
+                  <!-- Message 1 - Selected -->
+                  <div class="split-item selected px-4 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-gray-50" onclick="selectSplitItem(this, 1)">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900 truncate">PREMIUM FOODS SP. Z O.O.</span>
+                      </div>
+                      <span class="text-xs text-gray-500">09:15</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-600 truncate">FV/2025/11/0847 • 4 250,00 PLN</span>
+                      <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 bg-green-100 text-green-700 rounded text-[10px] font-bold flex items-center justify-center">1</span>
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Message 2 -->
+                  <div class="split-item px-4 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-gray-50" onclick="selectSplitItem(this, 2)">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 bg-green-100 text-green-700 rounded flex items-center justify-center">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900 truncate">PREMIUM FOODS SP. Z O.O.</span>
+                      </div>
+                      <span class="text-xs text-gray-500">09:16</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-600 truncate">FV/2025/11/0847 • 4 250,00 PLN</span>
+                      <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 bg-green-100 text-green-700 rounded text-[10px] font-bold flex items-center justify-center">1</span>
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Message 3 -->
+                  <div class="split-item px-4 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-gray-50" onclick="selectSplitItem(this, 3)">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900 truncate">PREMIUM FOODS SP. Z O.O.</span>
+                      </div>
+                      <span class="text-xs text-gray-500">14:30</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-600 truncate">FV/2025/11/0912 • 1 890,00 PLN</span>
+                      <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold flex items-center justify-center">2</span>
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Message 4 - FAILED -->
+                  <div class="split-item px-4 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-gray-50 bg-red-50/50" onclick="selectSplitItem(this, 4)">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 bg-red-100 text-red-700 rounded flex items-center justify-center">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900 truncate">AUTO-CZĘŚCI KOWALSKI</span>
+                      </div>
+                      <span class="text-xs text-gray-500">10:00</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-600 truncate">FV/2025/10/1234 • 12 500,00 PLN</span>
+                      <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 bg-orange-100 text-orange-700 rounded text-[10px] font-bold flex items-center justify-center">3</span>
+                        <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Message 5 -->
+                  <div class="split-item px-4 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-gray-50" onclick="selectSplitItem(this, 5)">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 bg-emerald-100 text-emerald-700 rounded flex items-center justify-center">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900 truncate">AUTO-CZĘŚCI KOWALSKI</span>
+                      </div>
+                      <span class="text-xs text-gray-500">10:05</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-600 truncate">FV/2025/10/1234 • 12 500,00 PLN</span>
+                      <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 bg-orange-100 text-orange-700 rounded text-[10px] font-bold flex items-center justify-center">3</span>
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Message 6 -->
+                  <div class="split-item px-4 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-gray-50" onclick="selectSplitItem(this, 6)">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 bg-purple-100 text-purple-700 rounded flex items-center justify-center">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900 truncate">BIURO RACHUNKOWE NOWAK</span>
+                      </div>
+                      <span class="text-xs text-gray-500">02.12</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-600 truncate">FV/2025/11/0756 • 890,00 PLN</span>
+                      <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 bg-green-100 text-green-700 rounded text-[10px] font-bold flex items-center justify-center">1</span>
+                        <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right panel - message details -->
+              <div class="w-3/5 p-6 overflow-y-auto custom-scrollbar" id="split-details">
+                <!-- Default details for first message -->
+                <div class="detail-panel" id="detail-1">
+                  <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                      <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <span class="text-blue-600 font-bold text-xl">P</span>
+                      </div>
+                      <div>
+                        <h3 class="text-xl font-bold text-gray-900">PREMIUM FOODS SP. Z O.O.</h3>
+                        <p class="text-sm text-gray-500">kontakt@premiumfoods.pl</p>
+                      </div>
+                    </div>
+                    <span class="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      Wysłano
+                    </span>
+                  </div>
+
+                  <div class="bg-gray-50 rounded-xl p-5 mb-6">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Typ wiadomości</p>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                          </span>
+                          <span class="text-sm font-semibold text-gray-900">Email</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Poziom przypomnienia</p>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 h-8 bg-green-100 text-green-700 rounded-lg flex items-center justify-center font-bold">1</span>
+                          <span class="text-sm text-gray-600">Pierwsze przypomnienie</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Data i czas wysłania</p>
+                        <p class="text-sm font-medium text-gray-900">03.12.2025, 09:15:32</p>
+                      </div>
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Wysłano przez</p>
+                        <p class="text-sm font-medium text-gray-900">System (automatycznie)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-6">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Faktura</p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <p class="font-mono text-lg font-semibold text-gray-900">FV/2025/11/0847</p>
+                          <p class="text-sm text-gray-600 mt-1">Termin płatności: 15.11.2025</p>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-2xl font-bold text-blue-600">4 250,00 PLN</p>
+                          <p class="text-xs text-gray-500">18 dni po terminie</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Temat wiadomości</p>
+                    <p class="text-sm text-gray-900 bg-gray-50 rounded-lg p-3">Przypomnienie o płatności - FV/2025/11/0847</p>
+                  </div>
+                </div>
+
+                <!-- Error detail panel (hidden by default) -->
+                <div class="detail-panel hidden" id="detail-4">
+                  <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                      <div class="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <span class="text-orange-600 font-bold text-xl">A</span>
+                      </div>
+                      <div>
+                        <h3 class="text-xl font-bold text-gray-900">AUTO-CZĘŚCI KOWALSKI</h3>
+                        <p class="text-sm text-gray-500 line-through">info@auto-czesci.p</p>
+                      </div>
+                    </div>
+                    <span class="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      Błąd wysyłki
+                    </span>
+                  </div>
+
+                  <!-- Error banner -->
+                  <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-red-800">Nieprawidłowy adres email</p>
+                        <p class="text-sm text-red-700 mt-1">Invalid email address - missing domain extension. Adres "info@auto-czesci.p" nie jest poprawny.</p>
+                        <button class="mt-3 px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+                          Popraw dane klienta
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bg-gray-50 rounded-xl p-5 mb-6">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Typ wiadomości</p>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                          </span>
+                          <span class="text-sm font-semibold text-gray-900">Email</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Poziom przypomnienia</p>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 h-8 bg-orange-100 text-orange-700 rounded-lg flex items-center justify-center font-bold">3</span>
+                          <span class="text-sm text-gray-600">Trzecie przypomnienie</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Próba wysłania</p>
+                        <p class="text-sm font-medium text-gray-900">03.12.2025, 10:00:42</p>
+                      </div>
+                      <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Wysłano przez</p>
+                        <p class="text-sm font-medium text-gray-900">System (automatycznie)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-6">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Faktura</p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <p class="font-mono text-lg font-semibold text-gray-900">FV/2025/10/1234</p>
+                          <p class="text-sm text-gray-600 mt-1">Termin płatności: 15.10.2025</p>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-2xl font-bold text-blue-600">12 500,00 PLN</p>
+                          <p class="text-xs text-red-600 font-medium">49 dni po terminie</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript for interactivity -->
+  <script>
+    // View switching
+    function switchView(viewName) {
+      // Update buttons
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+      });
+      const activeBtn = document.querySelector('.view-btn[data-view="' + viewName + '"]');
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+      }
+
+      // Update content
+      document.querySelectorAll('.view-content').forEach(view => {
+        view.classList.remove('active');
+      });
+      const activeView = document.getElementById('view-' + viewName);
+      if (activeView) {
+        activeView.classList.add('active');
+      }
+    }
+
+    // Table row expand/collapse
+    function toggleRowDetails(row) {
+      const detailsRow = row.nextElementSibling;
+      const icon = row.querySelector('.expand-icon');
+
+      if (detailsRow && detailsRow.classList.contains('details-row')) {
+        detailsRow.classList.toggle('hidden');
+        if (icon) {
+          icon.style.transform = detailsRow.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      }
+    }
+
+    // Split view item selection
+    function selectSplitItem(item, detailId) {
+      // Remove selection from all items
+      document.querySelectorAll('.split-item').forEach(i => {
+        i.classList.remove('selected');
+      });
+
+      // Add selection to clicked item
+      item.classList.add('selected');
+
+      // Show corresponding detail panel
+      document.querySelectorAll('.detail-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+
+      const detailPanel = document.getElementById('detail-' + detailId);
+      if (detailPanel) {
+        detailPanel.classList.remove('hidden');
+      } else {
+        // Show default panel if specific one doesn't exist
+        document.getElementById('detail-1').classList.remove('hidden');
+      }
+    }
+  </script>
+
+  <!-- DESIGN NOTES SECTION -->
+  <div class="bg-slate-800 text-white p-8 mt-8">
+    <div class="max-w-9xl mx-auto">
+      <h2 class="text-2xl font-bold mb-6">Design Decisions & Annotations</h2>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-lg font-semibold text-blue-400 mb-3">Layout Changes</h3>
+          <ul class="space-y-2 text-gray-300 text-sm">
+            <li><strong class="text-white">max-w-9xl (1536px)</strong> instead of max-w-7xl (1280px) - 20% more usable space</li>
+            <li><strong class="text-white">5-column stats</strong> on xl screens - error count now visible at a glance</li>
+            <li><strong class="text-white">View toggle</strong> - Table/Timeline/Split for different use cases</li>
+            <li><strong class="text-white">Responsive design</strong> - works from 1024px to 1920px+</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-green-400 mb-3">Information Density</h3>
+          <ul class="space-y-2 text-gray-300 text-sm">
+            <li><strong class="text-white">Table view</strong> - Maximum density, sortable columns, expandable rows</li>
+            <li><strong class="text-white">Timeline view</strong> - Grouped by date, larger message cards with hover tooltips</li>
+            <li><strong class="text-white">Split view</strong> - Gmail-style list + detail panel for deep inspection</li>
+            <li><strong class="text-white">Expandable details</strong> - Click to see recipient, subject, full timestamp</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-yellow-400 mb-3">Visual Improvements</h3>
+          <ul class="space-y-2 text-gray-300 text-sm">
+            <li><strong class="text-white">Level indicators</strong> - Color-coded: 1=green, 2=yellow, 3=orange, 4=red</li>
+            <li><strong class="text-white">Status clarity</strong> - Distinct success/error badges with icons</li>
+            <li><strong class="text-white">Type differentiation</strong> - Unique colors: Email=purple, SMS=green, WhatsApp=emerald</li>
+            <li><strong class="text-white">Error highlighting</strong> - Red background, prominent error banner in details</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-purple-400 mb-3">UX Patterns Used</h3>
+          <ul class="space-y-2 text-gray-300 text-sm">
+            <li><strong class="text-white">Stripe</strong> - Clean table layout, expandable rows, status badges</li>
+            <li><strong class="text-white">Gmail</strong> - Split view with list + preview panel</li>
+            <li><strong class="text-white">Intercom</strong> - Timeline grouping, message cards with rich hover states</li>
+            <li><strong class="text-white">HubSpot</strong> - Activity log with filter chips, client avatars</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-6 border-t border-slate-600">
+        <h3 class="text-lg font-semibold text-orange-400 mb-3">Recommended Implementation</h3>
+        <p class="text-gray-300 text-sm leading-relaxed">
+          Start with the <strong class="text-white">Table view</strong> as default - it provides the highest information density
+          for accountants who need to quickly scan through messages. The <strong class="text-white">expandable rows</strong> give
+          quick access to details without navigation. For users who prefer the current grouped layout, the
+          <strong class="text-white">Timeline view</strong> preserves that mental model but with better message cards.
+          The <strong class="text-white">Split view</strong> is ideal for investigating specific errors or viewing full message context.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+Loading data...
+Loaded 43201 candles
+Date range: 2025-11-07 13:02:00 to 2025-12-07 13:02:00
+Calculating indicators...
+After indicators: 43139 candles
+
+Testing strategies...
+
+[1] BB Mean Reversion
+  1.5x3: 902 trades, WR=48.3%, PnL=11.0%, R:R=0.74
+  2x4: 756 trades, WR=42.1%, PnL=-15.6%, R:R=-0.47
+  2.5x5: 572 trades, WR=41.3%, PnL=-4.7%, R:R=-0.16
+  3x6: 460 trades, WR=39.1%, PnL=-2.8%, R:R=-0.09
+
+[2] EMA Crossover
+  2x4: 921 trades, WR=22.9%, PnL=-182.2%, R:R=-0.99
+  2.5x5: 648 trades, WR=25.6%, PnL=-122.0%, R:R=-0.97
+  3x6: 460 trades, WR=26.1%, PnL=-91.5%, R:R=-0.96
+
+[3] RSI Oversold
+  RSI<20: 306 trades, WR=40.5%, PnL=-10.9%, R:R=-0.63
+  RSI<25: 531 trades, WR=42.7%, PnL=-12.6%, R:R=-0.45
+  RSI<30: 870 trades, WR=41.7%, PnL=-24.3%, R:R=-0.51
+
+[4] EMA + RSI Pullback
+
+[5] BB with Limit Orders (0.07% fee)
+  2x4: 756 trades, WR=42.1%, PnL=7.1%, R:R=0.31
+  2.5x5: 572 trades, WR=41.3%, PnL=12.4%, R:R=0.55
+  3x6: 460 trades, WR=39.1%, PnL=11.0%, R:R=0.42
+
+================================================================================
+TESTED 13 STRATEGIES
+================================================================================
+
+TOP 10 BY R:R RATIO:
+
+BB_MR_ATR1.5x3
+  Trades: 902 | WR: 48.3%
+  PnL: 11.0% | DD: 14.9% | R:R: 0.74
+
+BB_Limit_ATR2.5x5
+  Trades: 572 | WR: 41.3%
+  PnL: 12.4% | DD: 22.5% | R:R: 0.55
+
+BB_Limit_ATR3x6
+  Trades: 460 | WR: 39.1%
+  PnL: 11.0% | DD: 26.3% | R:R: 0.42
+
+BB_Limit_ATR2x4
+  Trades: 756 | WR: 42.1%
+  PnL: 7.1% | DD: 22.8% | R:R: 0.31
+
+BB_MR_ATR3x6
+  Trades: 460 | WR: 39.1%
+  PnL: -2.8% | DD: 32.7% | R:R: -0.09
+
+BB_MR_ATR2.5x5
+  Trades: 572 | WR: 41.3%
+  PnL: -4.7% | DD: 30.3% | R:R: -0.16
+
+RSI<25_ATR2x4
+  Trades: 531 | WR: 42.7%
+  PnL: -12.6% | DD: 28.1% | R:R: -0.45
+
+BB_MR_ATR2x4
+  Trades: 756 | WR: 42.1%
+  PnL: -15.6% | DD: 33.1% | R:R: -0.47
+
+RSI<30_ATR2x4
+  Trades: 870 | WR: 41.7%
+  PnL: -24.3% | DD: 47.3% | R:R: -0.51
+
+RSI<20_ATR2x4
+  Trades: 306 | WR: 40.5%
+  PnL: -10.9% | DD: 17.4% | R:R: -0.63
+
+================================================================================
+NO STRATEGIES WITH R:R >= 2.0
+Best: BB_MR_ATR1.5x3 with R:R=0.74
+================================================================================
+
+Done!

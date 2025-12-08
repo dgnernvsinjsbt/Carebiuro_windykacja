@@ -1,0 +1,25 @@
+{
+  "categories": [
+    {
+      "name": "USDT-M Perp Futures",
+      "endpoints": [],
+      "sections": []
+    },
+    {
+      "name": "Spot",
+      "endpoints": [],
+      "sections": []
+    },
+    {
+      "name": "Standard Futures",
+      "endpoints": [],
+      "sections": []
+    },
+    {
+      "name": "Copy Trading",
+      "endpoints": [],
+      "sections": []
+    }
+  ],
+  "scraped_at": "2025-12-05T09:46:29.683390"
+}

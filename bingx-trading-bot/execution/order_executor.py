@@ -31,23 +31,29 @@ class OrderExecutor:
         self,
         signal: Dict[str, Any],
         account_balance: float,
-        risk_pct: float,
+        risk_pct: float,  # Kept for API compatibility but NOT used
         contract_info: Dict[str, Any],
         leverage: int = 1,
-        leverage_mode: str = 'conservative'
+        leverage_mode: str = 'conservative'  # Kept for API compatibility but NOT used
     ) -> float:
         """
-        Calculate position size based on risk management with leverage
+        Calculate position size - Position = Equity × Leverage
+
+        Examples:
+        - 1x leverage + $12 equity → $12 position (100% of equity)
+        - 2x leverage + $12 equity → $24 position (200% of equity)
+        - 10x leverage + $12 equity → $120 position (1000% of equity)
+
+        Margin required is always = equity (BingX holds your balance as margin).
+        If price moves -2%, you lose 2% × leverage of your equity.
 
         Args:
-            signal: Trading signal with entry/SL/TP
-            account_balance: Current USDT balance
-            risk_pct: Risk percentage (e.g., 1.0 = 1%)
+            signal: Trading signal with entry price
+            account_balance: Current USDT balance (equity)
+            risk_pct: NOT USED - kept for API compatibility
             contract_info: Contract specifications
-            leverage: Leverage multiplier (1, 5, 10, 20, etc.)
-            leverage_mode: 'conservative' or 'aggressive'
-                - conservative: Same position size, less margin (safer)
-                - aggressive: Multiply position size by leverage (riskier)
+            leverage: Position multiplier (1x=100%, 10x=1000% of equity)
+            leverage_mode: NOT USED - kept for API compatibility
 
         Returns:
             Position size in base currency (e.g., FARTCOIN)
@@ -55,25 +61,10 @@ class OrderExecutor:
         entry_price = signal['entry_price']
         stop_loss = signal['stop_loss']
 
-        # Calculate risk per unit
-        risk_per_unit = abs(entry_price - stop_loss)
-
-        # Calculate how much USDT we're willing to risk
-        risk_amount = account_balance * (risk_pct / 100.0)
-
-        # Base position size (1x leverage calculation)
-        base_position_size = risk_amount / risk_per_unit
-
-        # Apply leverage based on mode
-        if leverage_mode == 'aggressive':
-            # Multiply position size by leverage
-            # This means 10x leverage = 10x larger position = 10x faster gains/losses
-            position_size = base_position_size * leverage
-            self.logger.info(f"AGGRESSIVE mode: Position size multiplied by {leverage}x")
-        else:
-            # Conservative: Keep same position size, leverage just reduces margin needed
-            position_size = base_position_size
-            self.logger.info(f"CONSERVATIVE mode: Position size unchanged, margin reduced by {leverage}x")
+        # Position value = Equity × Leverage
+        # 1x = 100% of equity, 10x = 1000% of equity
+        position_value = account_balance * leverage
+        position_size = position_value / entry_price
 
         # Get precision from contract info
         quantity_precision = contract_info.get('quantityPrecision', 3)
@@ -91,14 +82,17 @@ class OrderExecutor:
             self.logger.warning(f"Calculated size {position_size} below minimum {min_qty}, using minimum")
             position_size = float(min_qty)
 
-        # Calculate actual margin required
-        position_value = position_size * entry_price
-        margin_required = position_value / leverage
+        # Recalculate actual position value after rounding
+        actual_position_value = position_size * entry_price
 
-        self.logger.info(f"Position size: {position_size} ({leverage_mode} mode)")
-        self.logger.info(f"Position value: ${position_value:.2f}")
-        self.logger.info(f"Margin required: ${margin_required:.2f} (at {leverage}x leverage)")
-        self.logger.info(f"Risk amount: ${risk_amount:.2f} ({risk_pct}% of ${account_balance:.2f})")
+        # Calculate risk based on stop-loss distance
+        sl_distance_pct = abs(entry_price - stop_loss) / entry_price * 100
+        risk_if_stopped = actual_position_value * (sl_distance_pct / 100)
+
+        self.logger.info(f"Position size: {position_size}")
+        self.logger.info(f"Position value: ${actual_position_value:.2f} ({leverage * 100}% of equity)")
+        self.logger.info(f"Leverage: {leverage}x")
+        self.logger.info(f"SL distance: {sl_distance_pct:.2f}% → Risk if stopped: ${risk_if_stopped:.2f}")
 
         return position_size
 

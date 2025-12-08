@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "question": "Czy moje zatrudnienie jest w pełni legalne?",
+    "answer": "Tak, Twoje zatrudnienie jest w pełni legalne. Zapewniamy pełne ubezpieczenie zdrowotne i społeczne zgodnie z niemieckim prawem. Jako zarejestrowane Gewerbe działamy w pełnej zgodności z przepisami UE dotyczącymi zatrudnienia opiekunek.",
+    "keywords": ["legalne", "legalność", "prawnie", "gewerbe", "legalna praca", "przepisy", "zgodność", "legalny"]
+  },
+  {
+    "id": 2,
+    "question": "Jakie ubezpieczenie jest zapewnione?",
+    "answer": "Zapewniamy kompleksowe ubezpieczenie: zdrowotne (Krankenversicherung), emerytalne (Rentenversicherung), od bezrobocia (Arbeitslosenversicherung) oraz od wypadków przy pracy. Wszystkie składki są opłacane zgodnie z niemieckimi standardami.",
+    "keywords": ["ubezpieczenie", "składki", "zdrowotne", "emerytalne", "krankenversicherung", "versicherung", "składka"]
+  },
+  {
+    "id": 3,
+    "question": "Co obejmuje wsparcie w ramach Gewerbe?",
+    "answer": "Nasze wsparcie w ramach Gewerbe obejmuje: pełną rejestrację w urzędzie (Gewerbeamt), obsługę formalności podatkowych, pomoc w założeniu konta firmowego oraz stałe doradztwo prawne i księgowe. Jesteś pod opieką na każdym etapie.",
+    "keywords": ["gewerbe", "wsparcie", "rejestracja", "gewerbeamt", "formalności", "pomoc", "doradztwo"]
+  },
+  {
+    "id": 4,
+    "question": "Czy mam zapewnioną opiekę medyczną w Niemczech?",
+    "answer": "Tak, w ramach ubezpieczenia zdrowotnego masz pełny dostęp do niemieckiej służby zdrowia. Możesz korzystać z wizyt u lekarzy, szpitali, aptek i specjalistów bez dodatkowych kosztów. Pomagamy też w wyborze odpowiedniej kasy chorych (Krankenkasse).",
+    "keywords": ["opieka medyczna", "lekarz", "szpital", "zdrowie", "służba zdrowia", "krankenkasse", "kasa chorych"]
+  },
+  {
+    "id": 5,
+    "question": "Jak wygląda proces legalizacji pobytu i pracy?",
+    "answer": "Proces legalizacji obejmuje: założenie Gewerbe, zgłoszenie do urzędu miejskiego (Anmeldung), rejestrację do ubezpieczeń społecznych i zdrowotnych oraz uzyskanie numeru podatkowego (Steuernummer). Wszystkie te kroki przeprowadzamy razem z Tobą krok po kroku.",
+    "keywords": ["legalizacja", "proces", "anmeldung", "steuernummer", "rejestracja", "urząd", "formalności"]
+  },
+  {
+    "id": 6,
+    "question": "Gdzie mogę uzyskać pomoc w nagłych wypadkach?",
+    "answer": "W nagłych sytuacjach masz całodobowy kontakt z naszym koordynatorem. Pomagamy w komunikacji z lekarzami, urzędami i pracodawcami. W przypadku problemów zdrowotnych kontaktuj się z numerem alarmowym 112, a następnie poinformuj nas.",
+    "keywords": ["pomoc", "nagły wypadek", "112", "kontakt", "całodobowy", "koordynator", "sytuacja", "problem"]
+  },
+  {
+    "id": 7,
+    "question": "Jakie są koszty ubezpieczenia?",
+    "answer": "Koszty ubezpieczeń zdrowotnych i społecznych w Niemczech wynoszą około 20-22% Twoich zarobków. Część składek może być pokrywana przez Twojego pracodawcę. Dokładne stawki obliczamy indywidualnie w zależności od Twojej sytuacji i wysokości wynagrodzenia.",
+    "keywords": ["koszty", "składki", "procent", "zarobki", "wynagrodzenie", "opłaty", "cena"]
+  },
+  {
+    "id": 8,
+    "question": "Jak długo trwa proces rejestracji Gewerbe?",
+    "answer": "Proces rejestracji Gewerbe trwa zazwyczaj 2-4 tygodnie. Obejmuje to złożenie wniosku w Gewerbeamt (1-3 dni), oczekiwanie na numer podatkowy (7-14 dni) oraz finalizację ubezpieczeń (kilka dni). Wspieramy Cię na każdym etapie, aby wszystko przebiegło sprawnie.",
+    "keywords": ["czas", "długo", "trwa", "rejestracja", "proces", "ile czasu", "termin", "szybko"]
+  },
+  {
+    "id": 9,
+    "question": "Czy mogę pracować dla kilku rodzin jednocześnie?",
+    "answer": "Tak, posiadając Gewerbe możesz legalnie pracować dla kilku rodzin. Każda umowa jest rejestrowana osobno, a Ty otrzymujesz pełne ubezpieczenie. Pomagamy w zarządzaniu wieloma zleceniami i rozliczaniu się z każdym klientem zgodnie z prawem.",
+    "keywords": ["kilka rodzin", "wiele zleceń", "jednocześnie", "więcej klientów", "dodatkowa praca", "druga rodzina"]
+  },
+  {
+    "id": 10,
+    "question": "Czy otrzymam pomoc z językiem niemieckim w urzędach?",
+    "answer": "Tak, zapewniamy wsparcie językowe podczas wszystkich wizyt w urzędach. Nasi koordynatorzy pomagają w wypełnianiu formularzy, tłumaczeniu dokumentów i komunikacji z urzędnikami. Dodatkowo oferujemy podstawowe kursy języka niemieckiego dla opiekunek.",
+    "keywords": ["język niemiecki", "tłumaczenie", "urząd", "formularze", "dokumenty", "komunikacja", "pomoc językowa", "deutsch"]
+  },
+  {
+    "id": 11,
+    "question": "Jakie dokumenty są potrzebne do rejestracji Gewerbe?",
+    "answer": "Do rejestracji Gewerbe potrzebujesz: paszportu lub dowodu osobistego, potwierdzenia zameldowania w Niemczech (Anmeldung), wypełnionego formularza Gewerbeanmeldung oraz opłaty rejestracyjnej (około 20-60 euro). Pomagamy w przygotowaniu wszystkich dokumentów i wypełnieniu formularzy w języku niemieckim.",
+    "keywords": ["dokumenty", "potrzebne", "paszport", "dowod", "anmeldung", "formularz", "gewerbeanmeldung", "wymagania"]
+  },
+  {
+    "id": 12,
+    "question": "Jak wystawić fakturę (Rechnung) dla mojego klienta?",
+    "answer": "Jako posiadacz Gewerbe wystawiasz faktury (Rechnung) dla swoich klientów. Pomagamy w tym procesie - dostarczamy szablony faktur, wyjaśniamy wymagania prawne i wspieramy w rozliczeniach. Faktury możesz wystawiać samodzielnie lub skorzystać z naszego wsparcia księgowego, które obejmuje przygotowanie i wysyłkę faktur.",
+    "keywords": ["faktura", "rechnung", "wystawic", "invoice", "rozliczenie", "wystawienie", "fakturowanie", "billing"]
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "total_categories": 4,
+  "total_endpoints": 0,
+  "endpoints_by_method": {},
+  "categories_summary": [
+    {
+      "name": "Spot Trading",
+      "endpoint_count": 0
+    },
+    {
+      "name": "Perpetual Swap",
+      "endpoint_count": 0
+    },
+    {
+      "name": "Standard Contract",
+      "endpoint_count": 0
+    },
+    {
+      "name": "Account",
+      "endpoint_count": 0
+    }
+  ],
+  "errors": [],
+  "scraped_at": "2025-12-04T19:01:00.954207"
+}

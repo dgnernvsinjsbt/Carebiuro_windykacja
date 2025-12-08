@@ -24,6 +24,10 @@ from data.indicators import IndicatorCalculator
 from strategies.multi_timeframe_long import MultiTimeframeLongStrategy
 from strategies.trend_distance_short import TrendDistanceShortStrategy
 from strategies.moodeng_rsi_momentum import MoodengRSIMomentumStrategy
+from strategies.doge_volume_zones import DogeVolumeZonesStrategy
+from strategies.pepe_volume_zones import PepeVolumeZonesStrategy
+from strategies.trump_volume_zones import TrumpVolumeZonesStrategy
+from strategies.uni_volume_zones import UniVolumeZonesStrategy
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
@@ -75,6 +79,26 @@ class TradingEngine:
             strategy_config = self.config.get_strategy_config('moodeng_rsi_momentum')
             self.strategies.append(MoodengRSIMomentumStrategy(strategy_config.__dict__))
             self.metrics.register_strategy('moodeng_rsi_momentum')
+
+        if self.config.is_strategy_enabled('doge_volume_zones'):
+            strategy_config = self.config.get_strategy_config('doge_volume_zones')
+            self.strategies.append(DogeVolumeZonesStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('doge_volume_zones')
+
+        if self.config.is_strategy_enabled('pepe_volume_zones'):
+            strategy_config = self.config.get_strategy_config('pepe_volume_zones')
+            self.strategies.append(PepeVolumeZonesStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('pepe_volume_zones')
+
+        if self.config.is_strategy_enabled('trump_volume_zones'):
+            strategy_config = self.config.get_strategy_config('trump_volume_zones')
+            self.strategies.append(TrumpVolumeZonesStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('trump_volume_zones')
+
+        if self.config.is_strategy_enabled('uni_volume_zones'):
+            strategy_config = self.config.get_strategy_config('uni_volume_zones')
+            self.strategies.append(UniVolumeZonesStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('uni_volume_zones')
 
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)

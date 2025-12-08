@@ -1,0 +1,133 @@
+================================================================================
+UNI/USDT QUICK REFERENCE - Pattern Discovery Results
+================================================================================
+
+VERDICT: ❌ NOT TRADEABLE on 1-minute timeframe
+
+Dataset: 43,001 candles (30 days, Nov 7 - Dec 7, 2025)
+Price Range: $5.38 - $10.18
+Avg Volume: 1,420
+
+================================================================================
+KEY FINDINGS
+================================================================================
+
+High-Confidence Patterns: 0
+Medium-Confidence Patterns: 4 (all negative edge)
+Overall Win Rate: 46.4%
+Best Edge Found: +0.628% (only 6 samples - unreliable)
+
+REGIME DISTRIBUTION:
+- Mean-Reverting: 79.8% (but weak reversals)
+- Choppy: 10.6%
+- Trending: 9.5% (5% up + 4.5% down)
+- Explosive: 0.1%
+
+COIN PERSONALITY:
+- Volatility: NORMAL (0.205% avg candle)
+- Momentum: NEUTRAL (-0.0162 autocorr)
+- Liquidity: INCONSISTENT (CV 2.40)
+- Max Drawdown: 47.17%
+
+================================================================================
+TOP 3 PATTERNS (All Marginal)
+================================================================================
+
+1. After Explosive Bear → LONG 3 bars
+   Edge: +0.628% | WR: 83.3% | n=6 (TOO RARE)
+
+2. 5+ Consecutive Red → LONG 5 bars
+   Edge: +0.021% | WR: 51.5% | n=940 (EDGE TOO SMALL)
+
+3. BB Lower 2std Touch → LONG 5 bars
+   Edge: +0.011% | WR: 50.9% | n=2200 (COIN FLIP)
+
+================================================================================
+BEST SESSION
+================================================================================
+
+OVERNIGHT (21:00-00:00 UTC):
+- Avg Return: +0.0043%
+- Volatility: 0.217%
+- Long WR: 47.4%
+- Best Hour: 22:00 UTC (+0.0131%)
+
+Still not enough edge to overcome fees!
+
+================================================================================
+WHY UNI FAILS ON 1M
+================================================================================
+
+1. All edges < 0.1% (fees eat them)
+2. 46.4% win rate = losing bias
+3. Mean-reversion exists but bounces are tiny
+4. Trends are rare and weak (9.5% of time)
+5. Volume inconsistent and spiky
+
+================================================================================
+WHAT TO DO INSTEAD
+================================================================================
+
+Option 1: SKIP THIS COIN
+- Focus on proven profitable coins:
+  - MOODENG: +24.02% (R/DD 10.68x)
+  - FARTCOIN SHORT: +20.08% (R/DD 8.88x)
+  - TRUMP Volume Zones: +8.06% (R/DD 10.56x)
+  - PEPE Volume Zones: +2.57% (R/DD 6.80x)
+
+Option 2: TRY HIGHER TIMEFRAMES
+- 5m, 15m, or 30m might have cleaner signals
+- Mean-reversion patterns could work better
+
+Option 3: VOLUME ZONE STRATEGY (Low Confidence)
+- 5+ bars with volume >1.5x at price extremes
+- Overnight session only (22:00 UTC)
+- Wide targets (4:1 R:R)
+- Limit orders (save 0.03% fees)
+- Expected: Marginal profitability at best
+
+================================================================================
+FILES GENERATED
+================================================================================
+
+1. UNI_PATTERN_ANALYSIS.md - 193-line comprehensive report
+2. UNI_EXECUTIVE_SUMMARY.md - Detailed verdict and reasoning
+3. UNI_session_stats.csv - Session performance data
+4. UNI_sequential_patterns.csv - 40+ pattern probabilities
+5. UNI_regime_analysis.csv - Regime classification timeline
+6. UNI_statistical_edges.csv - 100+ technical edges tested
+7. UNI_pattern_stats.csv - Confidence-filtered patterns
+8. pattern_discovery_UNI.py - Replicable analysis script
+
+================================================================================
+ANALYSIS METHODOLOGY
+================================================================================
+
+Patterns Tested:
+- 40+ sequential patterns (explosive candles, consecutive bars, wicks, etc.)
+- 100+ statistical edges (RSI, SMA crosses, time patterns)
+- 4 sessions analyzed (Asia, Europe, US, Overnight)
+- 5 regime classifications
+
+Quality Standards:
+- High confidence: WR > 60% AND edge > 0.1%
+- Medium confidence: WR > 50% AND edge > 0.05%
+- Minimum samples: 20+ trades
+- Fees: 0.10% round-trip included
+
+Result: ZERO high-confidence patterns found
+
+================================================================================
+FINAL VERDICT
+================================================================================
+
+❌ UNI/USDT 1-minute = NOT RECOMMENDED FOR TRADING
+
+The pattern discovery analysis found no exploitable edges above transaction
+costs. All patterns have edges < 0.1%, which get eaten by fees.
+
+Recommendation: Move to higher timeframes or different coins.
+
+================================================================================
+Generated: 2025-12-08 by Master Pattern Noticer
+================================================================================
