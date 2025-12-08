@@ -8,7 +8,7 @@ import asyncio
 import signal
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -33,7 +33,7 @@ from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
 from execution.bingx_client import BingXClient
 from execution.order_executor import OrderExecutor
-from data.websocket_feed import BingXWebSocketFeed
+# NOTE: WebSocket removed - using pure REST API polling for reliability
 
 
 class TradingEngine:
@@ -126,18 +126,12 @@ class TradingEngine:
             buffer_size=self.config.data.buffer_size
         )
 
-        # BingX WebSocket feed
-        self.ws_feed = BingXWebSocketFeed(
-            api_key=self.config.bingx.api_key,
-            api_secret=self.config.bingx.api_secret,
-            testnet=self.config.bingx.testnet,
-            on_kline=self._on_kline_update
-        )
+        # NOTE: WebSocket removed - using pure REST API polling instead
+        # This eliminates data corruption issues from WebSocket
 
         # Account state
         self.account_balance = 0.0
         self.symbols = self.config.trading.symbols
-        self.last_candle_time = {}  # Track last processed candle per symbol
 
         self.running = False
 
@@ -206,69 +200,6 @@ class TradingEngine:
             await self.notifier.notify_bot_started(self.account_balance, strategies_enabled)
 
         return True
-
-    def _on_kline_update(self, data) -> None:
-        """Handle kline update from WebSocket"""
-        try:
-            if not data:
-                self.logger.warning("Kline callback received empty data")
-                return
-
-            self.logger.debug(f"Kline raw data type: {type(data)}, data: {str(data)[:200]}")
-
-            # BingX sends kline as list: [{'c': '0.37', 'o': '0.37', ...}]
-            if isinstance(data, list):
-                if len(data) == 0:
-                    self.logger.warning("Kline callback received empty list")
-                    return
-                kline = data[0]  # Get first kline from list
-            elif isinstance(data, dict):
-                kline = data.get('K') or data
-            else:
-                self.logger.warning(f"Kline callback received unexpected type: {type(data)}")
-                return
-
-            # Extract candle data - BingX uses 'c', 'o', 'h', 'l', 'v', 'T'
-            candle = {
-                'timestamp': datetime.fromtimestamp(kline.get('T', 0) / 1000),
-                'open': float(kline.get('o', 0)),
-                'high': float(kline.get('h', 0)),
-                'low': float(kline.get('l', 0)),
-                'close': float(kline.get('c', 0)),
-                'volume': float(kline.get('v', 0))
-            }
-
-            candle_time = kline.get('T', 0)
-
-            # Process tick through candle manager
-            closed_candles = self.candle_manager.process_tick(
-                timestamp=candle['timestamp'],
-                price=candle['close'],
-                volume=candle['volume']
-            )
-
-            # Check for completed candle every minute
-            # Use candle_time modulo to detect new minute
-            current_minute = candle_time // 60000
-            last_key = f"minute_{current_minute}"
-
-            if last_key not in self.last_candle_time:
-                # Clean old keys (keep only last 5)
-                if len(self.last_candle_time) > 100:
-                    self.last_candle_time.clear()
-
-                self.last_candle_time[last_key] = True
-
-                candle_count = len(self.candle_manager.get_dataframe(1))
-                if candle_count > 0:
-                    self.logger.info(f"Tick: ${candle['close']:.4f} | Candles: {candle_count}")
-
-                    # Process signals if we have enough data
-                    if candle_count >= 250:
-                        asyncio.create_task(self._process_signal('FARTCOIN-USDT', candle))
-
-        except Exception as e:
-            self.logger.error(f"Error processing kline: {e}", exc_info=True)
 
     async def _process_signal(self, symbol: str, candle: dict) -> None:
         """Process candle and generate signals"""
@@ -449,6 +380,72 @@ class TradingEngine:
                     details=str(result.get('error', 'Unknown error'))
                 )
 
+    async def _poll_and_process_candles(self, symbol: str, expected_candle_time: datetime) -> bool:
+        """
+        Poll REST API for the latest candles and process signals.
+
+        Args:
+            symbol: Trading symbol
+            expected_candle_time: The timestamp we expect the closed candle to have
+
+        Returns:
+            True if we got the correct candle, False if stale data
+        """
+        try:
+            # Fetch last 5 candles from REST API
+            klines = await self.bingx.get_klines(
+                symbol=symbol,
+                interval='1m',
+                limit=5
+            )
+
+            if not klines or len(klines) < 2:
+                self.logger.warning(f"No klines returned from REST API for {symbol}")
+                return False
+
+            # BingX returns newest first, so klines[1] is the last CLOSED candle
+            # klines[0] is the current (still forming) candle
+            latest_closed = klines[1] if len(klines) > 1 else klines[0]
+
+            # Verify we got the expected candle (not stale data)
+            candle_timestamp = datetime.fromtimestamp(latest_closed['time'] / 1000)
+
+            # Compare hour and minute to handle hour boundaries correctly
+            if (candle_timestamp.hour != expected_candle_time.hour or
+                candle_timestamp.minute != expected_candle_time.minute):
+                self.logger.debug(f"Stale candle: got {candle_timestamp.strftime('%H:%M')}, "
+                                f"expected {expected_candle_time.strftime('%H:%M')}")
+                return False  # Signal to retry
+
+            # Build candle dict from REST API data
+            candle = {
+                'timestamp': candle_timestamp,
+                'open': float(latest_closed['open']),
+                'high': float(latest_closed['high']),
+                'low': float(latest_closed['low']),
+                'close': float(latest_closed['close']),
+                'volume': float(latest_closed['volume'])
+            }
+
+            # Log the candle we're processing
+            self.logger.info(f"✓ {symbol} candle {candle_timestamp.strftime('%H:%M')} | "
+                           f"O={candle['open']:.5f} H={candle['high']:.5f} "
+                           f"L={candle['low']:.5f} C={candle['close']:.5f}")
+
+            # Check if we have enough data
+            candle_count = len(self.candle_manager.get_dataframe(1))
+            if candle_count < 250:
+                self.logger.debug(f"Not enough candles for signals: {candle_count}/250")
+                return True  # Candle was correct, just not enough history
+
+            # Process signal with REST API data
+            await self._process_signal(symbol, candle)
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error polling {symbol}: {e}")
+            return False
+
     async def run(self) -> None:
         """Main event loop"""
         # Pre-flight checks
@@ -482,30 +479,56 @@ class TradingEngine:
         self.logger.info("=" * 70)
 
         try:
-            # Subscribe to kline streams for all symbols
-            for symbol in self.symbols:
-                # Use symbol as-is (already in FARTCOIN-USDT format)
-                ws_symbol = symbol if '-' in symbol else symbol.replace('USDT', '-USDT')
-                await self.ws_feed.subscribe('kline', ws_symbol, '1m')
-                self.logger.info(f"Subscribed to {ws_symbol} 1m klines")
+            # ============================================================
+            # PURE REST API POLLING - Aligned to minute boundaries
+            # Polls at :00 each minute with retry until correct candle received
+            # ============================================================
+            self.logger.info("Starting REST API polling mode (aligned to :00 each minute)")
 
-            # Start WebSocket feed (this runs the main loop)
-            ws_task = asyncio.create_task(self.ws_feed.start())
-
-            # Monitor loop
             while self.running:
                 # Check for stop file
                 if Path(self.config.safety.stop_file).exists():
                     self.logger.warning("Stop file detected, shutting down")
                     break
 
+                # Wait until exactly :00 of next minute
+                now = datetime.now()
+                seconds_until_next_minute = 60 - now.second - (now.microsecond / 1_000_000)
+                if seconds_until_next_minute <= 0:
+                    seconds_until_next_minute += 60
+                self.logger.debug(f"Waiting {seconds_until_next_minute:.1f}s until :00")
+                await asyncio.sleep(seconds_until_next_minute)
+
+                # Now it's :00 - the previous minute's candle should be closed
+                now = datetime.now()
+                # Expected candle timestamp is the start of the PREVIOUS minute
+                expected_candle_time = (now - timedelta(minutes=1)).replace(second=0, microsecond=0)
+                self.logger.info(f"Polling at {now.strftime('%H:%M:%S')} for candle {expected_candle_time.strftime('%H:%M')}")
+
                 # Check daily reset
                 self.metrics.check_daily_reset()
 
-                # Print dashboard periodically
-                await asyncio.sleep(60)
+                # Poll each symbol with retry logic (max 10 retries = 10 seconds)
+                max_retries = 10
+                for symbol in self.symbols:
+                    success = False
+                    for attempt in range(max_retries):
+                        try:
+                            success = await self._poll_and_process_candles(symbol, expected_candle_time)
+                            if success:
+                                break  # Got correct candle
+                            # Stale data - wait 1 second and retry
+                            self.logger.debug(f"Retry {attempt + 1}/{max_retries} for {symbol}...")
+                            await asyncio.sleep(1)
+                        except Exception as e:
+                            self.logger.error(f"Error polling {symbol}: {e}")
+                            await asyncio.sleep(1)
+
+                    if not success:
+                        self.logger.warning(f"⚠️ Failed to get correct candle for {symbol} after {max_retries} retries")
+
                 candle_count = len(self.candle_manager.get_dataframe(1))
-                self.logger.info(f"Bot running | Candles: {candle_count} | Balance: ${self.account_balance:.2f}")
+                self.logger.info(f"Poll complete | Candles: {candle_count} | Balance: ${self.account_balance:.2f}")
 
                 # Update remote status
                 self.status.update(
@@ -515,9 +538,6 @@ class TradingEngine:
                     message=f'Running OK - {candle_count} candles'
                 )
                 await self.status.report()
-
-            # Cancel WebSocket task
-            ws_task.cancel()
 
         except KeyboardInterrupt:
             self.logger.info("Keyboard interrupt received")
