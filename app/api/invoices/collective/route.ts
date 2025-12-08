@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         name: `Faktura ${inv.number}`,
         quantity: 1,
         total_price_gross: balance.toFixed(2),
-        tax: 0, // Odwrotne obciążenie
+        tax: 'np', // nie podlega VAT
       };
     });
 
