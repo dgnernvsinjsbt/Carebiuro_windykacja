@@ -177,15 +177,30 @@ class BingXClient:
         url = f"{self.base_url}{endpoint}"
         params = params or {}
 
-        # Add timestamp and signature for signed endpoints
-        if signed:
-            params['timestamp'] = int(time.time() * 1000)
-            params['signature'] = self._generate_signature(params)
-
         # Set headers
         headers = {}
         if self.api_key:
             headers['X-BX-APIKEY'] = self.api_key
+
+        # Add timestamp and signature for signed endpoints
+        if signed:
+            params['timestamp'] = int(time.time() * 1000)
+            signature = self._generate_signature(params)
+
+            # For POST/DELETE requests: signature goes in URL
+            # For GET: signature goes in params
+            if method in ['POST', 'DELETE']:
+                # Build query string with signature
+                filtered_params = {k: v for k, v in params.items() if v is not None}
+                sorted_params = sorted(filtered_params.items())
+                query_string = '&'.join([f"{k}={v}" for k, v in sorted_params])
+                url = f"{url}?{query_string}&signature={signature}"
+                # Clear params for POST (body should be empty)
+                if method == 'POST':
+                    params = {}
+            else:
+                # GET: add signature to params
+                params['signature'] = signature
 
         try:
             # Make request
@@ -194,10 +209,12 @@ class BingXClient:
                     data = await response.json()
             elif method == 'POST':
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
-                async with self.session.post(url, data=params, headers=headers) as response:
+                async with self.session.post(url, headers=headers) as response:
                     data = await response.json()
             elif method == 'DELETE':
-                async with self.session.delete(url, params=params, headers=headers) as response:
+                # For signed DELETE, params already in URL; for unsigned, use params
+                delete_params = {} if signed else params
+                async with self.session.delete(url, params=delete_params, headers=headers) as response:
                     data = await response.json()
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")

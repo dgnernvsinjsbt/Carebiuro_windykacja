@@ -2,11 +2,12 @@
 
 # Trading Configuration
 trading:
-  enabled: false  # Set to true for live trading
-  testnet: true   # Use testnet for testing
+  enabled: true  # LIVE TRADING ENABLED
+  testnet: false  # Production mode
 
   symbols:
-    - FARTCOINUSDT
+    - FARTCOIN-USDT
+    - MOODENG-USDT
 
   strategies:
     multi_timeframe_long:
@@ -54,12 +55,30 @@ trading:
       distance_from_50sma: 2.0   # Min % below 50 SMA
       below_200sma: true         # Must be below 200 SMA
 
+    moodeng_rsi_momentum:
+      enabled: true
+      base_risk_pct: 2.0         # Higher risk due to excellent R:R
+      max_risk_pct: 5.0
+      max_positions: 2           # Can run 2 positions (only ~4 trades/day)
+
+      params:
+        # Strategy parameters (from backtest: +24.02%, -2.25% DD, 31% WR)
+        rsi_cross_level: 55        # RSI must cross above this
+        min_body_pct: 0.5          # Min bullish candle body %
+        stop_atr_mult: 1.0         # Tight stop (1x ATR)
+        target_atr_mult: 4.0       # Wide target (4x ATR) = 4:1 R:R
+        max_hold_bars: 60          # Time exit after 60 minutes
+        win_streak_scaling: 0.5    # Risk increase per win
+        use_trailing_stop: false   # No trailing - let TP hit
+        use_partial_exits: false   # No partial exits - full TP or SL
+        max_hold_hours: 1          # Max 1 hour in trade
+
   risk_management:
     max_portfolio_risk: 5.0     # % of account
-    max_drawdown: 10.0          # % before emergency stop
+    max_drawdown: 35.0          # % before emergency stop (updated for 10x leverage)
     cooldown_after_loss: 60     # minutes
     max_consecutive_losses: 3   # Stop after N losses
-    max_daily_loss_pct: 5.0     # Max daily loss %
+    max_daily_loss_pct: 25.0    # Max daily loss % (updated for 10x leverage)
     max_position_size_pct: 40   # Max % of capital per position
 
 # Data Feed
@@ -80,18 +99,27 @@ data:
   reconnect_delay_seconds: 5
   max_reconnect_delay: 60
 
-# BingX API (to be filled)
+# BingX API
 bingx:
-  api_key: YOUR_API_KEY_HERE
-  api_secret: YOUR_API_SECRET_HERE
-  testnet: true
+  api_key: OCdqe4dHf1VpXw0Jbk3uoQTsa5CLp73rnRisvvzo2MDNp492d989QKee4znGmuLDccvnNDmRckbzEZms1AZg
+  api_secret: bCxPlsFtwm5RsWgslRFaqr7jDzZiAY41gfQ1jmdAurTTz3uhjESBGB5FoqqFvLhyMLs7lD4uK6j89Lbf3AIw
+  testnet: false
   base_url: https://open-api.bingx.com
 
   # Rate limiting
   requests_per_minute: 1200
 
-  # Leverage
-  default_leverage: 1  # 1x = spot, >1 = margin
+  # Leverage Configuration
+  default_leverage: 10  # 1x, 5x, 10x, 20x, etc. (max varies by contract)
+
+  # Leverage Mode:
+  # - 'conservative': Same position size as 1x, less margin required
+  #                   Drawdown remains ~same as backtest
+  #                   Can run more positions simultaneously
+  # - 'aggressive': Position size multiplied by leverage
+  #                 10x faster profits AND losses
+  #                 Drawdown will be ~10x backtest (10-20% instead of 1-2%)
+  leverage_mode: 'aggressive'  # 'conservative' or 'aggressive'
 
 # Logging
 logging:
@@ -127,14 +155,14 @@ database:
 
 # Safety Features
 safety:
-  dry_run: true  # Log signals without executing trades
+  dry_run: false  # LIVE EXECUTION ENABLED
 
   # Emergency stop
   stop_file: ./STOP  # Create this file to halt trading
   emergency_stop_enabled: true
 
   # Pre-flight checks
-  min_account_balance: 100.0  # Min USDT balance to trade
+  min_account_balance: 5.0  # Min USDT balance to trade
   check_existing_positions: true
 
   # Graceful shutdown

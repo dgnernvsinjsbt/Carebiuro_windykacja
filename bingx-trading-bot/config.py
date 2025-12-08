@@ -56,6 +56,7 @@ class BingXConfig:
     base_url: str
     requests_per_minute: int
     default_leverage: int
+    leverage_mode: str
 
 
 @dataclass
@@ -84,6 +85,20 @@ class DatabaseConfig:
     echo: bool = False
     pool_size: int = 5
     max_overflow: int = 10
+
+
+@dataclass
+class NotificationsConfig:
+    """Email notifications configuration"""
+    enabled: bool
+    resend_api_key: str
+    to_email: str
+    notify_trade_opened: bool = True
+    notify_trade_closed: bool = True
+    notify_errors: bool = True
+    notify_emergency_stop: bool = True
+    notify_daily_summary: bool = True
+    notify_bot_started: bool = True
 
 
 @dataclass
@@ -120,6 +135,7 @@ class Config:
         self.bingx: Optional[BingXConfig] = None
         self.logging: Optional[LoggingConfig] = None
         self.database: Optional[DatabaseConfig] = None
+        self.notifications: Optional[NotificationsConfig] = None
         self.safety: Optional[SafetyConfig] = None
 
     def load(self) -> None:
@@ -182,15 +198,29 @@ class Config:
             max_reconnect_delay=data_cfg['max_reconnect_delay']
         )
 
-        # Parse BingX config
+        # Parse BingX config - environment variables take precedence
         bingx_cfg = self.raw_config['bingx']
+
+        # Get API keys from env vars first, then fall back to config file
+        api_key = os.environ.get('BINGX_API_KEY') or bingx_cfg.get('api_key', '')
+        api_secret = os.environ.get('BINGX_API_SECRET') or bingx_cfg.get('api_secret', '')
+
+        # Handle ${VAR} placeholders in config
+        if api_key.startswith('${') and api_key.endswith('}'):
+            env_var = api_key[2:-1]
+            api_key = os.environ.get(env_var, '')
+        if api_secret.startswith('${') and api_secret.endswith('}'):
+            env_var = api_secret[2:-1]
+            api_secret = os.environ.get(env_var, '')
+
         self.bingx = BingXConfig(
-            api_key=bingx_cfg['api_key'],
-            api_secret=bingx_cfg['api_secret'],
+            api_key=api_key,
+            api_secret=api_secret,
             testnet=bingx_cfg['testnet'],
             base_url=bingx_cfg['base_url'],
             requests_per_minute=bingx_cfg['requests_per_minute'],
-            default_leverage=bingx_cfg['default_leverage']
+            default_leverage=bingx_cfg['default_leverage'],
+            leverage_mode=bingx_cfg['leverage_mode']
         )
 
         # Parse logging config
@@ -220,6 +250,41 @@ class Config:
             pool_size=db_cfg.get('pool_size', 5),
             max_overflow=db_cfg.get('max_overflow', 10)
         )
+
+        # Parse notifications config (optional)
+        notif_cfg = self.raw_config.get('notifications', {})
+        if notif_cfg:
+            # Handle env var placeholders
+            api_key = notif_cfg.get('resend_api_key', '')
+            to_email = notif_cfg.get('to_email', '')
+
+            if api_key.startswith('${') and api_key.endswith('}'):
+                api_key = os.environ.get(api_key[2:-1], '')
+            if to_email.startswith('${') and to_email.endswith('}'):
+                to_email = os.environ.get(to_email[2:-1], '')
+
+            # Also check direct env vars
+            api_key = api_key or os.environ.get('RESEND_API_KEY', '')
+            to_email = to_email or os.environ.get('NOTIFICATION_EMAIL', '')
+
+            self.notifications = NotificationsConfig(
+                enabled=notif_cfg.get('enabled', True),
+                resend_api_key=api_key,
+                to_email=to_email,
+                notify_trade_opened=notif_cfg.get('notify_trade_opened', True),
+                notify_trade_closed=notif_cfg.get('notify_trade_closed', True),
+                notify_errors=notif_cfg.get('notify_errors', True),
+                notify_emergency_stop=notif_cfg.get('notify_emergency_stop', True),
+                notify_daily_summary=notif_cfg.get('notify_daily_summary', True),
+                notify_bot_started=notif_cfg.get('notify_bot_started', True)
+            )
+        else:
+            # Default disabled config
+            self.notifications = NotificationsConfig(
+                enabled=False,
+                resend_api_key='',
+                to_email=''
+            )
 
         # Parse safety config
         safety_cfg = self.raw_config['safety']
@@ -258,10 +323,10 @@ class Config:
 
         # Validate BingX config
         if self.trading.enabled and not self.safety.dry_run:
-            if self.bingx.api_key == 'YOUR_API_KEY_HERE':
-                raise ValueError("BingX API key not configured")
-            if self.bingx.api_secret == 'YOUR_API_SECRET_HERE':
-                raise ValueError("BingX API secret not configured")
+            if not self.bingx.api_key or self.bingx.api_key.startswith('${'):
+                raise ValueError("BingX API key not configured. Set BINGX_API_KEY environment variable.")
+            if not self.bingx.api_secret or self.bingx.api_secret.startswith('${'):
+                raise ValueError("BingX API secret not configured. Set BINGX_API_SECRET environment variable.")
 
         # Validate database config
         if self.database.type == 'sqlite':

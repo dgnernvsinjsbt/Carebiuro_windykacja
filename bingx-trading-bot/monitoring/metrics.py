@@ -71,6 +71,7 @@ class PerformanceTracker:
 
         # Drawdown tracking
         self.current_drawdown = 0.0
+        self.current_drawdown_pct = 0.0
         self.max_drawdown = 0.0
         self.max_drawdown_pct = 0.0
 

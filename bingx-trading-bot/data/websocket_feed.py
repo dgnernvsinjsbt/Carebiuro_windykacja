@@ -151,12 +151,19 @@ class BingXWebSocketFeed:
                 self.logger.debug("Pong received")
                 return
 
+            # Log incoming data for debugging
+            self.logger.debug(f"Received data keys: {data.keys() if isinstance(data, dict) else 'not a dict'}")
+
             # Call general message callback
             if self.on_message:
                 self.on_message(data)
 
             # Route to specific callbacks
             data_type = data.get('dataType', '')
+
+            # Log dataType for debugging
+            if data_type:
+                self.logger.info(f"DataType: {data_type}")
 
             if data_type and '@kline_' in data_type:
                 # Kline update
@@ -181,7 +188,8 @@ class BingXWebSocketFeed:
                     self.on_account_update(data)
 
         except json.JSONDecodeError as e:
-            self.logger.error(f"Failed to parse message: {e}")
+            # Ignore ping/pong binary messages that don't decompress to valid JSON
+            self.logger.debug(f"Skipping non-JSON message: {e}")
         except Exception as e:
             self.logger.error(f"Error processing message: {e}", exc_info=True)
 
@@ -376,11 +384,17 @@ class BingXWebSocketFeed:
         self.logger.info("Stopping WebSocket feed...")
         self.running = False
 
-        if self.ws and not self.ws.closed:
-            await self.ws.close()
+        try:
+            if self.ws:
+                await self.ws.close()
+        except Exception:
+            pass
 
-        if self.user_ws and not self.user_ws.closed:
-            await self.user_ws.close()
+        try:
+            if self.user_ws:
+                await self.user_ws.close()
+        except Exception:
+            pass
 
         self.logger.info("WebSocket feed stopped")
 

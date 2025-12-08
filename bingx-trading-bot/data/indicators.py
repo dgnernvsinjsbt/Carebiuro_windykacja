@@ -282,6 +282,7 @@ class IndicatorCalculator:
         df = self.df.copy()
 
         # Moving averages
+        df['sma_20'] = sma(df['close'], 20)
         df['sma_50'] = sma(df['close'], 50)
         df['sma_200'] = sma(df['close'], 200)
         df['ema_20'] = ema(df['close'], 20)

@@ -316,3 +316,90 @@ class MultiTimeframeCandleManager:
             dfs[tf] = builder.get_dataframe()
 
         return dfs
+
+    async def warmup_from_history(self, bingx_client, symbol: str, candles_count: int = 300) -> None:
+        """
+        Pre-load historical candles on startup to avoid 4-hour warmup wait
+
+        Args:
+            bingx_client: BingXClient instance
+            symbol: Trading symbol (e.g., "FARTCOIN-USDT")
+            candles_count: Number of historical candles to fetch (default: 300)
+        """
+        self.logger.info(f"Starting historical warmup for {symbol}: fetching {candles_count} candles...")
+
+        try:
+            # Fetch historical 1-minute klines from BingX
+            klines = await bingx_client.get_klines(
+                symbol=symbol,
+                interval='1m',
+                limit=candles_count
+            )
+
+            if not klines:
+                self.logger.warning(f"No historical data returned for {symbol}")
+                return
+
+            self.logger.info(f"Received {len(klines)} historical candles from BingX")
+
+            # Reverse klines to process in chronological order (BingX returns newest first)
+            klines = list(reversed(klines))
+
+            # Process each historical candle
+            for kline in klines:
+                # BingX kline format: {'time': 1234567890000, 'open': '0.1', 'high': '0.11', ...}
+                timestamp = datetime.fromtimestamp(kline['time'] / 1000)
+
+                # Create candle object
+                candle = Candle(
+                    timestamp=self.base_builder._get_candle_timestamp(timestamp),
+                    open_price=float(kline['open'])
+                )
+                candle.high = float(kline['high'])
+                candle.low = float(kline['low'])
+                candle.close = float(kline['close'])
+                candle.volume = float(kline['volume'])
+                candle.close_candle()
+
+                # Add to base builder
+                self.base_builder.candles.append(candle)
+                self.base_builder.total_candles += 1
+
+                # Build higher timeframe candles
+                for tf, builder in self.builders.items():
+                    candle_ts = builder._get_candle_timestamp(timestamp)
+
+                    # Initialize or update higher timeframe candle
+                    if builder.current_candle is None:
+                        builder.current_candle = Candle(candle_ts, candle.open)
+
+                    # Check if we need to close and start new candle
+                    if candle_ts > builder.current_candle.timestamp:
+                        builder.current_candle.close_candle()
+                        builder.candles.append(builder.current_candle)
+                        builder.total_candles += 1
+                        builder.current_candle = Candle(candle_ts, candle.open)
+
+                    # Update with base candle data
+                    builder.current_candle.high = max(builder.current_candle.high, candle.high)
+                    builder.current_candle.low = min(builder.current_candle.low, candle.low)
+                    builder.current_candle.close = candle.close
+                    builder.current_candle.volume += candle.volume
+                    builder.current_candle.trades += 1
+
+            # Close any remaining open candles in higher timeframes
+            for tf, builder in self.builders.items():
+                if builder.current_candle and not builder.current_candle.is_closed:
+                    builder.current_candle.close_candle()
+                    builder.candles.append(builder.current_candle)
+                    builder.total_candles += 1
+                    builder.current_candle = None
+
+            self.logger.info(f"✅ Warmup complete for {symbol}:")
+            self.logger.info(f"   1-min candles: {len(self.base_builder.candles)}")
+            for tf, builder in self.builders.items():
+                self.logger.info(f"   {tf}-min candles: {len(builder.candles)}")
+
+        except Exception as e:
+            self.logger.error(f"Error during historical warmup for {symbol}: {e}", exc_info=True)
+            raise

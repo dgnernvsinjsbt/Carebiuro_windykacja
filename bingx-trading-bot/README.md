@@ -57,7 +57,8 @@ trading-engine/
 
 ```bash
 # Clone repository
-cd trading-engine
+git clone https://github.com/yourusername/bingx-trading-bot.git
+cd bingx-trading-bot
 
 # Create virtual environment
 python -m venv venv
@@ -70,17 +71,24 @@ pip install -r requirements.txt
 ### 2. Configuration
 
 ```bash
-# Copy example environment file
-cp .env.example .env
+# Copy example config (REQUIRED)
+cp config.example.yaml config.yaml
 
-# Edit configuration
-nano config.yaml
+# Set your API keys via environment variables (REQUIRED)
+export BINGX_API_KEY="your_api_key_here"
+export BINGX_API_SECRET="your_api_secret_here"
+
+# Or create a .env file
+cp .env.example .env
+# Then edit .env with your keys
 ```
 
-Key settings:
-- `trading.enabled`: Set to `false` for paper trading
-- `safety.dry_run`: Set to `true` for signal-only mode
-- `bingx.api_key`: Add your BingX API credentials
+**Get BingX API Keys:** https://bingx.com/en-us/account/api/
+
+Key config settings in `config.yaml`:
+- `trading.enabled`: Master switch for trading
+- `safety.dry_run`: Set to `true` for signal-only mode (no real trades)
+- `bingx.testnet`: Set to `true` for testnet
 - `strategies.*.enabled`: Enable/disable strategies
 
 ### 3. Run Tests
@@ -172,33 +180,27 @@ Engine will:
 
 ## BingX API Integration
 
-**Current Status:** Architecture ready, placeholder implementation
+**Current Status:** Fully implemented and tested
 
-**To Complete Integration:**
+**Features:**
+- REST API client with HMAC-SHA256 authentication
+- WebSocket feed for real-time kline data
+- Automatic SL/TP order placement with retry logic
+- Leverage configuration (1x-125x)
+- Position management with safety cleanup
 
-1. **Get BingX API Documentation:**
-   - Visit: https://bingx-api.github.io/docs/
-   - Review authentication, endpoints, rate limits
+**Key Methods:**
+- `get_ticker()` - Real-time prices
+- `place_order()` - Execute trades with SL/TP
+- `get_positions()` - Track positions
+- `set_leverage()` - Configure leverage
+- `get_balance()` - Account balance
+- WebSocket kline streaming
 
-2. **Implement in `execution/bingx_client.py`:**
-   - Fill in actual API endpoints
-   - Complete authentication logic
-   - Test with testnet first
-
-3. **Key Methods to Implement:**
-   - `get_ticker()` - Real-time prices
-   - `place_order()` - Execute trades
-   - `get_positions()` - Track positions
-   - `set_leverage()` - Configure leverage
-   - `get_balance()` - Account balance
-
-4. **Rate Limiting:**
-   - Already implemented: 1200 req/min
-   - Adjust if BingX limits differ
-
-5. **WebSocket (Optional):**
-   - For real-time position updates
-   - Reduces API calls
+**Safety Features:**
+- 3x retry on SL/TP order failure
+- Automatic position closure if SL/TP fails
+- Try/finally wrapper for unexpected errors
 
 ## Configuration Reference
 

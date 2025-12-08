@@ -1,5 +1,5 @@
 """Position Manager - Tracks and manages open positions"""
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from enum import Enum
 import logging
 
@@ -25,6 +25,11 @@ class Position:
         self.status = PositionStatus.PENDING
         self.remaining_quantity = quantity
         self.partial_exits_taken = []
+
+        # Order tracking
+        self.entry_order_id = None
+        self.sl_order_id = None
+        self.tp_order_id = None
 
 class PositionManager:
     """Manages all open positions"""

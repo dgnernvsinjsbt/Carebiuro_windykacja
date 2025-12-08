@@ -21,6 +21,9 @@ logs/
 # Environment variables
 .env
 
+# Config with secrets (use config.example.yaml as template)
+config.yaml
+
 # IDE
 .vscode/
 .idea/

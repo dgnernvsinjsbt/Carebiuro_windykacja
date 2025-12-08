@@ -1,0 +1,1 @@
+Bot running but 0 candles processed. Fix websocket connection in main.py and report status.
