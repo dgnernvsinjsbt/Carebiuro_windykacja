@@ -138,6 +138,9 @@ export async function POST(request: NextRequest) {
           // Skip canceled invoices
           if (invoice.kind === 'canceled') return false;
 
+          // Skip VAT invoices - they are always paid (issued only after proforma payment)
+          if (invoice.kind === 'vat') return false;
+
           // Skip if no unpaid balance
           const balance = parseFloat(invoice.price_gross || '0') - parseFloat(invoice.paid || '0');
           if (balance <= 0) return false;

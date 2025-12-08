@@ -90,6 +90,11 @@ export async function POST(request: NextRequest) {
         return false;
       }
 
+      // Skip VAT invoices - they are always paid (issued only after proforma payment)
+      if (invoice.kind === 'vat') {
+        return false;
+      }
+
       // Skip if no unpaid balance (using 'total' and 'paid' from Supabase schema)
       const total = invoice.total || 0;
       const paid = invoice.paid || 0;
