@@ -13,6 +13,9 @@ export async function middleware(request: NextRequest) {
     '/login',
     '/api/auth/login',
     '/api/auth/logout',
+    '/api/windykacja/auto-send-initial',
+    '/api/windykacja/auto-send-overdue',
+    '/api/windykacja/auto-send-sequence',
   ];
 
   // Sprawdź czy ścieżka jest publiczna

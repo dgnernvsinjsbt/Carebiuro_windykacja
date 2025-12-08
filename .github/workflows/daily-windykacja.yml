@@ -22,6 +22,7 @@ jobs:
           echo "Calling auto-send-initial endpoint..."
           RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST "https://carebiuro-windykacja.vercel.app/api/windykacja/auto-send-initial" \
             -H "Content-Type: application/json" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
             --max-time 300)
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
@@ -45,6 +46,7 @@ jobs:
           echo "Calling auto-send-overdue endpoint..."
           RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST "https://carebiuro-windykacja.vercel.app/api/windykacja/auto-send-overdue" \
             -H "Content-Type: application/json" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
             --max-time 300)
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
@@ -68,6 +70,7 @@ jobs:
           echo "Calling auto-send-sequence endpoint..."
           RESPONSE=$(curl -s -L -w "\n%{http_code}" -X POST "https://carebiuro-windykacja.vercel.app/api/windykacja/auto-send-sequence" \
             -H "Content-Type: application/json" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
             --max-time 300)
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
