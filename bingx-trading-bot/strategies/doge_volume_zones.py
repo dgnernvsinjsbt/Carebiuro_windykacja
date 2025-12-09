@@ -1,21 +1,27 @@
 """
-DOGE Volume Zones Strategy
+DOGE Volume Zones Strategy (BingX Optimized)
 
-**Rank #5 by Return/DD Ratio: 7.15x**
-+8.14% return, -1.14% DD, 52% WR (from backtest)
+**Rank #3 by Return/DD Ratio: 10.75x** ⭐
++5.15% return, -0.48% DD (shallowest!), 63.6% WR (32-day BingX backtest)
+
+⚠️  OUTLIER-HARVESTING STRATEGY:
+- Top 5 trades = 95.3% of profit
+- Remaining 17 trades = +0.24% (treading water)
+- Must take EVERY signal to catch the big moves
 
 Entry Conditions:
 - Detect 5+ consecutive bars with volume > 1.5x average
 - Accumulation zone (at local lows) → LONG
 - Distribution zone (at local highs) → SHORT
-- Overnight session only (21:00-07:00 UTC)
+- Asia/EU session ONLY (07:00-14:00 UTC)
 
 Exit Conditions:
-- Stop Loss: 2.0x ATR
-- Take Profit: 2:1 R:R
+- Stop Loss: 1.5x ATR (tighter than overnight session)
+- Take Profit: 4.0x ATR (absolute ATR target, not R:R)
 - Time Exit: 90 bars (90 minutes) if neither SL/TP hit
 
 Uses MARKET orders (0.1% fees)
+Optimized: Dec 9, 2025
 """
 
 from typing import Optional, Dict, Any, List
@@ -27,10 +33,11 @@ from .base_strategy import BaseStrategy
 
 class DogeVolumeZonesStrategy(BaseStrategy):
     """
-    DOGE Volume Zones strategy
+    DOGE Volume Zones strategy (BingX Optimized)
     - Detects sustained high-volume zones (whale accumulation/distribution)
-    - Trades breakouts from zones during overnight session
-    - 2:1 R:R with ATR-based stops
+    - Trades breakouts from zones during Asia/EU session (07:00-14:00 UTC)
+    - 4.0x ATR take profit with 1.5x ATR stops
+    - Outlier-harvesting: Top 5 trades = 95% of profit (requires discipline)
     """
 
     def __init__(self, config: Dict[str, Any], symbol: str = 'DOGE-USDT'):
@@ -42,10 +49,12 @@ class DogeVolumeZonesStrategy(BaseStrategy):
         self.min_zone_bars = params.get('min_zone_bars', 5)
         self.max_zone_bars = params.get('max_zone_bars', 15)
         self.lookback_bars = params.get('lookback_bars', 20)
-        self.stop_atr_mult = params.get('stop_atr_mult', 2.0)
-        self.rr_ratio = params.get('rr_ratio', 2.0)
+        self.stop_atr_mult = params.get('stop_atr_mult', 1.5)  # OPTIMIZED: 1.5x (was 2.0x)
+        self.tp_type = params.get('tp_type', 'atr_multiple')  # NEW: 'atr_multiple' or 'rr_multiple'
+        self.tp_atr_mult = params.get('tp_atr_mult', 4.0)  # NEW: 4.0x ATR target
+        self.rr_ratio = params.get('rr_ratio', 2.0)  # Fallback for R:R mode
         self.max_hold_bars = params.get('max_hold_bars', 90)
-        self.session_filter = params.get('session_filter', 'overnight')
+        self.session_filter = params.get('session_filter', 'asia_eu')  # OPTIMIZED: asia_eu (was overnight)
 
         # Volume zone tracking
         self.zone_bars = 0
@@ -233,16 +242,32 @@ class DogeVolumeZonesStrategy(BaseStrategy):
             # LONG signal
             direction = 'LONG'
             stop_loss = entry_price - (self.stop_atr_mult * atr)
-            sl_distance = entry_price - stop_loss
-            take_profit = entry_price + (self.rr_ratio * sl_distance)
+
+            # Calculate TP based on type
+            if self.tp_type == 'atr_multiple':
+                # OPTIMIZED: ATR-based TP (4.0x ATR absolute target)
+                take_profit = entry_price + (self.tp_atr_mult * atr)
+            else:
+                # Fallback: R:R-based TP
+                sl_distance = entry_price - stop_loss
+                take_profit = entry_price + (self.rr_ratio * sl_distance)
+
             pattern = f"Volume Accumulation Zone ({zone_info['zone_bars']} bars)"
 
         else:  # distribution
             # SHORT signal
             direction = 'SHORT'
             stop_loss = entry_price + (self.stop_atr_mult * atr)
-            sl_distance = stop_loss - entry_price
-            take_profit = entry_price - (self.rr_ratio * sl_distance)
+
+            # Calculate TP based on type
+            if self.tp_type == 'atr_multiple':
+                # OPTIMIZED: ATR-based TP (4.0x ATR absolute target)
+                take_profit = entry_price - (self.tp_atr_mult * atr)
+            else:
+                # Fallback: R:R-based TP
+                sl_distance = stop_loss - entry_price
+                take_profit = entry_price - (self.rr_ratio * sl_distance)
+
             pattern = f"Volume Distribution Zone ({zone_info['zone_bars']} bars)"
 
         # Store entry time for time-based exit tracking
@@ -254,7 +279,7 @@ class DogeVolumeZonesStrategy(BaseStrategy):
             'stop_loss': stop_loss,
             'take_profit': take_profit,
             'pattern': pattern,
-            'confidence': 0.70,  # 52% WR with 2:1 R:R
+            'confidence': 0.75,  # 63.6% WR (optimized)
             'atr': atr,
             'zone_bars': zone_info['zone_bars'],
             'zone_high': zone_info['zone_high'],
@@ -274,7 +299,9 @@ class DogeVolumeZonesStrategy(BaseStrategy):
             'volume_threshold': self.volume_threshold,
             'min_zone_bars': self.min_zone_bars,
             'session_filter': self.session_filter,
-            'r_r_ratio': f'{self.rr_ratio}:1',
+            'tp_type': self.tp_type,
+            'tp_atr_mult': f'{self.tp_atr_mult}x ATR' if self.tp_type == 'atr_multiple' else None,
+            'r_r_ratio': f'{self.rr_ratio}:1' if self.tp_type == 'rr_multiple' else None,
             'stop_atr_mult': self.stop_atr_mult,
             'max_hold_minutes': self.max_hold_bars,
             'current_zone_bars': self.zone_bars,

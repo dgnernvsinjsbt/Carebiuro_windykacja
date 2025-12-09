@@ -168,9 +168,9 @@ Higher R:R = Better risk-adjusted performance.
 |------|----------|-----------|--------|--------|-----|-------|
 | 🥇 | **MOODENG RSI** | **10.68x** | **+24.02%** | **-2.25%** | 5.75x | MOODENG |
 | 🥈 | **TRUMP Volume Zones** ⚠️ | **10.56x** | **+8.06%** | **-0.76%** | 4.00x | TRUMP |
-| 🥉 | **FARTCOIN SHORT** | **8.88x** | **+20.08%** | **-2.26%** | 8.88x | FARTCOIN |
-| 4 | **FARTCOIN LONG** | **7.16x** | **+10.38%** | **-1.45%** | 7.14x | FARTCOIN |
-| 5 | **DOGE Volume Zones** | **7.15x** | **+8.14%** | **-1.14%** | 2.00x | DOGE |
+| 🥉 | **DOGE BingX Zones** ⚠️ | **10.75x** | **+5.15%** | **-0.48%** | 10.75x | DOGE |
+| 4 | **FARTCOIN SHORT** | **8.88x** | **+20.08%** | **-2.26%** | 8.88x | FARTCOIN |
+| 5 | **FARTCOIN LONG** | **7.16x** | **+10.38%** | **-1.45%** | 7.14x | FARTCOIN |
 | 6 | **PEPE Volume Zones** | **6.80x** | **+2.57%** | **-0.38%** | 2.00x | PEPE |
 | 7 | PENGU Volume Zones | 4.35x | +17.39% | -4.00% | 1.90x | PENGU |
 | 8 | ETH BB3 STD | 4.10x | +15.43% | -3.76% | 2.22x | ETH |
@@ -178,6 +178,8 @@ Higher R:R = Better risk-adjusted performance.
 | 10 | DOGE Mean Reversion | 2.61x | +7.64% | -2.93% | 4.55x | DOGE |
 
 **Legend:** ⚠️ = Outlier-dependent (requires discipline to take all signals)
+
+**⭐ NEW:** DOGE BingX Zones optimized Dec 9, 2025 - now ranks #3!
 
 **Code Location:** `bingx-trading-bot/strategies/`
 - `multi_timeframe_long.py`
@@ -193,74 +195,79 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## Strategy 5: DOGE Volume Zones (Highest R/DD Among Volume Zone Strategies)
+## Strategy 5: DOGE Volume Zones (BingX Optimized - Outlier Harvester)
 | Metric | Value |
 |--------|-------|
-| **Return/DD Ratio** | **7.15x** |
-| **Return** | +8.14% (30 days) |
-| **Max Drawdown** | -1.14% |
-| **Win Rate** | 52% |
-| **Trades** | 25 |
-| **Actual R:R** | 2.00:1 |
+| **Return/DD Ratio** | **10.75x** ⭐ |
+| **Return** | +5.15% (32 days BingX) |
+| **Max Drawdown** | **-0.48%** (shallowest!) |
+| **Win Rate** | 63.6% |
+| **Trades** | 22 |
+| **Actual R:R** | 4.0x ATR TP / 1.5x ATR SL |
 | Direction | LONG + SHORT |
 | Timeframe | 1-min |
+| **⚠️ Outlier Dependency** | **95.3%** from top 5 trades |
 
 **Entry (Accumulation Zones for LONG):**
 - Detect 5+ consecutive bars with volume > 1.5x average
 - Zone must be at local low (20-bar lookback)
-- Enter overnight session (21:00-07:00 UTC) only
-- Use limit order 0.035% below signal price
+- Enter **Asia/EU session (07:00-14:00 UTC) ONLY** ⚠️
+- Market order (0.05% taker fee)
 
 **Entry (Distribution Zones for SHORT):**
 - Detect 5+ consecutive bars with volume > 1.5x average
 - Zone must be at local high (20-bar lookback)
-- Enter overnight session (21:00-07:00 UTC) only
-- Use limit order 0.035% above signal price
+- Enter **Asia/EU session (07:00-14:00 UTC) ONLY** ⚠️
+- Market order (0.05% taker fee)
 
 **Exits:**
-- Stop Loss: **2.0x ATR(14)** below/above entry
-- Take Profit: **2:1 R:R** (adaptive based on ATR)
+- Stop Loss: **1.5x ATR(14)** (tighter for lower volatility session)
+- Take Profit: **4.0x ATR** (absolute ATR target, not R:R)
 - Max Hold: 90 bars (90 minutes)
 
-**Fees:** 0.07% per trade (limit orders: 0.02% maker + 0.05% taker)
+**Fees:** 0.10% per trade (0.05% taker x2)
 
-**Why It Works:**
-- DOGE responds to sustained whale activity (5+ bars elevated volume)
-- Overnight session filters out choppy US/Asia noise
-- ATR-based stops adapt to DOGE's varying volatility
-- 2:1 R:R is sweet spot (higher R:R drops win rate too much)
-- Both LONG and SHORT profitable (LONGs contribute 75% of profits)
+**Why It Works (But Differently):**
+- **CRITICAL:** This is an outlier-harvesting strategy like TRUMP Volume Zones
+- Top 5 trades = 95.3% of all profits (remaining 17 = +0.24%)
+- Must take EVERY signal - cannot cherry-pick
+- Asia/EU session has cleaner volume zone follow-through on BingX
+- ATR-based TP (4.0x) captures explosive moves better than R:R
+- LONGs contribute 88.5% of profits (keep SHORTs for 11.5%)
 
-**Session Analysis:**
-| Session | Return | Max DD | Return/DD | Notes |
-|---------|--------|--------|-----------|-------|
-| **Overnight** | **+8.14%** | **-1.14%** | **7.15x** | ⭐ BEST |
-| All | +5.13% | -2.46% | 2.08x | Diluted by bad sessions |
-| US | -3.90% | -3.77% | 1.03x | Unprofitable |
-| Asia/EU | -3.39% | -3.12% | 1.09x | Unprofitable |
+**Session Analysis (BingX vs LBank):**
+| Exchange | Session | Return/DD | Notes |
+|----------|---------|-----------|-------|
+| **BingX** | **Asia/EU (07-14)** | **10.75x** | ⭐ OPTIMAL |
+| BingX | Overnight (21-07) | 1.08x | Fails on BingX |
+| LBank | Overnight (21-07) | 7.15x | Optimal on LBank |
 
-**Configuration:**
+**⚠️ Exchange-Specific Behavior:** Parameters don't transfer between exchanges!
+
+**Configuration (BingX Optimized):**
 ```python
 {
     'volume_threshold': 1.5,      # 1.5x average volume
     'min_zone_bars': 5,           # 5+ consecutive bars
     'sl_type': 'atr',
-    'sl_value': 2.0,              # 2.0x ATR stop
-    'tp_type': 'rr_multiple',
-    'tp_value': 2.0,              # 2:1 R:R
-    'session': 'overnight',       # 21:00-07:00 UTC only
+    'sl_value': 1.5,              # 1.5x ATR stop (tighter)
+    'tp_type': 'atr_multiple',    # ATR-based (not R:R!)
+    'tp_value': 4.0,              # 4.0x ATR target
+    'session': 'asia_eu',         # 07:00-14:00 UTC ONLY
     'max_hold_bars': 90           # 90 minute max hold
 }
 ```
 
-**Data File:** `trading/doge_usdt_1m_lbank.csv` (43,201 candles, 30 days)
-**Code:** `trading/doge_volume_zones_optimize.py`
-**Full Report:** `trading/results/DOGE_VOLUME_ZONES_OPTIMIZATION_REPORT.md`
+**Data File:** `trading/doge_30d_bingx.csv` (46,080 candles, 32 days)
+**Code:** `trading/doge_bingx_comprehensive_optimizer.py` (567 configs tested)
+**Full Report:** `trading/strategies/DOGE_BINGX_VOLUME_ZONES_FINAL.md`
+**Trades:** `trading/results/doge_bingx_optimized_trades.csv` (22 trades)
 
 **Key Discovery:**
-- DOGE Mean Reversion (R/DD 2.61x) → DOGE Volume Zones (R/DD 7.15x)
-- Same token, different approach = 2.7x better risk-adjusted returns
-- Overnight session filter is critical (7.15x vs 2.08x without filter)
+- Comprehensive re-optimization with ATR-based TP + relaxed filters
+- NO configuration with Return/DD > 5.0x has Top5 < 80% (fundamental to DOGE)
+- Strategy works by catching 3-5 explosive moves per month
+- Remaining trades tread water (+0.24% from 17 trades)
 
 ---
 

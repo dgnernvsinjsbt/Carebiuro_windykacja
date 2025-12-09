@@ -8,6 +8,7 @@ trading:
 
   symbols:
     - FARTCOIN-USDT
+    - DOGE-USDT
 
   strategies:
     multi_timeframe_long:
@@ -54,6 +55,34 @@ trading:
       # Trend filter
       distance_from_50sma: 2.0
       below_200sma: true
+
+    doge_volume_zones:
+      enabled: true
+      symbol: DOGE-USDT
+      base_risk_pct: 1.0  # Conservative due to outlier dependency
+      max_risk_pct: 2.0
+      max_positions: 1
+
+      params:
+        # Volume zone detection (OPTIMIZED Dec 9, 2025)
+        volume_threshold: 1.5      # 1.5x average volume
+        min_zone_bars: 5           # 5+ consecutive bars
+        max_zone_bars: 15
+        lookback_bars: 20
+
+        # Exit parameters (OPTIMIZED for BingX)
+        stop_atr_mult: 1.5         # 1.5x ATR stop (tighter)
+        tp_type: 'atr_multiple'    # 'atr_multiple' or 'rr_multiple'
+        tp_atr_mult: 4.0           # 4.0x ATR take profit target
+        max_hold_bars: 90          # 90 minutes max hold
+
+        # Session filter (CRITICAL - Asia/EU only)
+        session_filter: 'asia_eu'  # 'overnight', 'asia_eu', 'us', or 'all'
+
+      # ⚠️  OUTLIER-HARVESTING STRATEGY
+      # - Top 5 trades = 95.3% of profit
+      # - Must take EVERY signal to catch big moves
+      # - Backtest: 10.75x Return/DD, 63.6% WR, -0.48% DD (32 days)
 
   risk_management:
     max_portfolio_risk: 5.0
