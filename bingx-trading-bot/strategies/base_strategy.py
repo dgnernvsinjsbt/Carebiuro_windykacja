@@ -13,10 +13,11 @@ import pandas as pd
 class BaseStrategy(ABC):
     """Abstract base class for trading strategies"""
 
-    def __init__(self, name: str, config: Dict[str, Any]):
+    def __init__(self, name: str, config: Dict[str, Any], symbol: Optional[str] = None):
         self.name = name
         self.config = config
         self.enabled = config.get('enabled', True)
+        self.symbol = symbol  # Trading symbol this strategy is for
 
         # Position sizing
         self.base_risk_pct = config.get('base_risk_pct', 1.0)

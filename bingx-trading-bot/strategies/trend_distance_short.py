@@ -17,8 +17,8 @@ class TrendDistanceShortStrategy(BaseStrategy):
     - Explosive bearish breakdown
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('trend_distance_short', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = 'FARTCOIN-USDT'):
+        super().__init__('trend_distance_short', config, symbol)
 
         # Extract strategy parameters
         self.body_threshold = config['params'].get('body_threshold', 1.2)

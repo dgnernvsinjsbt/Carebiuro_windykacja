@@ -223,12 +223,13 @@ class TradingEngine:
             calc_5min = IndicatorCalculator(df_5min)
             df_5min = calc_5min.add_all_indicators()
 
-            # Generate signals
-            signals = self.signal_generator.generate_signals(df_1min, df_5min)
+            # Generate signals - ONLY from strategies that match this symbol
+            signals = self.signal_generator.generate_signals(df_1min, df_5min, symbol)
 
             if signals:
                 signal = self.signal_generator.resolve_conflicts(signals)
-                self.logger.info(f"Signal generated: {signal['strategy']} {signal['direction']}")
+                signal['symbol'] = symbol  # Add symbol to signal for execution
+                self.logger.info(f"{symbol}: Signal generated: {signal['strategy']} {signal['direction']}")
 
                 # Check risk management
                 can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
@@ -290,20 +291,15 @@ class TradingEngine:
 
     async def execute_trade(self, signal: dict) -> None:
         """Execute a trade based on signal"""
+        # Extract symbol from signal (added by _process_signal)
+        symbol = signal.get('symbol', self.symbols[0] if self.symbols else "FARTCOIN-USDT")
+
         if self.config.safety.dry_run:
-            self.logger.info(f"[DRY RUN] Would execute: {signal['strategy']} {signal['direction']} @ {signal['entry_price']}")
+            self.logger.info(f"[DRY RUN] Would execute: {symbol} {signal['strategy']} {signal['direction']} @ {signal['entry_price']}")
             self.logger.info(f"[DRY RUN]   Entry: ${signal['entry_price']:.4f}")
             self.logger.info(f"[DRY RUN]   Stop-Loss: ${signal['stop_loss']:.4f}")
             self.logger.info(f"[DRY RUN]   Take-Profit: ${signal['take_profit']:.4f}")
             return
-
-        # Get symbol (first symbol from config for now)
-        # TODO: Multi-symbol support
-        symbol = self.symbols[0] if self.symbols else "FARTCOIN-USDT"
-
-        # Add symbol to signal if not present
-        if 'symbol' not in signal:
-            signal['symbol'] = symbol
 
         # Get strategy config for risk percentage
         strategy_config = self.config.get_strategy_config(signal['strategy'])

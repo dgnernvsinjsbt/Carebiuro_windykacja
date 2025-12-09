@@ -37,8 +37,8 @@ class UniVolumeZonesStrategy(BaseStrategy):
     - Excellent at catching distribution zones before crashes
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('uni_volume_zones', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = 'UNI-USDT'):
+        super().__init__('uni_volume_zones', config, symbol)
 
         # Extract strategy parameters - UNI uses different params!
         params = config.get('params', {})

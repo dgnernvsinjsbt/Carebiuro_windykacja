@@ -34,8 +34,8 @@ class PepeVolumeZonesStrategy(BaseStrategy):
     - Shallowest drawdown (-0.38%) and highest win rate (66.7%)
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('pepe_volume_zones', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = '1000PEPE-USDT'):
+        super().__init__('pepe_volume_zones', config, symbol)
 
         # Extract strategy parameters
         params = config.get('params', {})

@@ -29,8 +29,8 @@ class MoodengRSIMomentumStrategy(BaseStrategy):
     - 4:1 R:R with tight stops
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('moodeng_rsi_momentum', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = 'MOODENG-USDT'):
+        super().__init__('moodeng_rsi_momentum', config, symbol)
 
         # Extract strategy parameters
         params = config.get('params', {})

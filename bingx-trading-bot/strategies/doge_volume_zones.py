@@ -33,8 +33,8 @@ class DogeVolumeZonesStrategy(BaseStrategy):
     - 2:1 R:R with ATR-based stops
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('doge_volume_zones', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = 'DOGE-USDT'):
+        super().__init__('doge_volume_zones', config, symbol)
 
         # Extract strategy parameters
         params = config.get('params', {})

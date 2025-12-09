@@ -17,8 +17,8 @@ class MultiTimeframeLongStrategy(BaseStrategy):
     - 5-min uptrend confirmation
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('multi_timeframe_long', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = 'FARTCOIN-USDT'):
+        super().__init__('multi_timeframe_long', config, symbol)
 
         # Extract strategy parameters
         self.body_threshold = config['params'].get('body_threshold', 1.2)

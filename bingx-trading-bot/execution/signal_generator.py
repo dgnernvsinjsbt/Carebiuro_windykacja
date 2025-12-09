@@ -9,11 +9,14 @@ class SignalGenerator:
         self.strategies = strategies
         self.logger = logging.getLogger(__name__)
 
-    def generate_signals(self, df_1min: pd.DataFrame, df_5min: Optional[pd.DataFrame] = None) -> List[Dict[str, Any]]:
-        """Generate signals from all enabled strategies"""
+    def generate_signals(self, df_1min: pd.DataFrame, df_5min: Optional[pd.DataFrame] = None, symbol: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Generate signals from enabled strategies that match the given symbol"""
         signals = []
         for strategy in self.strategies:
             if not strategy.enabled:
+                continue
+            # Filter: only run strategy if it matches this symbol
+            if symbol and strategy.symbol and strategy.symbol != symbol:
                 continue
             signal = strategy.analyze(df_1min, df_5min)
             if signal:

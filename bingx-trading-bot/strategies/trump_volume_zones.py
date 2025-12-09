@@ -42,8 +42,8 @@ class TrumpVolumeZonesStrategy(BaseStrategy):
     88.6% of profits come from top 20% of trades.
     """
 
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__('trump_volume_zones', config)
+    def __init__(self, config: Dict[str, Any], symbol: str = 'TRUMPSOL-USDT'):
+        super().__init__('trump_volume_zones', config, symbol)
 
         # Extract strategy parameters
         params = config.get('params', {})
