@@ -14,9 +14,10 @@ trading:
   strategies:
     pippin_fresh_crosses:
       enabled: true  # ⭐ BEST STRATEGY - 12.71x Return/DD, -1.71% DD, 50% TP rate!
-      base_risk_pct: 2.0         # Higher risk due to excellent R/DD and 50% TP rate
-      max_risk_pct: 4.0
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt instead
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt instead
       max_positions: 1           # ~10 trades/week (selective but high quality)
+      # NOTE: Position size = 6 USDT per trade (set in bingx.fixed_position_value_usdt below)
 
       # Strategy parameters (from 7-day BingX backtest: +21.76%, -1.71% DD, 50% WR)
       # Fresh EMA(9) x EMA(21) cross + RSI >= 55 + Body <= 0.06%
@@ -36,9 +37,10 @@ trading:
 
     fartcoin_atr_limit:
       enabled: true  # ⭐ NEW STRATEGY - Testing (8.44x Return/DD, #4 ranked!)
-      base_risk_pct: 1.5         # Conservative for new strategy
-      max_risk_pct: 3.0
+      base_risk_pct: 1.5         # IGNORED - using fixed_position_value_usdt instead
+      max_risk_pct: 3.0          # IGNORED - using fixed_position_value_usdt instead
       max_positions: 1           # ~94 trades/month (21% fill rate)
+      # NOTE: Position size = 6 USDT per trade (set in bingx.fixed_position_value_usdt below)
 
       # Strategy parameters (from 32-day BingX backtest: +101.11%, -11.98% DD, 42.6% WR)
       atr_expansion_mult: 1.5    # ATR > 1.5x average = volatility breakout
@@ -62,9 +64,10 @@ trading:
 
     trumpsol_contrarian:
       enabled: true  # ✅ ENABLED - Mean reversion strategy
-      base_risk_pct: 2.0         # Higher risk due to high WR (68.8%)
-      max_risk_pct: 4.0
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt instead
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt instead
       max_positions: 1           # ~77 trades/month (2.4/day)
+      # NOTE: Position size = 6 USDT per trade (set in bingx.fixed_position_value_usdt below)
 
       # Strategy parameters (from 32-day BingX backtest with 0.1% fees: +17.49%, -3.38% DD, 68.8% WR)
       # MEAN REVERSION: Fade violent moves with vol/volatility confirmation
@@ -206,11 +209,15 @@ bingx:
   # Leverage Configuration
   default_leverage: 5  # 5x leverage for multiple simultaneous positions
 
-  # Position Sizing
-  # fixed_position_value_usdt: Fixed USDT value per trade (overrides % based sizing)
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ⭐ POSITION SIZING - FIXED $6 USDT PER TRADE (OVERRIDES ALL % SETTINGS!)
+  # ═══════════════════════════════════════════════════════════════════════════
+  # This overrides all base_risk_pct and max_risk_pct settings in strategies above
+  # Every trade = EXACTLY 6 USDT worth of crypto, regardless of account size
+  #
   # With 5x leverage: 6 USDT position requires 1.2 USDT margin
   # With 12 USDT balance: 12 / 1.2 = 10 simultaneous positions possible
-  fixed_position_value_usdt: 6.0  # Each trade = 6 USDT worth of crypto
+  fixed_position_value_usdt: 6.0  # ⭐ ALWAYS trade $6 USDT per position
 
   # Leverage Mode:
   # - 'conservative': Same position size as 1x, less margin required
