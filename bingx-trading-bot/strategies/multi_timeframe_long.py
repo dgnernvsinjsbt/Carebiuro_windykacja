@@ -20,15 +20,16 @@ class MultiTimeframeLongStrategy(BaseStrategy):
     def __init__(self, config: Dict[str, Any], symbol: str = 'FARTCOIN-USDT'):
         super().__init__('multi_timeframe_long', config, symbol)
 
-        # Extract strategy parameters
-        self.body_threshold = config['params'].get('body_threshold', 1.2)
-        self.volume_multiplier = config['params'].get('volume_multiplier', 3.0)
-        self.wick_threshold = config['params'].get('wick_threshold', 0.35)
-        self.rsi_long_min = config['params'].get('rsi_long_min', 45)
-        self.stop_atr_mult = config['params'].get('stop_atr_mult', 3.0)
-        self.target_atr_mult = config['params'].get('target_atr_mult', 12.0)
-        self.rsi_5min_min = config['params'].get('rsi_5min_min', 57)
-        self.distance_from_sma = config['params'].get('distance_from_sma', 0.6)
+        # Extract strategy parameters - params may be at root or under 'params' key
+        params = config.get('params', config)  # Support both config structures
+        self.body_threshold = params.get('body_threshold', 1.2)
+        self.volume_multiplier = params.get('volume_multiplier', 3.0)
+        self.wick_threshold = params.get('wick_threshold', 0.35)
+        self.rsi_long_min = params.get('rsi_long_min', 45)
+        self.stop_atr_mult = params.get('stop_atr_mult', 3.0)
+        self.target_atr_mult = params.get('target_atr_mult', 12.0)
+        self.rsi_5min_min = params.get('rsi_5min_min', 57)
+        self.distance_from_sma = params.get('distance_from_sma', 0.6)
 
     def analyze(self, df_1min: pd.DataFrame, df_5min: Optional[pd.DataFrame] = None) -> Optional[Dict[str, Any]]:
         """Analyze market and generate LONG signal"""
