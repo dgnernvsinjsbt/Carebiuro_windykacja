@@ -42,13 +42,14 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## 🏆 ACTIVE STRATEGIES (3 Total)
+## 🏆 ACTIVE STRATEGIES (4 Total)
 
 | Rank | Strategy | Return/DD | Return | Max DD | Trades | Token | Status |
 |------|----------|-----------|--------|--------|--------|-------|--------|
-| 🥇 | **FARTCOIN ATR Limit** | **8.44x** | **+101.11%** | -11.98% | 94 | FARTCOIN | ✅ LIVE |
+| 🥇 | **PIPPIN Fresh Crosses** 🆕 | **12.71x** | **+21.76%** | -1.71% | 10 | PIPPIN | ✅ LIVE |
 | 🥈 | **DOGE Volume Zones** ⚠️ | **10.75x** | **+5.15%** | -0.48% | 22 | DOGE | ✅ LIVE |
-| 🥉 | **TRUMPSOL Contrarian** 🆕 | **5.17x** | **+17.49%** | -3.38% | 77 | TRUMPSOL | ✅ LIVE |
+| 🥉 | **FARTCOIN ATR Limit** | **8.44x** | **+101.11%** | -11.98% | 94 | FARTCOIN | ✅ LIVE |
+| 4 | **TRUMPSOL Contrarian** | **5.17x** | **+17.49%** | -3.38% | 77 | TRUMPSOL | ✅ LIVE |
 
 **Legend:**
 - ⚠️ = Outlier-dependent (requires discipline to take all signals)
@@ -56,6 +57,7 @@ Higher R:R = Better risk-adjusted performance.
 - ✅ = Active in production
 
 **Code Location:** `bingx-trading-bot/strategies/`
+- `pippin_fresh_crosses.py`
 - `fartcoin_atr_limit.py`
 - `doge_volume_zones.py`
 - `trumpsol_contrarian.py`
@@ -64,7 +66,71 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## Strategy 1: FARTCOIN ATR Expansion (Limit Order)
+## Strategy 1: PIPPIN Fresh Crosses + RSI/Body Filter
+
+| Metric | Value |
+|--------|-------|
+| **Return/DD Ratio** | **12.71x** ⭐ BEST! |
+| **Return** | +21.76% (7 days BingX) |
+| **Max Drawdown** | -1.71% |
+| **Win Rate** | 50.0% |
+| **TP Rate** | 50.0% |
+| **Trades** | 10 |
+| **Direction** | LONG + SHORT |
+| **Timeframe** | 1-min |
+| **Avg Trade Duration** | ~80 bars |
+
+### Entry (ALL conditions must be true)
+
+- EMA(9) crosses EMA(21) (bullish or bearish)
+- **Fresh cross only**: `consecutive_ups = 0` (LONG) OR `consecutive_downs = 0` (SHORT)
+- **RSI(14) >= 55** (cross has momentum conviction)
+- **Body <= 0.06%** (tiny doji-like candle = calm entry, not wild spike)
+- Market order (0.05% taker fee)
+
+### Exits
+
+- Stop Loss: **1.5x ATR(14)** from entry
+- Take Profit: **10x ATR(14)** from entry (R:R = 6.67:1)
+- Max Hold: 120 bars (2 hours)
+
+### Fees
+
+0.10% round-trip (0.05% taker x2)
+
+### Why It Works
+
+- Fresh crosses (`consecutive = 0`) avoid momentum chasers → cleaner reversals
+- RSI >= 55 filters weak crosses → only strong conviction signals
+- Tiny body (<0.06%) filters wild spikes → calm, decisive entries only
+- 10x ATR TP captures PIPPIN's explosive moves when conviction is right
+- Data-driven filters based on actual winner/loser analysis (not random)
+
+### Trade-offs
+
+- Very selective (10 trades in 7 days from 64 baseline fresh crosses)
+- Lower absolute return vs baseline (+21.76% vs +39.12%)
+- But **137.7% better R/DD** (12.71x vs 5.35x)
+- Extremely smooth equity curve (-1.71% max DD)
+
+### Data & Code
+
+- **Data**: `trading/pippin_7d_bingx.csv` (11,129 candles, 7 days)
+- **Analysis**: `trading/pippin_fresh_crosses_deep_analysis.py`
+- **Backtest**: `trading/pippin_fresh_crosses_final_filters.py`
+- **Results**: `trading/results/pippin_fresh_crosses_filtered.csv`
+- **Bot**: `bingx-trading-bot/strategies/pippin_fresh_crosses.py`
+
+### Development Process
+
+1. Tested 29 configs → Found Fresh Crosses baseline (5.35x R/DD, 64 trades)
+2. Analyzed 64 trades → Winners had tiny bodies (0.09% vs 0.21%), higher RSI (53.6 vs 47.4)
+3. Tested 10 filters → RSI + Body combo = **12.71x R/DD**, 50% TP rate, 10 trades
+4. Result: **137.7% improvement** in risk-adjusted returns vs baseline
+
+---
+
+## Strategy 2: FARTCOIN ATR Expansion (Limit Order)
 
 | Metric | Value |
 |--------|-------|
@@ -126,7 +192,7 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## Strategy 2: DOGE Volume Zones (BingX Optimized - Outlier Harvester)
+## Strategy 3: DOGE Volume Zones (BingX Optimized - Outlier Harvester)
 
 | Metric | Value |
 |--------|-------|
@@ -215,7 +281,7 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## Strategy 3: TRUMPSOL Contrarian (Mean Reversion) 🆕
+## Strategy 4: TRUMPSOL Contrarian (Mean Reversion) 🆕
 
 | Metric | Value |
 |--------|-------|

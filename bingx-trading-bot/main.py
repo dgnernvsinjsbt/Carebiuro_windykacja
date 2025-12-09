@@ -34,6 +34,7 @@ from data.indicators import IndicatorCalculator
 from strategies.doge_volume_zones import DogeVolumeZonesStrategy
 from strategies.fartcoin_atr_limit import FartcoinATRLimitStrategy
 from strategies.trumpsol_contrarian import TrumpsolContrarianStrategy
+from strategies.pippin_fresh_crosses import PippinFreshCrossesStrategy
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
@@ -69,8 +70,13 @@ class TradingEngine:
         self.db = TradeLogger(self.config.get_database_url(), self.config.database.echo)
         self.metrics = PerformanceTracker(initial_capital=10000)
 
-        # Initialize strategies (Active: FARTCOIN, DOGE, TRUMPSOL)
+        # Initialize strategies (Active: PIPPIN, FARTCOIN, DOGE, TRUMPSOL)
         self.strategies = []
+
+        if self.config.is_strategy_enabled('pippin_fresh_crosses'):
+            strategy_config = self.config.get_strategy_config('pippin_fresh_crosses')
+            self.strategies.append(PippinFreshCrossesStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('pippin_fresh_crosses')
 
         if self.config.is_strategy_enabled('fartcoin_atr_limit'):
             strategy_config = self.config.get_strategy_config('fartcoin_atr_limit')
