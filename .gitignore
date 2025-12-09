@@ -38,3 +38,7 @@ Thumbs.db
 *.tsbuildinfo
 .vercel
 .env.bot-sync
+
+# Config files with API secrets
+config.yaml
+**/config.yaml
