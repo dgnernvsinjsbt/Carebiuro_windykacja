@@ -1,25 +1,14 @@
 """
 Trading Engine Main Entry Point
 
-SIMPLIFIED ARCHITECTURE (Dec 2025):
-- Every minute: Fetch 300 candles with start_time/end_time
-- Build DataFrame from scratch (identical to backtests)
-- Calculate indicators
-- Log all values for verification
-- Run strategies
-
-NO MORE:
-- Incremental candle building
-- Candle managers
-- Data corruption risks
+Orchestrates all components and runs the main event loop
 """
 
 import asyncio
 import signal
 import sys
-import pandas as pd
 from pathlib import Path
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -30,6 +19,7 @@ from monitoring.metrics import PerformanceTracker
 from monitoring.notifications import EmailNotifier, init_notifier, get_notifier
 from monitoring.status_reporter import get_reporter
 from database.trade_logger import TradeLogger
+from data.candle_builder import MultiTimeframeCandleManager
 from data.indicators import IndicatorCalculator
 from strategies.multi_timeframe_long import MultiTimeframeLongStrategy
 from strategies.trend_distance_short import TrendDistanceShortStrategy
@@ -43,10 +33,11 @@ from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
 from execution.bingx_client import BingXClient
 from execution.order_executor import OrderExecutor
+# NOTE: WebSocket removed - using pure REST API polling for reliability
 
 
 class TradingEngine:
-    """Main trading engine orchestrator - SIMPLIFIED ARCHITECTURE"""
+    """Main trading engine orchestrator"""
 
     def __init__(self, config_path: str = 'config.yaml'):
         # Load configuration
@@ -65,12 +56,12 @@ class TradingEngine:
 
         self.logger = get_logger(__name__)
         self.logger.info("=" * 70)
-        self.logger.info("TRADING ENGINE STARTING - SIMPLIFIED ARCHITECTURE")
+        self.logger.info("TRADING ENGINE STARTING")
         self.logger.info("=" * 70)
 
         # Initialize components
         self.db = TradeLogger(self.config.get_database_url(), self.config.database.echo)
-        self.metrics = PerformanceTracker(initial_capital=10000)
+        self.metrics = PerformanceTracker(initial_capital=10000)  # TODO: Get from BingX
 
         # Initialize strategies
         self.strategies = []
@@ -112,7 +103,7 @@ class TradingEngine:
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)
 
-        max_positions = {s.name: self.config.get_strategy_config(s.name).max_positions
+        max_positions = {s.name: self.config.get_strategy_config(s.name).max_positions 
                         for s in self.strategies}
         self.position_manager = PositionManager(max_positions)
         self.risk_manager = RiskManager(self.config.trading.risk_management)
@@ -128,11 +119,23 @@ class TradingEngine:
         # Order executor
         self.executor = OrderExecutor(self.bingx)
 
-        # Symbols to trade
+        # Candle management - separate manager for each symbol
         self.symbols = self.config.trading.symbols
+        self.candle_managers = {
+            symbol: MultiTimeframeCandleManager(
+                base_interval=1,
+                timeframes=[1, 5],
+                buffer_size=self.config.data.buffer_size
+            )
+            for symbol in self.symbols
+        }
+
+        # NOTE: WebSocket removed - using pure REST API polling instead
+        # This eliminates data corruption issues from WebSocket
 
         # Account state
         self.account_balance = 0.0
+
         self.running = False
 
         # Initialize email notifier
@@ -147,7 +150,7 @@ class TradingEngine:
             self.notifier = None
             self.logger.info("Email notifications disabled")
 
-        # Initialize status reporter
+        # Initialize status reporter (for remote monitoring)
         self.status = get_reporter()
         self.status.update(
             strategies_active=[s.name for s in self.strategies],
@@ -201,141 +204,94 @@ class TradingEngine:
 
         return True
 
-    async def _fetch_and_analyze(self, symbol: str) -> tuple:
-        """
-        Fetch 300 candles and calculate indicators (identical to backtests)
-
-        Returns:
-            (df_1min, df_5min, latest_candle_data) or (None, None, None) on error
-        """
+    async def _process_signal(self, symbol: str, candle: dict) -> None:
+        """Process candle and generate signals"""
         try:
-            # Fetch last 300 minutes with explicit time range
-            now = datetime.now(timezone.utc)
-            end_time = int(now.timestamp() * 1000)
-            start_time = end_time - (300 * 60 * 1000)  # 300 minutes ago
+            # Get dataframes for this specific symbol
+            manager = self.candle_managers[symbol]
+            df_1min = manager.get_dataframe(1)
+            df_5min = manager.get_dataframe(5)
 
-            klines = await self.bingx.get_klines(
-                symbol=symbol,
-                interval='1m',
-                start_time=start_time,
-                end_time=end_time,
-                limit=300
-            )
-
-            if not klines or len(klines) < 250:
-                self.logger.warning(f"{symbol}: Insufficient data ({len(klines) if klines else 0} candles)")
-                return None, None, None
-
-            # Build DataFrame (identical to backtests)
-            df = pd.DataFrame(klines)
-            df['timestamp'] = pd.to_datetime(df['time'], unit='ms')
-            df = df.sort_values('timestamp')
-            for col in ['open', 'high', 'low', 'close', 'volume']:
-                df[col] = df[col].astype(float)
+            if len(df_1min) < 250:
+                self.logger.debug(f"{symbol}: Not enough data: {len(df_1min)} candles (need 250)")
+                return
 
             # Calculate indicators
-            calc = IndicatorCalculator(df)
-            df_1min = calc.add_all_indicators()
+            calc_1min = IndicatorCalculator(df_1min)
+            df_1min = calc_1min.add_all_indicators()
 
-            # Build 5-min candles (for multi-timeframe strategies)
-            df_5min = df_1min.resample('5min', on='timestamp').agg({
-                'open': 'first',
-                'high': 'max',
-                'low': 'min',
-                'close': 'last',
-                'volume': 'sum'
-            }).dropna()
-            df_5min = df_5min.reset_index()
-
-            # Calculate indicators for 5-min
             calc_5min = IndicatorCalculator(df_5min)
             df_5min = calc_5min.add_all_indicators()
 
-            # Get latest closed candle (second to last, since last might be forming)
-            if len(df_1min) >= 2:
-                latest = df_1min.iloc[-2]
-            else:
-                latest = df_1min.iloc[-1]
-
-            return df_1min, df_5min, latest
-
-        except Exception as e:
-            self.logger.error(f"Error fetching/analyzing {symbol}: {e}", exc_info=True)
-            return None, None, None
-
-    async def _process_symbol(self, symbol: str) -> None:
-        """Fetch data, log indicators, run strategies"""
-        try:
-            # Fetch and analyze (same as backtests!)
-            df_1min, df_5min, latest = await self._fetch_and_analyze(symbol)
-
-            if df_1min is None:
-                return
-
-            # ============================================================
-            # LOG ALL CALCULATED VALUES FOR VERIFICATION
-            # ============================================================
-            self.logger.info("=" * 70)
-            self.logger.info(f"{symbol} - {latest['timestamp']}")
-            self.logger.info("=" * 70)
-            self.logger.info(f"  Open:   ${latest['open']:.6f}")
-            self.logger.info(f"  High:   ${latest['high']:.6f}")
-            self.logger.info(f"  Low:    ${latest['low']:.6f}")
-            self.logger.info(f"  Close:  ${latest['close']:.6f}")
-            self.logger.info(f"  Volume: {latest['volume']:,.0f}")
-
-            # Log indicators (if available)
-            if 'rsi' in latest and pd.notna(latest['rsi']):
-                self.logger.info(f"  RSI(14): {latest['rsi']:.2f}")
-            if 'sma_20' in latest and pd.notna(latest['sma_20']):
-                self.logger.info(f"  SMA(20): ${latest['sma_20']:.6f}")
-            if 'sma_50' in latest and pd.notna(latest['sma_50']):
-                self.logger.info(f"  SMA(50): ${latest['sma_50']:.6f}")
-            if 'sma_200' in latest and pd.notna(latest['sma_200']):
-                self.logger.info(f"  SMA(200): ${latest['sma_200']:.6f}")
-            if 'vol_ratio' in latest and pd.notna(latest['vol_ratio']):
-                self.logger.info(f"  Vol Ratio: {latest['vol_ratio']:.2f}x")
-            if 'atr' in latest and pd.notna(latest['atr']):
-                self.logger.info(f"  ATR(14): ${latest['atr']:.6f}")
-
-            # Log candle characteristics
-            body = abs(latest['close'] - latest['open'])
-            body_pct = (body / latest['open']) * 100 if latest['open'] != 0 else 0
-            is_bullish = latest['close'] > latest['open']
-            self.logger.info(f"  Body: {body_pct:.2f}% ({'BULLISH' if is_bullish else 'BEARISH' if latest['close'] < latest['open'] else 'DOJI'})")
-
-            # ============================================================
-            # GENERATE SIGNALS
-            # ============================================================
+            # Generate signals - ONLY from strategies that match this symbol
             signals = self.signal_generator.generate_signals(df_1min, df_5min, symbol)
 
             if signals:
                 signal = self.signal_generator.resolve_conflicts(signals)
-                signal['symbol'] = symbol
-                self.logger.info(f"  🎯 SIGNAL: {signal['strategy']} {signal['direction']} @ ${signal['entry_price']:.6f}")
+                signal['symbol'] = symbol  # Add symbol to signal for execution
+                self.logger.info(f"{symbol}: Signal generated: {signal['strategy']} {signal['direction']}")
 
                 # Check risk management
                 can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
                 if not can_trade:
-                    self.logger.warning(f"  ❌ Trade rejected: {reason}")
+                    self.logger.warning(f"Trade rejected: {reason}")
                     return
 
                 # Check position limits
                 if not self.position_manager.can_open_position(signal['strategy']):
-                    self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
+                    self.logger.warning(f"Position limit reached for {signal['strategy']}")
                     return
 
                 # Execute trade
                 await self.execute_trade(signal)
-            else:
-                self.logger.info(f"  No signals found")
 
         except Exception as e:
-            self.logger.error(f"Error processing {symbol}: {e}", exc_info=True)
+            self.logger.error(f"Error processing signal: {e}", exc_info=True)
+
+    async def on_candle_closed(self, timeframe: int, candle) -> None:
+        """Handle closed candle event"""
+        if timeframe != 1:  # Only process 1-min candles
+            return
+
+        # Get dataframes
+        df_1min = self.candle_manager.get_dataframe(1)
+        df_5min = self.candle_manager.get_dataframe(5)
+
+        if len(df_1min) < 250:
+            return  # Not enough data
+
+        # Calculate indicators
+        calc_1min = IndicatorCalculator(df_1min)
+        df_1min = calc_1min.add_all_indicators()
+
+        calc_5min = IndicatorCalculator(df_5min)
+        df_5min = calc_5min.add_all_indicators()
+
+        # Generate signals
+        signals = self.signal_generator.generate_signals(df_1min, df_5min)
+
+        if signals:
+            # Resolve conflicts if multiple signals
+            signal = self.signal_generator.resolve_conflicts(signals)
+
+            # Check risk management
+            can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
+
+            if not can_trade:
+                self.logger.warning(f"Trade rejected: {reason}")
+                return
+
+            # Check position limits
+            if not self.position_manager.can_open_position(signal['strategy']):
+                self.logger.warning(f"Position limit reached for {signal['strategy']}")
+                return
+
+            # Execute trade (dry run or live)
+            await self.execute_trade(signal)
 
     async def execute_trade(self, signal: dict) -> None:
         """Execute a trade based on signal"""
-        # Extract symbol from signal (added by _process_symbol)
+        # Extract symbol from signal (added by _process_signal)
         symbol = signal.get('symbol', self.symbols[0] if self.symbols else "FARTCOIN-USDT")
 
         if self.config.safety.dry_run:
@@ -424,6 +380,76 @@ class TradingEngine:
                     details=str(result.get('error', 'Unknown error'))
                 )
 
+    async def _poll_and_process_candles(self, symbol: str, expected_candle_time: datetime) -> bool:
+        """
+        Poll REST API for the latest candles and process signals.
+
+        Args:
+            symbol: Trading symbol
+            expected_candle_time: The timestamp we expect the closed candle to have
+
+        Returns:
+            True if we got the correct candle, False if stale data
+        """
+        try:
+            # Fetch last 5 candles from REST API
+            klines = await self.bingx.get_klines(
+                symbol=symbol,
+                interval='1m',
+                limit=5
+            )
+
+            if not klines or len(klines) < 2:
+                self.logger.warning(f"No klines returned from REST API for {symbol}")
+                return False
+
+            # BingX returns newest first, so klines[1] is the last CLOSED candle
+            # klines[0] is the current (still forming) candle
+            latest_closed = klines[1] if len(klines) > 1 else klines[0]
+
+            # Verify we got the expected candle (not stale data)
+            candle_timestamp = datetime.fromtimestamp(latest_closed['time'] / 1000)
+
+            # Compare hour and minute to handle hour boundaries correctly
+            if (candle_timestamp.hour != expected_candle_time.hour or
+                candle_timestamp.minute != expected_candle_time.minute):
+                self.logger.debug(f"Stale candle: got {candle_timestamp.strftime('%H:%M')}, "
+                                f"expected {expected_candle_time.strftime('%H:%M')}")
+                return False  # Signal to retry
+
+            # Build candle dict from REST API data
+            candle = {
+                'timestamp': candle_timestamp,
+                'open': float(latest_closed['open']),
+                'high': float(latest_closed['high']),
+                'low': float(latest_closed['low']),
+                'close': float(latest_closed['close']),
+                'volume': float(latest_closed['volume'])
+            }
+
+            # Log the candle we're processing
+            self.logger.info(f"✓ {symbol} candle {candle_timestamp.strftime('%H:%M')} | "
+                           f"O={candle['open']:.5f} H={candle['high']:.5f} "
+                           f"L={candle['low']:.5f} C={candle['close']:.5f}")
+
+            # Add the new candle to this symbol's manager
+            manager = self.candle_managers[symbol]
+            manager.add_completed_candle(latest_closed)
+
+            # Check if we have enough data
+            candle_count = len(manager.get_dataframe(1))
+            if candle_count < 250:
+                self.logger.debug(f"{symbol}: Not enough candles for signals: {candle_count}/250")
+                return True  # Candle was correct, just not enough history
+
+            # Process signal with REST API data
+            await self._process_signal(symbol, candle)
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error polling {symbol}: {e}")
+            return False
+
     async def run(self) -> None:
         """Main event loop"""
         # Pre-flight checks
@@ -435,13 +461,37 @@ class TradingEngine:
         self.logger.info("Trading engine running")
 
         # Log system startup
-        self.db.log_event('START', 'INFO', 'Trading engine started (simplified architecture)', component='main')
+        self.db.log_event('START', 'INFO', 'Trading engine started', component='main')
+
+        # Pre-load historical candles to avoid 4-hour warmup wait
+        self.logger.info("=" * 70)
+        self.logger.info("HISTORICAL DATA WARMUP")
+        self.logger.info("=" * 70)
+        for symbol in self.symbols:
+            try:
+                manager = self.candle_managers[symbol]
+                await manager.warmup_from_history(
+                    bingx_client=self.bingx,
+                    symbol=symbol,
+                    candles_count=300
+                )
+            except Exception as e:
+                self.logger.error(f"Failed to warmup historical data for {symbol}: {e}")
+                # Continue with other symbols even if one fails
+
+        # Log candle counts for all symbols
+        for symbol in self.symbols:
+            candle_count = len(self.candle_managers[symbol].get_dataframe(1))
+            self.logger.info(f"  {symbol}: {candle_count} candles")
+        self.logger.info("✅ Historical warmup complete")
+        self.logger.info("=" * 70)
 
         try:
-            self.logger.info("=" * 70)
-            self.logger.info("SIMPLIFIED POLLING MODE")
-            self.logger.info("Every minute: Fetch 300 candles → Calculate → Log → Trade")
-            self.logger.info("=" * 70)
+            # ============================================================
+            # PURE REST API POLLING - Aligned to minute boundaries
+            # Polls at :00 each minute with retry until correct candle received
+            # ============================================================
+            self.logger.info("Starting REST API polling mode (aligned to :00 each minute)")
 
             while self.running:
                 # Check for stop file
@@ -449,62 +499,91 @@ class TradingEngine:
                     self.logger.warning("Stop file detected, shutting down")
                     break
 
-                # Wait until exactly :05 of next minute (candle fully settled)
-                now = datetime.now(timezone.utc)
-                next_minute = (now + timedelta(minutes=1)).replace(second=5, microsecond=0)
-                wait_seconds = (next_minute - now).total_seconds()
-                if wait_seconds > 0:
-                    self.logger.debug(f"Waiting {wait_seconds:.0f}s until {next_minute.strftime('%H:%M:%S')}")
-                    await asyncio.sleep(wait_seconds)
+                # Wait until exactly :00 of next minute
+                now = datetime.now()
+                seconds_until_next_minute = 60 - now.second - (now.microsecond / 1_000_000)
+                if seconds_until_next_minute <= 0:
+                    seconds_until_next_minute += 60
+                self.logger.debug(f"Waiting {seconds_until_next_minute:.1f}s until :00")
+                await asyncio.sleep(seconds_until_next_minute)
 
-                # Now it's :05 - process all symbols
-                poll_time = datetime.now(timezone.utc)
-                self.logger.info(f"\n{'=' * 70}")
-                self.logger.info(f"POLL START: {poll_time.strftime('%Y-%m-%d %H:%M:%S')} UTC")
-                self.logger.info(f"{'=' * 70}")
+                # Now it's :00 - the previous minute's candle should be closed
+                now = datetime.now()
+                # Expected candle timestamp is the start of the PREVIOUS minute
+                expected_candle_time = (now - timedelta(minutes=1)).replace(second=0, microsecond=0)
+                self.logger.info(f"Polling at {now.strftime('%H:%M:%S')} for candle {expected_candle_time.strftime('%H:%M')}")
 
                 # Check daily reset
                 self.metrics.check_daily_reset()
 
-                # Process each symbol
+                # Poll each symbol with retry logic (max 10 retries = 10 seconds)
+                max_retries = 10
                 for symbol in self.symbols:
-                    await self._process_symbol(symbol)
+                    success = False
+                    for attempt in range(max_retries):
+                        try:
+                            success = await self._poll_and_process_candles(symbol, expected_candle_time)
+                            if success:
+                                break  # Got correct candle
+                            # Stale data - wait 1 second and retry
+                            self.logger.debug(f"Retry {attempt + 1}/{max_retries} for {symbol}...")
+                            await asyncio.sleep(1)
+                        except Exception as e:
+                            self.logger.error(f"Error polling {symbol}: {e}")
+                            await asyncio.sleep(1)
+
+                    if not success:
+                        self.logger.warning(f"⚠️ Failed to get correct candle for {symbol} after {max_retries} retries")
+
+                # Get total candles across all symbols (use first symbol as representative)
+                candle_count = len(self.candle_managers[self.symbols[0]].get_dataframe(1))
+                self.logger.info(f"Poll complete | {self.symbols[0]} candles: {candle_count} | Balance: ${self.account_balance:.2f}")
 
                 # Update remote status
                 self.status.update(
+                    candles=candle_count,
                     balance=self.account_balance,
                     open_positions=len(self.position_manager.get_open_positions()),
-                    message=f'Running OK'
+                    message=f'Running OK - {candle_count} candles'
                 )
                 await self.status.report()
-
-                self.logger.info(f"{'=' * 70}")
-                self.logger.info(f"POLL COMPLETE | Balance: ${self.account_balance:.2f}")
-                self.logger.info(f"{'=' * 70}\n")
 
         except KeyboardInterrupt:
             self.logger.info("Keyboard interrupt received")
         except Exception as e:
-            self.logger.error(f"Fatal error: {e}", exc_info=True)
-            raise
+            self.logger.error(f"Error in main loop: {e}", exc_info=True)
+
+            # Update remote status with error
+            self.status.update(
+                last_error=str(e),
+                message=f'ERROR: {str(e)[:50]}'
+            )
+            await self.status.report()
+
+            # Send critical error notification
+            if self.notifier:
+                await self.notifier.notify_error(
+                    error_type='MAIN_LOOP_CRASH',
+                    message='Trading engine main loop crashed',
+                    details=str(e)
+                )
         finally:
             await self.shutdown()
 
     async def shutdown(self) -> None:
-        """Clean shutdown"""
+        """Graceful shutdown"""
         self.logger.info("Shutting down trading engine...")
+
         self.running = False
 
-        # Close all open positions (if enabled)
-        if not self.config.safety.keep_positions_on_shutdown:
-            open_positions = self.position_manager.get_open_positions()
-            if open_positions:
-                self.logger.info(f"Closing {len(open_positions)} open positions...")
-                for position_id, position in open_positions.items():
-                    try:
-                        await self.executor.close_position(position)
-                    except Exception as e:
-                        self.logger.error(f"Error closing position {position_id}: {e}")
+        # Update remote status
+        self.status.update(running=False, message='Shutting down...')
+        await self.status.report()
+
+        # Close positions if configured
+        if self.config.safety.close_positions_on_shutdown:
+            self.logger.info("Closing all open positions...")
+            # TODO: Implement position closing
 
         # Close BingX client
         await self.bingx.close()
@@ -512,28 +591,28 @@ class TradingEngine:
         # Log shutdown
         self.db.log_event('STOP', 'INFO', 'Trading engine stopped', component='main')
 
-        # Send notification
-        if self.notifier:
-            await self.notifier.notify_bot_stopped()
+        # Print final stats
+        self.metrics.print_dashboard()
 
-        self.logger.info("Shutdown complete")
+        self.logger.info("Trading engine stopped")
 
 
-def main():
+def signal_handler(signum, frame):
+    """Handle shutdown signals"""
+    print("\nShutdown signal received")
+    sys.exit(0)
+
+
+async def main():
     """Entry point"""
-    engine = TradingEngine()
-
-    # Handle shutdown signals
-    def signal_handler(sig, frame):
-        print("\nShutdown signal received")
-        asyncio.create_task(engine.shutdown())
-
+    # Setup signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    # Run the engine
-    asyncio.run(engine.run())
+    # Create and run engine
+    engine = TradingEngine()
+    await engine.run()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
