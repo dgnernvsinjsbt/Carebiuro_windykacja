@@ -640,9 +640,9 @@ class TradingEngine:
                     self.logger.warning("Stop file detected, shutting down")
                     break
 
-                # Wait until exactly :05 of next minute (candle fully settled)
+                # Wait until exactly :01 of next minute (candle fully settled)
                 now = datetime.now(timezone.utc)
-                next_minute = (now + timedelta(minutes=1)).replace(second=5, microsecond=0)
+                next_minute = (now + timedelta(minutes=1)).replace(second=1, microsecond=0)
                 wait_seconds = (next_minute - now).total_seconds()
                 if wait_seconds > 0:
                     self.logger.debug(f"Waiting {wait_seconds:.0f}s until {next_minute.strftime('%H:%M:%S')}")
