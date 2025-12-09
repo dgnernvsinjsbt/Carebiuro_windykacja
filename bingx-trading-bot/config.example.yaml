@@ -58,26 +58,30 @@ trading:
 
     doge_volume_zones:
       enabled: true
-      symbol: DOGE-USDT
       base_risk_pct: 1.0  # Conservative due to outlier dependency
       max_risk_pct: 2.0
       max_positions: 1
 
-      params:
-        # Volume zone detection (OPTIMIZED Dec 9, 2025)
-        volume_threshold: 1.5      # 1.5x average volume
-        min_zone_bars: 5           # 5+ consecutive bars
-        max_zone_bars: 15
-        lookback_bars: 20
+      # Volume zone detection (OPTIMIZED Dec 9, 2025)
+      volume_threshold: 1.5      # 1.5x average volume
+      min_zone_bars: 5           # 5+ consecutive bars
+      max_zone_bars: 15
+      lookback_bars: 20
 
-        # Exit parameters (OPTIMIZED for BingX)
-        stop_atr_mult: 1.5         # 1.5x ATR stop (tighter)
-        tp_type: 'atr_multiple'    # 'atr_multiple' or 'rr_multiple'
-        tp_atr_mult: 4.0           # 4.0x ATR take profit target
-        max_hold_bars: 90          # 90 minutes max hold
+      # Exit parameters (OPTIMIZED for BingX)
+      stop_atr_mult: 1.5         # 1.5x ATR stop (tighter)
+      tp_type: 'atr_multiple'    # 'atr_multiple' or 'rr_multiple'
+      tp_atr_mult: 4.0           # 4.0x ATR take profit target
+      max_hold_bars: 90          # 90 minutes max hold
 
-        # Session filter (CRITICAL - Asia/EU only)
-        session_filter: 'asia_eu'  # 'overnight', 'asia_eu', 'us', or 'all'
+      # Session filter (CRITICAL - Asia/EU only)
+      session_filter: 'asia_eu'  # 'overnight', 'asia_eu', 'us', or 'all'
+
+      # Risk management
+      win_streak_scaling: 0.0    # NO scaling for outlier strategy
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 1.5        # Max 1.5 hours in trade
 
       # ⚠️  OUTLIER-HARVESTING STRATEGY
       # - Top 5 trades = 95.3% of profit

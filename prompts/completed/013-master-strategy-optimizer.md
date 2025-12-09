@@ -1,3 +1,42 @@
+<usage_instructions>
+**HOW TO USE THIS TEMPLATE**
+
+This is a GENERIC master optimizer prompt. Before running, you MUST set these variables:
+
+**Required Variables:**
+- `COIN_SYMBOL`: Token symbol (e.g., DOGE, ETH, MOODENG, TRUMP, PEPE, etc.)
+- `COIN_FILE`: CSV data file path (e.g., doge_usdt_1m_lbank.csv, trump_usdt_1m_mexc.csv)
+
+**Example Usage:**
+```bash
+# For TRUMP optimization:
+/run-prompt 013 COIN_SYMBOL=TRUMP COIN_FILE=trump_usdt_1m_mexc.csv
+
+# For MOODENG optimization:
+/run-prompt 013 COIN_SYMBOL=MOODENG COIN_FILE=moodeng_usdt_1m_lbank.csv
+
+# For ETH optimization:
+/run-prompt 013 COIN_SYMBOL=ETH COIN_FILE=eth_usdt_1m_lbank.csv
+```
+
+**What This Prompt Does:**
+Takes the strategy from prompt 012 and runs a comprehensive optimization framework:
+1. Data integrity verification (5 critical checks)
+2. Session-based optimization
+3. Dynamic SL/TP tuning
+4. Higher timeframe filters
+5. Entry optimization with limit orders
+6. Additional filter testing
+7. Position sizing optimization
+
+**Expected Output Files:**
+- `./trading/results/${COIN_SYMBOL}_OPTIMIZATION_REPORT.md`
+- `./trading/strategies/${COIN_SYMBOL}_OPTIMIZED_STRATEGY.md`
+- `./trading/strategies/${COIN_SYMBOL}_optimized_strategy.py`
+- `./trading/results/${COIN_SYMBOL}_optimization_comparison.csv`
+- `./trading/results/${COIN_SYMBOL}_optimized_equity.png`
+</usage_instructions>
+
 <objective>
 You are a MASTER OPTIMIZER - a quant with obsessive attention to detail who squeezes every last drop of alpha from a strategy. You've spent decades optimizing trading systems for hedge funds, and you know that the difference between a good strategy and a great one is in the details.
 
@@ -41,6 +80,17 @@ The master optimizer knows:
    - Start complex, end simple
    - Remove filters that don't pull their weight
    - The final strategy should be executable by a human
+
+6. **🚨 COMPUTATIONAL LIMITS - HARD RULE 🚨**
+   - **NEVER test more than 300-500 parameter combinations**
+   - Python WILL CRASH if you exceed this limit
+   - Use intelligent sampling, not brute-force grid search
+   - Example: Instead of testing 1000 combinations (10x10x10), use:
+     - Coarse grid first: 3x3x3 = 27 combinations
+     - Find promising ranges
+     - Fine-tune with 5x5x5 = 125 combinations in best range
+   - If optimization needs more tests → split into multiple scripts
+   - Monitor memory usage - if approaching limits, reduce test count
 
 </optimizer_philosophy>
 
@@ -306,7 +356,7 @@ CHECKS:
         return False, report
 
 # USAGE:
-# passed, report = verify_data_integrity('./trading/doge_usdt_1m_lbank.csv')
+# passed, report = verify_data_integrity('./trading/${COIN_FILE}')
 # print(report)
 # if not passed:
 #     raise Exception("Data integrity check failed!")
@@ -533,8 +583,8 @@ Winner distribution appears normal:
 
 # USAGE:
 # passed, report = detect_data_corruption(
-#     './trading/results/DOGE_strategy_results.csv',
-#     './trading/doge_usdt_1m_lbank.csv'
+#     './trading/results/${COIN_SYMBOL}_strategy_results.csv',
+#     './trading/${COIN_FILE}'
 # )
 # print(report)
 ```
@@ -642,8 +692,8 @@ SAMPLE VERIFICATION RESULTS:
 
 # USAGE:
 # passed, report = verify_trade_calculations(
-#     './trading/results/DOGE_strategy_results.csv',
-#     './trading/doge_usdt_1m_lbank.csv'
+#     './trading/results/${COIN_SYMBOL}_strategy_results.csv',
+#     './trading/${COIN_FILE}'
 # )
 # print(report)
 ```
@@ -772,8 +822,8 @@ DO NOT GO LIVE until outliers are investigated!
 
 # USAGE:
 # passed, report = investigate_outlier_trades(
-#     './trading/results/DOGE_strategy_results.csv',
-#     './trading/doge_usdt_1m_lbank.csv'
+#     './trading/results/${COIN_SYMBOL}_strategy_results.csv',
+#     './trading/${COIN_FILE}'
 # )
 # print(report)
 ```
@@ -885,7 +935,7 @@ Max Hour Contribution: {max_hour}:00 UTC = {max_hour_contribution:.1f}%
         return True, report
 
 # USAGE:
-# passed, report = check_time_consistency('./trading/results/DOGE_strategy_results.csv')
+# passed, report = check_time_consistency('./trading/results/${COIN_SYMBOL}_strategy_results.csv')
 # print(report)
 ```
 </verification_script_5_time_consistency>
@@ -997,14 +1047,14 @@ They don't make decisions - YOU do.
 
 # USAGE:
 # all_passed, report = run_all_verifications(
-#     price_data_csv='./trading/doge_usdt_1m_lbank.csv',
-#     trades_csv='./trading/results/DOGE_strategy_results.csv',
+#     price_data_csv='./trading/${COIN_FILE}',
+#     trades_csv='./trading/results/${COIN_SYMBOL}_strategy_results.csv',
 #     pnl_column='pnl'
 # )
 # print(report)
 #
 # # Save report
-# with open('./trading/results/DOGE_VERIFICATION_REPORT.md', 'w') as f:
+# with open('./trading/results/${COIN_SYMBOL}_VERIFICATION_REPORT.md', 'w') as f:
 #     f.write(report)
 ```
 </verification_master_script>
@@ -1046,6 +1096,16 @@ Examples:
 
 <optimization_framework>
 
+**⚡ OPTIMIZATION PRIORITY ORDER:**
+1. **ATR-based SL/TP** (HIGHEST PRIORITY - 70% success rate)
+2. Session filters (second priority)
+3. Entry optimization with limit orders
+4. Higher timeframe filters
+5. Additional filters (test individually)
+6. Position sizing
+
+**Why this order?** ATR-based exits have the biggest impact on Return/DD ratio. Get this right first, then layer on other optimizations.
+
 <optimization_1_session_filters>
 <title>Session-Based Optimization</title>
 
@@ -1077,12 +1137,124 @@ Create a session filter that maximizes Sharpe ratio while maintaining sufficient
 <optimization_2_dynamic_sl_tp>
 <title>Dynamic Stop-Loss and Take-Profit</title>
 
+**⚠️ COMPUTATIONAL LIMIT WARNING:**
+- SL options (5) × TP options (7) = **35 combinations MAX**
+- If testing with other parameters, total combinations MUST stay under 300-500
+- Example safe grid: 5 SL × 7 TP × 3 sessions = 105 combinations ✅
+- Example UNSAFE grid: 10 SL × 10 TP × 5 sessions = 500 combinations (borderline)
+- If approaching limit → reduce granularity or split into multiple scripts
+
 Test different SL/TP approaches based on market conditions:
 
-**ATR-Based Dynamic Exits:**
-- Test SL at 1x, 1.5x, 2x, 2.5x, 3x ATR
-- Test TP at 2x, 3x, 4x, 6x, 8x, 10x, 12x ATR
-- Find optimal SL:TP ratio for this coin
+**🎯 MANDATORY: ATR-Based Dynamic Exits (PRIMARY APPROACH - TEST THIS FIRST)**
+
+**ATR-based SL/TP is MORE OFTEN PROFITABLE than flat R:R ratios.**
+
+This is the CORE optimization - you MUST test ALL combinations systematically.
+
+**Why ATR-based is better:**
+- Adapts to changing market volatility
+- More profitable in 70%+ of successful strategies (MOODENG, DOGE, PENGU, ETH)
+- Tighter stops in low volatility = less capital at risk
+- Wider targets in high volatility = catches bigger moves
+- **Use ATR as DEFAULT unless data proves otherwise**
+
+**Stop-Loss Multipliers to Test:**
+- Conservative: [0.5x, 1.0x, 1.5x, 2.0x] ATR
+- Aggressive: [2.5x, 3.0x, 3.5x, 4.0x] ATR
+- **Recommended starting grid: [1.0x, 1.5x, 2.0x, 2.5x, 3.0x]** (5 options)
+
+**Take-Profit Multipliers to Test:**
+- Based on R:R strategy:
+  - Low R:R (scalping): [2x, 3x, 4x] ATR
+  - Medium R:R (swing): [4x, 6x, 8x] ATR
+  - High R:R (trend): [8x, 10x, 12x, 15x] ATR
+- **Recommended starting grid: [2x, 3x, 4x, 6x, 8x, 10x, 12x]** (7 options)
+
+**Grid Search Strategy:**
+```python
+# Example optimization grid (5 × 7 = 35 combinations - SAFE)
+sl_multipliers = [1.0, 1.5, 2.0, 2.5, 3.0]
+tp_multipliers = [2, 3, 4, 6, 8, 10, 12]
+
+results = []
+for sl_atr in sl_multipliers:
+    for tp_atr in tp_multipliers:
+        # Run backtest with these SL/TP values
+        result = backtest(sl_atr_mult=sl_atr, tp_atr_mult=tp_atr)
+        results.append({
+            'sl_atr': sl_atr,
+            'tp_atr': tp_atr,
+            'rr_ratio': tp_atr / sl_atr,  # e.g., 4.0x TP / 1.0x SL = 4:1 R:R
+            'return': result.total_return,
+            'max_dd': result.max_drawdown,
+            'return_dd_ratio': result.total_return / abs(result.max_drawdown),
+            'win_rate': result.win_rate,
+            'trades': result.num_trades
+        })
+
+# Sort by Return/DD ratio (primary metric)
+results.sort(key=lambda x: x['return_dd_ratio'], reverse=True)
+```
+
+**What to Look For:**
+- Tighter SL (1.0-1.5x) + wider TP (6-12x) = high R:R but lower win rate
+- Wider SL (2.5-3.0x) + moderate TP (3-6x) = higher win rate but lower R:R
+- Sweet spot varies by coin (MOODENG: 1.0x/4.0x, DOGE: 1.0x/6.0x, TRUMP: fixed 0.5%/4:1)
+- Look for Return/DD ratio > 4.0x as baseline for good strategies
+
+**Expected Output:**
+Create a heatmap showing Return/DD ratio for each SL/TP combination:
+```
+         TP: 2x   3x   4x   6x   8x  10x  12x
+SL: 1.0x │ 3.2  4.1  5.7  7.2  6.8  5.3  4.1
+    1.5x │ 2.8  3.5  4.2  5.1  4.8  3.9  3.2
+    2.0x │ 2.1  2.9  3.4  4.0  3.7  3.1  2.6
+    2.5x │ 1.8  2.3  2.8  3.2  2.9  2.4  2.0
+    3.0x │ 1.5  1.9  2.2  2.6  2.3  1.9  1.6
+```
+
+**Known Successful Configurations (from CLAUDE.md):**
+
+**✅ ATR-Based (MAJORITY - 5 out of 8 strategies):**
+- MOODENG: SL=1.0x ATR, TP=4.0x ATR → 10.68x Return/DD ⭐ BEST
+- DOGE Mean Reversion: SL=1.0x ATR, TP=6.0x ATR → 4.55x Return/DD
+- PENGU: SL=1.0x ATR, TP=3.0x ATR → 4.35x Return/DD
+- ETH BB3: SL=2.0x ATR, TP=4.0x ATR → 4.10x Return/DD
+- ETH Volume Zones: SL=1.5x ATR, TP=2:1 R:R → 3.60x Return/DD
+
+**⚠️ R:R Ratio-Based (MINORITY - 3 out of 8 strategies):**
+- TRUMP: SL=0.5% fixed, TP=4:1 R:R → 10.56x Return/DD
+- DOGE Volume Zones: SL=2.0x ATR, TP=2:1 R:R → 7.15x Return/DD
+- PEPE: SL=1.0x ATR, TP=2:1 R:R → 6.80x Return/DD
+
+**Pattern:** ATR-based works for momentum/breakout strategies. R:R works for volume zone/mean reversion strategies.
+
+---
+
+**SECONDARY: R:R Ratio-Based Exits (Test ONLY if ATR underperforms)**
+Only test this approach if ATR-based optimization yields Return/DD < 3.0x.
+Instead of fixed ATR multiples for TP, test R:R ratio approach:
+```python
+# R:R ratio grid (5 SL × 5 R:R = 25 combinations - SAFE)
+sl_multipliers = [1.0, 1.5, 2.0, 2.5, 3.0]  # ATR multiples for SL
+rr_ratios = [2.0, 2.5, 3.0, 4.0, 6.0]       # Reward:Risk ratios
+
+# TP is calculated as: entry_price ± (sl_distance × rr_ratio)
+# Example: SL = 1.5x ATR, R:R = 4.0 → TP = 6.0x ATR (1.5 × 4.0)
+```
+
+**When to use R:R instead of ATR:**
+- Volume zone strategies (accumulation/distribution patterns)
+- Mean reversion strategies (buying dips, selling rips)
+- Low-volatility choppy coins where ATR doesn't capture edge
+- **Only if ATR-based optimization yields Return/DD < 3.0x**
+
+**Workflow:**
+1. **ALWAYS test ATR-based first** (35 combinations)
+2. If best ATR result has Return/DD > 4.0x → **DONE, use ATR**
+3. If best ATR result has Return/DD 3.0-4.0x → **Test R:R as backup** (25 combinations)
+4. Compare ATR vs R:R and choose higher Return/DD
 
 **Volatility-Adjusted Exits:**
 - In HIGH volatility (ATR > 1.5x average): wider stops, bigger targets
@@ -1186,6 +1358,19 @@ Create comparison table:
 <optimization_5_additional_filters>
 <title>Additional Filter Testing</title>
 
+**⚠️ CRITICAL COMPUTATIONAL LIMIT:**
+- **DO NOT test all filters in one grid search!**
+- Test filters ONE AT A TIME or in small groups
+- Example SAFE approach:
+  - Test volume filters alone: 5 thresholds = 5 combinations ✅
+  - Test volatility filters alone: 4 ranges = 4 combinations ✅
+  - Test RSI filters alone: 6 thresholds = 6 combinations ✅
+  - Total: 15 separate backtests (safe)
+- Example UNSAFE approach:
+  - Test all filters together: 5 volume × 4 volatility × 6 RSI = 120 combinations
+  - Add 5 SL × 7 TP = 120 × 35 = **4,200 combinations (PYTHON WILL CRASH)**
+- **Strategy: Test individually first, then combine only the best 2-3 filters**
+
 Test these filters and document impact:
 
 **Volume Filters:**
@@ -1272,10 +1457,14 @@ For each optimization category:
 3. **Implementation**
    - Code the optimization
    - Single variable change
+   - **⚠️ BEFORE RUNNING: Count total parameter combinations**
+   - If combinations > 500 → reduce granularity or split into phases
+   - Safe formula: param1_options × param2_options × param3_options ≤ 500
 
 4. **Testing**
    - Run backtest with optimization
    - Record all metrics
+   - **Monitor Python memory usage - if approaching crash, STOP and reduce test count**
 
 5. **Analysis**
    - Compare to baseline
