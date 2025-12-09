@@ -403,3 +403,49 @@ class MultiTimeframeCandleManager:
         except Exception as e:
             self.logger.error(f"Error during historical warmup for {symbol}: {e}", exc_info=True)
             raise
+
+    def add_completed_candle(self, candle_data: dict) -> None:
+        """
+        Add a single completed candle to the manager
+
+        Args:
+            candle_data: Dict with keys: time, open, high, low, close, volume
+        """
+        timestamp = datetime.fromtimestamp(candle_data['time'] / 1000)
+
+        # Create completed 1-min candle
+        candle = Candle(
+            timestamp=self.base_builder._get_candle_timestamp(timestamp),
+            open_price=float(candle_data['open'])
+        )
+        candle.high = float(candle_data['high'])
+        candle.low = float(candle_data['low'])
+        candle.close = float(candle_data['close'])
+        candle.volume = float(candle_data['volume'])
+        candle.close_candle()
+
+        # Add to base builder
+        self.base_builder.candles.append(candle)
+        self.base_builder.total_candles += 1
+
+        # Update higher timeframe candles
+        for tf, builder in self.builders.items():
+            candle_ts = builder._get_candle_timestamp(timestamp)
+
+            # Initialize or update higher timeframe candle
+            if builder.current_candle is None:
+                builder.current_candle = Candle(candle_ts, candle.open)
+
+            # Check if we need to close and start new candle
+            if candle_ts > builder.current_candle.timestamp:
+                builder.current_candle.close_candle()
+                builder.candles.append(builder.current_candle)
+                builder.total_candles += 1
+                builder.current_candle = Candle(candle_ts, candle.open)
+
+            # Update with base candle data
+            builder.current_candle.high = max(builder.current_candle.high, candle.high)
+            builder.current_candle.low = min(builder.current_candle.low, candle.low)
+            builder.current_candle.close = candle.close
+            builder.current_candle.volume += candle.volume
+            builder.current_candle.trades += 1

@@ -119,19 +119,22 @@ class TradingEngine:
         # Order executor
         self.executor = OrderExecutor(self.bingx)
 
-        # Candle management
-        self.candle_manager = MultiTimeframeCandleManager(
-            base_interval=1,
-            timeframes=[1, 5],
-            buffer_size=self.config.data.buffer_size
-        )
+        # Candle management - separate manager for each symbol
+        self.symbols = self.config.trading.symbols
+        self.candle_managers = {
+            symbol: MultiTimeframeCandleManager(
+                base_interval=1,
+                timeframes=[1, 5],
+                buffer_size=self.config.data.buffer_size
+            )
+            for symbol in self.symbols
+        }
 
         # NOTE: WebSocket removed - using pure REST API polling instead
         # This eliminates data corruption issues from WebSocket
 
         # Account state
         self.account_balance = 0.0
-        self.symbols = self.config.trading.symbols
 
         self.running = False
 
@@ -204,12 +207,13 @@ class TradingEngine:
     async def _process_signal(self, symbol: str, candle: dict) -> None:
         """Process candle and generate signals"""
         try:
-            # Get dataframes
-            df_1min = self.candle_manager.get_dataframe(1)
-            df_5min = self.candle_manager.get_dataframe(5)
+            # Get dataframes for this specific symbol
+            manager = self.candle_managers[symbol]
+            df_1min = manager.get_dataframe(1)
+            df_5min = manager.get_dataframe(5)
 
             if len(df_1min) < 250:
-                self.logger.debug(f"Not enough data: {len(df_1min)} candles (need 250)")
+                self.logger.debug(f"{symbol}: Not enough data: {len(df_1min)} candles (need 250)")
                 return
 
             # Calculate indicators
@@ -432,10 +436,14 @@ class TradingEngine:
                            f"O={candle['open']:.5f} H={candle['high']:.5f} "
                            f"L={candle['low']:.5f} C={candle['close']:.5f}")
 
+            # Add the new candle to this symbol's manager
+            manager = self.candle_managers[symbol]
+            manager.add_completed_candle(latest_closed)
+
             # Check if we have enough data
-            candle_count = len(self.candle_manager.get_dataframe(1))
+            candle_count = len(manager.get_dataframe(1))
             if candle_count < 250:
-                self.logger.debug(f"Not enough candles for signals: {candle_count}/250")
+                self.logger.debug(f"{symbol}: Not enough candles for signals: {candle_count}/250")
                 return True  # Candle was correct, just not enough history
 
             # Process signal with REST API data
@@ -465,7 +473,8 @@ class TradingEngine:
         self.logger.info("=" * 70)
         for symbol in self.symbols:
             try:
-                await self.candle_manager.warmup_from_history(
+                manager = self.candle_managers[symbol]
+                await manager.warmup_from_history(
                     bingx_client=self.bingx,
                     symbol=symbol,
                     candles_count=300
@@ -474,8 +483,11 @@ class TradingEngine:
                 self.logger.error(f"Failed to warmup historical data for {symbol}: {e}")
                 # Continue with other symbols even if one fails
 
-        candle_count = len(self.candle_manager.get_dataframe(1))
-        self.logger.info(f"✅ Historical warmup complete: {candle_count} candles ready")
+        # Log candle counts for all symbols
+        for symbol in self.symbols:
+            candle_count = len(self.candle_managers[symbol].get_dataframe(1))
+            self.logger.info(f"  {symbol}: {candle_count} candles")
+        self.logger.info("✅ Historical warmup complete")
         self.logger.info("=" * 70)
 
         try:
@@ -527,8 +539,9 @@ class TradingEngine:
                     if not success:
                         self.logger.warning(f"⚠️ Failed to get correct candle for {symbol} after {max_retries} retries")
 
-                candle_count = len(self.candle_manager.get_dataframe(1))
-                self.logger.info(f"Poll complete | Candles: {candle_count} | Balance: ${self.account_balance:.2f}")
+                # Get total candles across all symbols (use first symbol as representative)
+                candle_count = len(self.candle_managers[self.symbols[0]].get_dataframe(1))
+                self.logger.info(f"Poll complete | {self.symbols[0]} candles: {candle_count} | Balance: ${self.account_balance:.2f}")
 
                 # Update remote status
                 self.status.update(
@@ -570,10 +583,6 @@ class TradingEngine:
         # Update remote status
         self.status.update(running=False, message='Shutting down...')
         await self.status.report()
-
-        # Stop WebSocket feed
-        await self.ws_feed.stop()
-        self.logger.info("WebSocket feed stopped")
 
         # Close positions if configured
         if self.config.safety.close_positions_on_shutdown:
