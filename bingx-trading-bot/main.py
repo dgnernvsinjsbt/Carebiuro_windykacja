@@ -31,18 +31,15 @@ from monitoring.notifications import EmailNotifier, init_notifier, get_notifier
 from monitoring.status_reporter import get_reporter
 from database.trade_logger import TradeLogger
 from data.indicators import IndicatorCalculator
-from strategies.multi_timeframe_long import MultiTimeframeLongStrategy
-from strategies.trend_distance_short import TrendDistanceShortStrategy
-from strategies.moodeng_rsi_momentum import MoodengRSIMomentumStrategy
 from strategies.doge_volume_zones import DogeVolumeZonesStrategy
-from strategies.pepe_volume_zones import PepeVolumeZonesStrategy
-from strategies.trump_volume_zones import TrumpVolumeZonesStrategy
-from strategies.uni_volume_zones import UniVolumeZonesStrategy
+from strategies.fartcoin_atr_limit import FartcoinATRLimitStrategy
+from strategies.trumpsol_contrarian import TrumpsolContrarianStrategy
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
 from execution.bingx_client import BingXClient
 from execution.order_executor import OrderExecutor
+from execution.pending_order_manager import PendingOrderManager
 
 
 class TradingEngine:
@@ -72,42 +69,23 @@ class TradingEngine:
         self.db = TradeLogger(self.config.get_database_url(), self.config.database.echo)
         self.metrics = PerformanceTracker(initial_capital=10000)
 
-        # Initialize strategies
+        # Initialize strategies (Active: FARTCOIN, DOGE, TRUMPSOL)
         self.strategies = []
-        if self.config.is_strategy_enabled('multi_timeframe_long'):
-            strategy_config = self.config.get_strategy_config('multi_timeframe_long')
-            self.strategies.append(MultiTimeframeLongStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('multi_timeframe_long')
 
-        if self.config.is_strategy_enabled('trend_distance_short'):
-            strategy_config = self.config.get_strategy_config('trend_distance_short')
-            self.strategies.append(TrendDistanceShortStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('trend_distance_short')
-
-        if self.config.is_strategy_enabled('moodeng_rsi_momentum'):
-            strategy_config = self.config.get_strategy_config('moodeng_rsi_momentum')
-            self.strategies.append(MoodengRSIMomentumStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('moodeng_rsi_momentum')
+        if self.config.is_strategy_enabled('fartcoin_atr_limit'):
+            strategy_config = self.config.get_strategy_config('fartcoin_atr_limit')
+            self.strategies.append(FartcoinATRLimitStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('fartcoin_atr_limit')
 
         if self.config.is_strategy_enabled('doge_volume_zones'):
             strategy_config = self.config.get_strategy_config('doge_volume_zones')
             self.strategies.append(DogeVolumeZonesStrategy(strategy_config.__dict__))
             self.metrics.register_strategy('doge_volume_zones')
 
-        if self.config.is_strategy_enabled('pepe_volume_zones'):
-            strategy_config = self.config.get_strategy_config('pepe_volume_zones')
-            self.strategies.append(PepeVolumeZonesStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('pepe_volume_zones')
-
-        if self.config.is_strategy_enabled('trump_volume_zones'):
-            strategy_config = self.config.get_strategy_config('trump_volume_zones')
-            self.strategies.append(TrumpVolumeZonesStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('trump_volume_zones')
-
-        if self.config.is_strategy_enabled('uni_volume_zones'):
-            strategy_config = self.config.get_strategy_config('uni_volume_zones')
-            self.strategies.append(UniVolumeZonesStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('uni_volume_zones')
+        if self.config.is_strategy_enabled('trumpsol_contrarian'):
+            strategy_config = self.config.get_strategy_config('trumpsol_contrarian')
+            self.strategies.append(TrumpsolContrarianStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('trumpsol_contrarian')
 
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)
@@ -127,6 +105,9 @@ class TradingEngine:
 
         # Order executor
         self.executor = OrderExecutor(self.bingx)
+
+        # Pending order manager (for limit orders waiting for fill)
+        self.pending_order_manager = PendingOrderManager(self.bingx)
 
         # Symbols to trade
         self.symbols = self.config.trading.symbols
@@ -266,6 +247,18 @@ class TradingEngine:
     async def _process_symbol(self, symbol: str) -> None:
         """Fetch data, log indicators, run strategies"""
         try:
+            # ============================================================
+            # CHECK PENDING LIMIT ORDERS (FIRST!)
+            # ============================================================
+            current_bar = int(pd.Timestamp.now().timestamp() // 60)  # Minute-level bar index
+            filled_signals = await self.pending_order_manager.check_pending_orders(current_bar)
+
+            if filled_signals:
+                self.logger.info(f"🎉 {len(filled_signals)} pending limit order(s) FILLED!")
+                for filled_signal in filled_signals:
+                    # Place SL/TP for filled limit order
+                    await self._place_sl_tp_for_filled_order(filled_signal)
+
             # Fetch and analyze (same as backtests!)
             df_1min, df_5min, latest = await self._fetch_and_analyze(symbol)
 
@@ -312,21 +305,42 @@ class TradingEngine:
             if signals:
                 signal = self.signal_generator.resolve_conflicts(signals)
                 signal['symbol'] = symbol
-                self.logger.info(f"  🎯 SIGNAL: {signal['strategy']} {signal['direction']} @ ${signal['entry_price']:.6f}")
 
-                # Check risk management
-                can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
-                if not can_trade:
-                    self.logger.warning(f"  ❌ Trade rejected: {reason}")
-                    return
+                # Check if this is a pending limit order request
+                if signal.get('type') == 'PENDING_LIMIT_REQUEST':
+                    self.logger.info(f"  📝 PENDING LIMIT REQUEST: {signal['strategy']} {signal['direction']} @ ${signal['limit_price']:.6f}")
 
-                # Check position limits
-                if not self.position_manager.can_open_position(signal['strategy']):
-                    self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
-                    return
+                    # Check risk management before placing limit order
+                    can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
+                    if not can_trade:
+                        self.logger.warning(f"  ❌ Request rejected: {reason}")
+                        return
 
-                # Execute trade
-                await self.execute_trade(signal)
+                    # Check position limits
+                    if not self.position_manager.can_open_position(signal['strategy']):
+                        self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
+                        return
+
+                    # Place pending limit order
+                    await self._place_pending_limit_order(signal)
+
+                else:
+                    # Regular signal - execute immediately
+                    self.logger.info(f"  🎯 SIGNAL: {signal['strategy']} {signal['direction']} @ ${signal['entry_price']:.6f}")
+
+                    # Check risk management
+                    can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
+                    if not can_trade:
+                        self.logger.warning(f"  ❌ Trade rejected: {reason}")
+                        return
+
+                    # Check position limits
+                    if not self.position_manager.can_open_position(signal['strategy']):
+                        self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
+                        return
+
+                    # Execute trade
+                    await self.execute_trade(signal)
             else:
                 self.logger.info(f"  No signals found")
 
@@ -357,7 +371,8 @@ class TradingEngine:
             risk_pct=risk_pct,
             use_market_order=True,  # Use market orders for faster execution
             leverage=self.config.bingx.default_leverage,
-            leverage_mode=self.config.bingx.leverage_mode
+            leverage_mode=self.config.bingx.leverage_mode,
+            fixed_position_value_usdt=self.config.bingx.fixed_position_value_usdt
         )
 
         if result['success']:
@@ -423,6 +438,182 @@ class TradingEngine:
                     message=f"Failed to execute {signal['direction']} on {symbol}",
                     details=str(result.get('error', 'Unknown error'))
                 )
+
+    async def _place_pending_limit_order(self, signal: dict) -> None:
+        """
+        Place a pending limit order on exchange
+
+        Args:
+            signal: PENDING_LIMIT_REQUEST signal from strategy
+        """
+        symbol = signal['symbol']
+        strategy = signal['strategy']
+
+        try:
+            # Get contract info for precision
+            contracts = await self.bingx.get_contract_info(symbol)
+            contract = contracts[0] if isinstance(contracts, list) else contracts
+
+            # Calculate position size based on limit price
+            strategy_config = self.config.get_strategy_config(strategy)
+            risk_pct = strategy_config.base_risk_pct
+
+            # Simplified position sizing for limit order
+            position_value = self.account_balance * self.config.bingx.default_leverage
+            quantity = position_value / signal['limit_price']
+
+            # Round to contract precision
+            from decimal import Decimal, ROUND_DOWN
+            quantity_precision = contract.get('quantityPrecision', 3)
+            precision_factor = Decimal(10) ** quantity_precision
+            quantity = float(Decimal(str(quantity)).quantize(
+                Decimal('1') / precision_factor,
+                rounding=ROUND_DOWN
+            ))
+
+            # Check minimum quantity
+            min_qty = contract.get('minQty')
+            if min_qty and quantity < float(min_qty):
+                quantity = float(min_qty)
+
+            self.logger.info(f"📝 Creating pending limit order:")
+            self.logger.info(f"   Calculated quantity: {quantity}")
+
+            # Create pending order through manager
+            pending = await self.pending_order_manager.create_pending_order(
+                symbol=symbol,
+                strategy=strategy,
+                direction=signal['direction'],
+                limit_price=signal['limit_price'],
+                quantity=quantity,
+                stop_loss=signal['stop_loss'],
+                take_profit=signal['take_profit'],
+                signal_data=signal,
+                current_bar=signal['current_bar'],
+                max_wait_bars=signal['max_wait_bars'],
+                contract_info=contract
+            )
+
+            if pending:
+                self.logger.info(f"✅ Pending limit order created: {pending.order_id}")
+                self.logger.info(f"   Limit: ${pending.limit_price:.6f}")
+                self.logger.info(f"   Qty: {pending.quantity}")
+                self.logger.info(f"   Max wait: {pending.max_wait_bars} bars")
+            else:
+                self.logger.error(f"❌ Failed to create pending limit order")
+
+        except Exception as e:
+            self.logger.error(f"❌ Error placing pending limit order: {e}", exc_info=True)
+
+    async def _place_sl_tp_for_filled_order(self, signal: dict) -> None:
+        """
+        Place SL/TP for a limit order that has filled
+
+        Args:
+            signal: Filled signal from PendingOrderManager (includes entry_order_id)
+        """
+        symbol = signal['symbol']
+        strategy = signal['strategy']
+
+        try:
+            self.logger.info(f"📊 Placing SL/TP for filled limit order:")
+            self.logger.info(f"   Entry: ${signal['entry_price']:.6f}")
+            self.logger.info(f"   SL: ${signal['stop_loss']:.6f}")
+            self.logger.info(f"   TP: ${signal['take_profit']:.6f}")
+
+            # Get contract info for precision
+            contracts = await self.bingx.get_contract_info(symbol)
+            contract = contracts[0] if isinstance(contracts, list) else contracts
+
+            quantity = signal['quantity']
+            direction = signal['direction']
+            entry_side = "BUY" if direction == "LONG" else "SELL"
+            exit_side = "SELL" if direction == "LONG" else "BUY"
+
+            # Round prices to precision
+            price_precision = contract.get('pricePrecision', 4)
+            stop_loss = round(signal['stop_loss'], price_precision)
+            take_profit = round(signal['take_profit'], price_precision)
+
+            # Place stop-loss order
+            self.logger.info("  Placing stop-loss...")
+            sl_order = await self.bingx.place_order(
+                symbol=symbol,
+                side=exit_side,
+                position_side="BOTH",
+                order_type="STOP_MARKET",
+                quantity=quantity,
+                stop_price=stop_loss,
+                close_position=True
+            )
+            sl_order_id = sl_order.get('orderId')
+            self.logger.info(f"  ✅ Stop-loss placed: {sl_order_id}")
+
+            # Place take-profit order
+            self.logger.info("  Placing take-profit...")
+            tp_order = await self.bingx.place_order(
+                symbol=symbol,
+                side=exit_side,
+                position_side="BOTH",
+                order_type="TAKE_PROFIT_MARKET",
+                quantity=quantity,
+                stop_price=take_profit,
+                close_position=True
+            )
+            tp_order_id = tp_order.get('orderId')
+            self.logger.info(f"  ✅ Take-profit placed: {tp_order_id}")
+
+            # Register position with manager
+            position = self.position_manager.open_position(
+                signal=signal,
+                quantity=quantity
+            )
+
+            # Update position with order IDs
+            position.entry_order_id = signal['entry_order_id']
+            position.sl_order_id = sl_order_id
+            position.tp_order_id = tp_order_id
+            position.status = PositionStatus.OPEN
+
+            # Log to database
+            self.db.log_trade_open(
+                strategy=strategy,
+                symbol=symbol,
+                side=direction,
+                entry_price=signal['entry_price'],
+                quantity=quantity,
+                stop_loss=stop_loss,
+                take_profit=take_profit
+            )
+
+            # Update metrics
+            self.metrics.record_trade_opened(strategy, quantity * signal['entry_price'])
+
+            self.logger.info(f"✅ SL/TP placed successfully! Position ID: {position.id}")
+
+            # Update remote status
+            self.status.update(
+                today_trades=self.status.status.get('today_trades', 0) + 1,
+                last_signal=f"{direction} @ ${signal['entry_price']:.4f}",
+                message=f"Limit order filled: {direction} {symbol}"
+            )
+            await self.status.report()
+
+            # Send email notification
+            if self.notifier:
+                await self.notifier.notify_trade_opened(
+                    strategy=strategy,
+                    symbol=symbol,
+                    direction=direction,
+                    entry_price=signal['entry_price'],
+                    quantity=quantity,
+                    stop_loss=stop_loss,
+                    take_profit=take_profit,
+                    leverage=self.config.bingx.default_leverage
+                )
+
+        except Exception as e:
+            self.logger.error(f"❌ Error placing SL/TP for filled order: {e}", exc_info=True)
 
     async def run(self) -> None:
         """Main event loop"""
@@ -495,8 +686,15 @@ class TradingEngine:
         self.logger.info("Shutting down trading engine...")
         self.running = False
 
+        # Cancel all pending limit orders
+        pending_count = self.pending_order_manager.get_pending_count()
+        if pending_count > 0:
+            self.logger.info(f"Canceling {pending_count} pending limit order(s)...")
+            cancelled = await self.pending_order_manager.cancel_all_pending_orders()
+            self.logger.info(f"✅ Cancelled {cancelled} pending order(s)")
+
         # Close all open positions (if enabled)
-        if not self.config.safety.keep_positions_on_shutdown:
+        if self.config.safety.close_positions_on_shutdown:
             open_positions = self.position_manager.get_open_positions()
             if open_positions:
                 self.logger.info(f"Closing {len(open_positions)} open positions...")

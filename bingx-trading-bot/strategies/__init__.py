@@ -2,24 +2,21 @@
 Trading Strategies Module
 
 All trading strategies inherit from BaseStrategy
+
+Active Strategies (Dec 2025):
+1. FartcoinATRLimitStrategy - 8.44x Return/DD
+2. DogeVolumeZonesStrategy - 10.75x Return/DD (BingX optimized)
+3. TrumpsolContrarianStrategy - 5.17x Return/DD (mean reversion)
 """
 
 from .base_strategy import BaseStrategy
-from .multi_timeframe_long import MultiTimeframeLongStrategy
-from .trend_distance_short import TrendDistanceShortStrategy
-from .moodeng_rsi_momentum import MoodengRSIMomentumStrategy
 from .doge_volume_zones import DogeVolumeZonesStrategy
-from .pepe_volume_zones import PepeVolumeZonesStrategy
-from .trump_volume_zones import TrumpVolumeZonesStrategy
-from .uni_volume_zones import UniVolumeZonesStrategy
+from .fartcoin_atr_limit import FartcoinATRLimitStrategy
+from .trumpsol_contrarian import TrumpsolContrarianStrategy
 
 __all__ = [
     'BaseStrategy',
-    'MultiTimeframeLongStrategy',
-    'TrendDistanceShortStrategy',
-    'MoodengRSIMomentumStrategy',
     'DogeVolumeZonesStrategy',
-    'PepeVolumeZonesStrategy',
-    'TrumpVolumeZonesStrategy',
-    'UniVolumeZonesStrategy',
+    'FartcoinATRLimitStrategy',
+    'TrumpsolContrarianStrategy',
 ]

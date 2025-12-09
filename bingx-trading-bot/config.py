@@ -56,6 +56,7 @@ class BingXConfig:
     base_url: str
     requests_per_minute: int
     default_leverage: int
+    fixed_position_value_usdt: float
     leverage_mode: str
 
 
@@ -220,6 +221,7 @@ class Config:
             base_url=bingx_cfg['base_url'],
             requests_per_minute=bingx_cfg['requests_per_minute'],
             default_leverage=bingx_cfg['default_leverage'],
+            fixed_position_value_usdt=bingx_cfg.get('fixed_position_value_usdt', 0.0),
             leverage_mode=bingx_cfg['leverage_mode']
         )
 

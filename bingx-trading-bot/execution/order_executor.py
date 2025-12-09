@@ -34,18 +34,21 @@ class OrderExecutor:
         risk_pct: float,  # Kept for API compatibility but NOT used
         contract_info: Dict[str, Any],
         leverage: int = 1,
-        leverage_mode: str = 'conservative'  # Kept for API compatibility but NOT used
+        leverage_mode: str = 'conservative',  # Kept for API compatibility but NOT used
+        fixed_position_value_usdt: float = 0.0  # If set, uses fixed USDT value per trade
     ) -> float:
         """
-        Calculate position size - Position = Equity × Leverage
+        Calculate position size - Position = Equity × Leverage OR Fixed USDT Value
 
-        Examples:
+        Examples (percentage-based):
         - 1x leverage + $12 equity → $12 position (100% of equity)
         - 2x leverage + $12 equity → $24 position (200% of equity)
         - 10x leverage + $12 equity → $120 position (1000% of equity)
 
-        Margin required is always = equity (BingX holds your balance as margin).
-        If price moves -2%, you lose 2% × leverage of your equity.
+        Examples (fixed value):
+        - fixed_position_value_usdt=6 → $6 position (regardless of equity)
+        - With 5x leverage: $6 position requires $1.2 margin
+        - With $12 balance: 10 simultaneous positions possible
 
         Args:
             signal: Trading signal with entry price
@@ -54,6 +57,7 @@ class OrderExecutor:
             contract_info: Contract specifications
             leverage: Position multiplier (1x=100%, 10x=1000% of equity)
             leverage_mode: NOT USED - kept for API compatibility
+            fixed_position_value_usdt: If > 0, uses fixed USDT value instead of % based
 
         Returns:
             Position size in base currency (e.g., FARTCOIN)
@@ -61,9 +65,15 @@ class OrderExecutor:
         entry_price = signal['entry_price']
         stop_loss = signal['stop_loss']
 
-        # Position value = Equity × Leverage
-        # 1x = 100% of equity, 10x = 1000% of equity
-        position_value = account_balance * leverage
+        # Position value: Fixed USDT or Equity × Leverage
+        if fixed_position_value_usdt > 0:
+            position_value = fixed_position_value_usdt
+            self.logger.info(f"Using fixed position value: ${position_value:.2f} USDT")
+        else:
+            # Fallback to percentage-based sizing
+            position_value = account_balance * leverage
+            self.logger.info(f"Using percentage-based sizing: ${position_value:.2f} USDT ({leverage * 100}% of equity)")
+
         position_size = position_value / entry_price
 
         # Get precision from contract info
@@ -90,8 +100,13 @@ class OrderExecutor:
         risk_if_stopped = actual_position_value * (sl_distance_pct / 100)
 
         self.logger.info(f"Position size: {position_size}")
-        self.logger.info(f"Position value: ${actual_position_value:.2f} ({leverage * 100}% of equity)")
-        self.logger.info(f"Leverage: {leverage}x")
+        if fixed_position_value_usdt > 0:
+            margin_required = actual_position_value / leverage
+            self.logger.info(f"Position value: ${actual_position_value:.2f} USDT (fixed)")
+            self.logger.info(f"Leverage: {leverage}x → Margin required: ${margin_required:.2f}")
+        else:
+            self.logger.info(f"Position value: ${actual_position_value:.2f} ({leverage * 100}% of equity)")
+            self.logger.info(f"Leverage: {leverage}x")
         self.logger.info(f"SL distance: {sl_distance_pct:.2f}% → Risk if stopped: ${risk_if_stopped:.2f}")
 
         return position_size
@@ -104,7 +119,8 @@ class OrderExecutor:
         risk_pct: float = 1.0,
         use_market_order: bool = True,
         leverage: int = 1,
-        leverage_mode: str = 'conservative'
+        leverage_mode: str = 'conservative',
+        fixed_position_value_usdt: float = 0.0
     ) -> Dict[str, Any]:
         """
         Execute complete trade with entry, SL, and TP
@@ -117,6 +133,7 @@ class OrderExecutor:
             use_market_order: Use market order for entry (vs limit)
             leverage: Leverage to use (1, 5, 10, 20, etc.)
             leverage_mode: 'conservative' or 'aggressive'
+            fixed_position_value_usdt: If > 0, uses fixed USDT value per trade
 
         Returns:
             Dict with entry_order_id, sl_order_id, tp_order_id, quantity
@@ -152,7 +169,8 @@ class OrderExecutor:
                 risk_pct,
                 contract,
                 leverage,
-                leverage_mode
+                leverage_mode,
+                fixed_position_value_usdt
             )
 
             direction = signal['direction']
