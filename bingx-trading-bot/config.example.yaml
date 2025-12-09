@@ -3,170 +3,245 @@
 
 # Trading Configuration
 trading:
-  enabled: true
-  testnet: false  # Set to true for testing
+  enabled: true  # LIVE TRADING ENABLED
+  testnet: false  # Production mode
 
   symbols:
-    - FARTCOIN-USDT
-    - DOGE-USDT
+    - FARTCOIN-USDT    # ATR Limit strategy (8.44x Return/DD)
+    - TRUMPSOL-USDT    # Contrarian mean reversion (5.17x Return/DD)
 
   strategies:
-    multi_timeframe_long:
-      enabled: true
-      base_risk_pct: 1.0
+    fartcoin_atr_limit:
+      enabled: true  # ⭐ NEW STRATEGY - Testing (8.44x Return/DD, #4 ranked!)
+      base_risk_pct: 1.5         # Conservative for new strategy
       max_risk_pct: 3.0
-      max_positions: 1
+      max_positions: 1           # ~94 trades/month (21% fill rate)
 
-      # Strategy parameters (from backtest)
-      body_threshold: 1.2
-      volume_multiplier: 3.0
-      wick_threshold: 0.35
-      rsi_long_min: 45
-      stop_atr_mult: 3.0
-      target_atr_mult: 12.0
-      win_streak_scaling: 0.5
-      use_trailing_stop: true
-      use_partial_exits: true
-      max_hold_hours: 24
+      # Strategy parameters (from 32-day BingX backtest: +101.11%, -11.98% DD, 42.6% WR)
+      atr_expansion_mult: 1.5    # ATR > 1.5x average = volatility breakout
+      atr_lookback_bars: 20      # Lookback for ATR average
+      ema_distance_max_pct: 3.0  # Max 3% distance from EMA(20)
 
-      # 5-min filter
-      rsi_5min_min: 57
-      distance_from_sma: 0.6
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1% away from signal price
+      max_wait_bars: 3           # Wait max 3 bars for limit fill
 
-    trend_distance_short:
-      enabled: true
-      base_risk_pct: 1.5
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss distance (2x ATR)
+      target_atr_mult: 8.0       # Take profit distance (8x ATR) = 4:1 R:R
+      max_hold_bars: 200         # Time exit after 200 bars (3.3 hours)
+
+      # Risk settings
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 3.5        # Max 3.5 hours in trade
+
+    trumpsol_contrarian:
+      enabled: true  # ✅ ENABLED - Mean reversion strategy
+      base_risk_pct: 2.0         # Higher risk due to high WR (68.8%)
       max_risk_pct: 4.0
-      max_positions: 1
+      max_positions: 1           # ~77 trades/month (2.4/day)
 
-      # Strategy parameters
-      body_threshold: 1.2
-      volume_multiplier: 3.0
-      wick_threshold: 0.35
-      rsi_short_min: 25
-      rsi_short_max: 55
-      stop_atr_mult: 3.0
-      target_atr_mult: 15.0
-      win_streak_scaling: 0.5
-      use_trailing_stop: true
-      use_partial_exits: true
-      max_hold_hours: 24
+      # Strategy parameters (from 32-day BingX backtest with 0.1% fees: +17.49%, -3.38% DD, 68.8% WR)
+      # MEAN REVERSION: Fade violent moves with vol/volatility confirmation
+      # 74% trades hit time exit (not SL/TP) = small reversals over 15 min
+      # LONG 2.7x better than SHORT (+13.94% vs +2.41%)
+      params:
+        min_ret_5m_pct: 1.0      # Min 1% move in 5 minutes (pump or dump)
+        vol_ratio_min: 1.0       # Volume >= 30-min average
+        atr_ratio_min: 1.1       # ATR >= 110% of 30-min average
+        excluded_hours: [1, 5, 17]  # Europe/Warsaw hours to skip
 
-      # Trend filter
-      distance_from_50sma: 2.0
-      below_200sma: true
+        # Fixed % exits (NOT ATR-based)
+        stop_loss_pct: 1.0       # 1% SL from entry
+        take_profit_pct: 1.5     # 1.5% TP from entry
+        max_hold_bars: 15        # Max 15 minutes in trade
+
+        # Lookback periods
+        vol_ma_period: 30        # 30-bar volume MA
+        atr_ma_period: 30        # 30-bar ATR MA
+
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP/time exit hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 0.25       # Max 15 minutes (0.25 hours)
+
+    # ─────────────────────────────────────────────────────────
+    # DISABLED STRATEGIES (kept for reference)
+    # ─────────────────────────────────────────────────────────
 
     doge_volume_zones:
-      enabled: true
-      base_risk_pct: 1.0  # Conservative due to outlier dependency
-      max_risk_pct: 2.0
-      max_positions: 1
+      enabled: false  # DISABLED
+      base_risk_pct: 1.0         # ⚠️ CONSERVATIVE: Outlier-harvester (10.75x Return/DD, #3 ranked!)
+      max_risk_pct: 2.0          # Lower due to outlier dependency (95.3% from top 5 trades)
+      max_positions: 1           # ~22 trades/month, 1 at a time
 
-      # Volume zone detection (OPTIMIZED Dec 9, 2025)
+      # ⚠️ BINGX OPTIMIZED (Dec 9, 2025) - DO NOT use LBank parameters!
+      # Strategy parameters (from 32-day BingX backtest: +5.15%, -0.48% DD, 63.6% WR)
+      # OUTLIER-HARVESTER: Top 5 trades = 95.3% of profit (like TRUMP strategy)
       volume_threshold: 1.5      # 1.5x average volume
-      min_zone_bars: 5           # 5+ consecutive bars
-      max_zone_bars: 15
-      lookback_bars: 20
+      min_zone_bars: 5           # Min 5 consecutive elevated volume bars
+      max_zone_bars: 15          # Max zone length
+      lookback_bars: 20          # Bars to look back for price extremes
 
-      # Exit parameters (OPTIMIZED for BingX)
-      stop_atr_mult: 1.5         # 1.5x ATR stop (tighter)
-      tp_type: 'atr_multiple'    # 'atr_multiple' or 'rr_multiple'
-      tp_atr_mult: 4.0           # 4.0x ATR take profit target
-      max_hold_bars: 90          # 90 minutes max hold
+      # OPTIMIZED EXITS (BingX-specific)
+      stop_atr_mult: 1.5         # TIGHTER stop (1.5x vs 2.0x for overnight)
+      tp_type: 'atr_multiple'    # ⚠️ NEW: 'atr_multiple' not 'rr_multiple'!
+      tp_atr_mult: 4.0           # 4.0x ATR absolute target (not R:R!)
+      rr_ratio: 2.0              # Fallback (only used if tp_type='rr_multiple')
 
-      # Session filter (CRITICAL - Asia/EU only)
-      session_filter: 'asia_eu'  # 'overnight', 'asia_eu', 'us', or 'all'
+      max_hold_bars: 90          # Time exit after 90 minutes
+      session_filter: 'asia_eu'  # ⚠️ CRITICAL: 07:00-14:00 UTC (NOT overnight!)
 
-      # Risk management
       win_streak_scaling: 0.0    # NO scaling for outlier strategy
       use_trailing_stop: false   # No trailing - let TP hit
       use_partial_exits: false   # No partial exits - full TP or SL
       max_hold_hours: 1.5        # Max 1.5 hours in trade
 
-      # ⚠️  OUTLIER-HARVESTING STRATEGY
-      # - Top 5 trades = 95.3% of profit
-      # - Must take EVERY signal to catch big moves
-      # - Backtest: 10.75x Return/DD, 63.6% WR, -0.48% DD (32 days)
+    multi_timeframe_long:
+      enabled: false  # DISABLED - OLD STRATEGY
+      base_risk_pct: 1.0
+      max_risk_pct: 3.0
+      max_positions: 1
+
+      # Strategy parameters (from backtest)
+      body_threshold: 1.2        # Min body % for entry
+      volume_multiplier: 3.0     # Min volume surge
+      wick_threshold: 0.35       # Max wick as % of body
+      rsi_long_min: 45           # Min RSI for long
+      stop_atr_mult: 3.0         # Stop loss distance (ATR)
+      target_atr_mult: 12.0      # Take profit distance (ATR)
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: true    # Enable trailing stops
+      use_partial_exits: true    # Enable partial profit taking
+      max_hold_hours: 24         # Max time in trade
+
+      # 5-min filter
+      rsi_5min_min: 57           # Min 5-min RSI for entry
+      distance_from_sma: 0.6     # Min % distance from 50 SMA
+
+    trend_distance_short:
+      enabled: false  # DISABLED - OLD STRATEGY
+      base_risk_pct: 1.5
+      max_risk_pct: 4.0
+      max_positions: 1
+
+      # Strategy parameters
+      body_threshold: 1.2        # Min body % for entry
+      volume_multiplier: 3.0     # Min volume surge
+      wick_threshold: 0.35       # Max wick as % of body
+      rsi_short_min: 25          # Min RSI for short
+      rsi_short_max: 55          # Max RSI for short
+      stop_atr_mult: 3.0         # Stop loss distance (ATR)
+      target_atr_mult: 15.0      # Take profit distance (ATR)
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: true    # Enable trailing stops
+      use_partial_exits: true    # Enable partial profit taking
+      max_hold_hours: 24         # Max time in trade
+
+      # Trend filter
+      distance_from_50sma: 2.0   # Min % below 50 SMA
+      below_200sma: true         # Must be below 200 SMA
 
   risk_management:
-    max_portfolio_risk: 5.0
-    max_drawdown: 35.0
-    cooldown_after_loss: 60
-    max_consecutive_losses: 3
-    max_daily_loss_pct: 25.0
-    max_position_size_pct: 40
+    max_portfolio_risk: 5.0     # % of account
+    max_drawdown: 35.0          # % before emergency stop (updated for 10x leverage)
+    cooldown_after_loss: 60     # minutes
+    max_consecutive_losses: 3   # Stop after N losses
+    max_daily_loss_pct: 25.0    # Max daily loss % (updated for 10x leverage)
+    max_position_size_pct: 40   # Max % of capital per position
 
 # Data Feed
 data:
-  provider: binance
+  provider: binance  # binance, coinbase, etc.
   websocket_url: wss://stream.binance.com:9443/ws
   rest_api_url: https://api.binance.com/api/v3
 
   candle_interval: 1m
-  buffer_size: 300
+  buffer_size: 300  # Keep last 300 candles
 
-  max_price_change_pct: 20.0
-  min_volume_threshold: 100
+  # Data validation
+  max_price_change_pct: 20.0   # Flag if price changes > 20%
+  min_volume_threshold: 100    # Min volume per candle
 
+  # Reconnection
   reconnect_attempts: 5
   reconnect_delay_seconds: 5
   max_reconnect_delay: 60
 
 # BingX API - GET YOUR KEYS FROM https://bingx.com/
 bingx:
-  api_key: ${BINGX_API_KEY}      # Set via environment variable
-  api_secret: ${BINGX_API_SECRET}  # Set via environment variable
+  api_key: ${BINGX_API_KEY}      # Set via environment variable or replace with your key
+  api_secret: ${BINGX_API_SECRET}  # Set via environment variable or replace with your secret
   testnet: false
   base_url: https://open-api.bingx.com
 
+  # Rate limiting
   requests_per_minute: 1200
 
   # Leverage Configuration
-  default_leverage: 10
+  default_leverage: 5  # 5x leverage for multiple simultaneous positions
+
+  # Position Sizing
+  # fixed_position_value_usdt: Fixed USDT value per trade (overrides % based sizing)
+  # With 5x leverage: 6 USDT position requires 1.2 USDT margin
+  # With 12 USDT balance: 12 / 1.2 = 10 simultaneous positions possible
+  fixed_position_value_usdt: 6.0  # Each trade = 6 USDT worth of crypto
+
+  # Leverage Mode:
+  # - 'conservative': Same position size as 1x, less margin required
+  #                   Drawdown remains ~same as backtest
+  #                   Can run more positions simultaneously
+  # - 'aggressive': Position size multiplied by leverage
+  #                 10x faster profits AND losses
+  #                 Drawdown will be ~10x backtest (10-20% instead of 1-2%)
   leverage_mode: 'aggressive'  # 'conservative' or 'aggressive'
 
 # Logging
 logging:
-  level: INFO
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
   console_output: true
   file_output: true
   file_path: ./logs/trading-engine.log
   max_size_mb: 50
   backup_count: 5
-  json_format: false
-  dashboard_interval_minutes: 60
+
+  # Structured logging format
+  json_format: false  # Set true for production
+
+  # Performance dashboard
+  dashboard_interval_minutes: 60  # Print status every N minutes
 
 # Database
 database:
-  type: sqlite
+  type: sqlite  # or postgresql
   path: ./data/trades.db
-  echo: false
+
+  # For PostgreSQL (uncomment and configure):
+  # host: localhost
+  # port: 5432
+  # database: trading
+  # user: trader
+  # password: secret
+
+  # Performance
+  echo: false  # Set true to see SQL queries
   pool_size: 5
   max_overflow: 10
 
-# Email Notifications (via Resend)
-notifications:
-  enabled: true
-  resend_api_key: ${RESEND_API_KEY}  # Get from https://resend.com
-  to_email: ${NOTIFICATION_EMAIL}     # Your email address
-
-  # What to notify (all enabled by default)
-  notify_trade_opened: true
-  notify_trade_closed: true
-  notify_errors: true
-  notify_emergency_stop: true
-  notify_daily_summary: true
-  notify_bot_started: true
-
 # Safety Features
 safety:
-  dry_run: false  # Set to true for testing without real trades
+  dry_run: false  # LIVE TRADING ENABLED - Real limit orders on BingX
 
-  stop_file: ./STOP
+  # Emergency stop
+  stop_file: ./STOP  # Create this file to halt trading
   emergency_stop_enabled: true
 
-  min_account_balance: 5.0
+  # Pre-flight checks
+  min_account_balance: 5.0  # Min USDT balance to trade
   check_existing_positions: true
 
-  close_positions_on_shutdown: false
+  # Graceful shutdown
+  close_positions_on_shutdown: false  # Close all positions on SIGTERM
   max_shutdown_wait_seconds: 30
