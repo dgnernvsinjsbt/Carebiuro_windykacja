@@ -1,0 +1,25 @@
+Category,Metric,Value,Sample_Size,Notes
+Session,Asia,0.00020354981629770814,3610,ATR: 0.706%
+Session,Europe,0.006462011868379589,2878,ATR: 0.713%
+Session,US,0.025490288876772658,3357,ATR: 0.930%
+Session,Overnight,-0.018169019867669008,1284,ATR: 0.666%
+Pattern,After >2% body candle,-0.08508059125424992,175,Win Rate: 46.285714285714285
+Pattern,After 3+ consecutive greens,-0.004380434895217607,1227,Win Rate: N/A
+Pattern,After 3+ consecutive reds,0.03530953783140901,1104,Win Rate: N/A
+Pattern,After rejection candle (wick > 2x body),0.009793833064512184,3417,Win Rate: 80.91334894613583
+Pattern,After volume spike >3x avg,-0.01993019821761807,273,Win Rate: N/A
+Pattern,After ATR expansion >1.5x,-0.06273943932706552,287,Win Rate: 37.97909407665505
+Pattern,RSI < 30 (oversold),-0.032812444623860675,1159,Win Rate: N/A
+Pattern,RSI > 70 (overbought),-0.018005317489748537,1255,Win Rate: N/A
+Pattern,BB lower band touch,0.046950504341989115,524,Win Rate: N/A
+Pattern,BB upper band touch,-0.02752399986157146,595,Win Rate: N/A
+Edge,Best day: Tuesday,0.0,2496,+0.035% avg return
+Edge,Worst day: Sunday,0.0,1438,-0.016% avg return
+Edge,Best hour for longs: 18:00 UTC,0.0,480,+0.102% avg
+Edge,Best hour for shorts: 23:00 UTC,0.0,420,-0.037% avg
+Edge,RSI < 30 mean reversion,0.0,1159,"+-0.033% avg 5-bar return, 31.8% WR"
+Edge,Volume spike >3x continuation,0.0,273,"-0.057% avg 3-bar return, 72.5% move >0.3%"
+Regime,Trending,6.191032437775182,689,6.19% of time
+Regime,Mean_Reverting,9.884086620540929,1100,9.88% of time
+Regime,Explosive,2.5069637883008355,279,2.51% of time
+Regime,Choppy,82.59502201455656,9192,82.60% of time
