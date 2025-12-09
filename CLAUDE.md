@@ -43,44 +43,54 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## Strategy 1: Multi-Timeframe LONG
+## Strategy 1: FARTCOIN ATR Expansion (Limit Order)
 | Metric | Value |
 |--------|-------|
-| **R:R Ratio** | **7.14x** |
-| **Return** | +10.38% |
-| **Max Drawdown** | -1.45% |
-| Direction | LONG |
-| Timeframe | 1-min entry + 5-min confirmation |
-
-**Entry:**
-- Explosive Bullish Breakout on 1-min (body >1.2%, volume >3x, minimal wicks)
-- 5-min uptrend: Close > SMA50, RSI > 57, distance > 0.6% above SMA
-- RSI 45-75, high volatility required
-
-**Exits:**
-- Stop Loss: 3x ATR below entry
-- Take Profit: 12x ATR above entry
-
----
-
-## Strategy 2: Trend Distance SHORT
-| Metric | Value |
-|--------|-------|
-| **R:R Ratio** | **8.88x** |
-| **Return** | +20.08% |
-| **Max Drawdown** | -2.26% |
-| Direction | SHORT |
+| **Return/DD Ratio** | **8.44x** ⭐ |
+| **Return** | +101.11% (32 days BingX) |
+| **Max Drawdown** | -11.98% |
+| **Win Rate** | 42.6% |
+| **Trades** | 94 |
+| Direction | LONG + SHORT |
 | Timeframe | 1-min |
+| Avg Trade Duration | ~80 bars |
 
-**Entry:**
-- Price below BOTH 50 and 200 SMA (strong downtrend)
-- At least **2% distance** below 50 SMA
-- Explosive Bearish Breakdown (body >1.2%, volume >3x, minimal wicks)
-- RSI 25-55
+**Entry (ALL conditions must be true):**
+- **ATR Expansion**: Current ATR(14) > 1.5x rolling 20-bar average (volatility breakout)
+- **EMA Distance Filter**: Price within 3% of EMA(20) (prevents late entries)
+- **Directional Candle**: Bullish (close > open) for LONG, Bearish for SHORT
+- **LIMIT ORDER**:
+  - LONG: Place limit 1% ABOVE signal price
+  - SHORT: Place limit 1% BELOW signal price
+  - Wait max 3 bars for fill (filters fake breakouts)
 
 **Exits:**
-- Stop Loss: 3x ATR above entry
-- Take Profit: 15x ATR below entry
+- Stop Loss: **2.0x ATR(14)** from limit fill price
+- Take Profit: **8.0x ATR(14)** from limit fill price (R:R = 4:1)
+- Max Hold: 200 bars (3.3 hours) if neither SL/TP hit
+
+**Fees:** 0.10% round-trip (conservative estimate: market fills)
+
+**Why It Works:**
+- ATR expansion catches beginning of explosive pump/dump moves
+- Limit order 1% away filters fake breakouts (only 21% of signals fill)
+- EMA distance prevents overextended entries
+- 8x ATR target captures full pump moves (avg winner: 4.97%)
+- Tight 2x ATR stop limits downside
+
+**Trade-offs:**
+- High selectivity (94 trades from 444 signals = 21% fill rate)
+- Lower absolute return vs market orders but 40% better Return/DD
+- Requires patience - most signals won't fill
+
+**Data File:** `trading/fartcoin_30d_bingx.csv` (46,080 candles, 32 days)
+**Code:** `trading/fartcoin_limit_tp6x_test.py`
+**Results:** `trading/results/fartcoin_limit_order_test.csv`
+
+**Development Process:**
+- Phase 1: Tested 7 entry concepts → ATR Expansion won (11.71% Top10 avg)
+- Phase 2: Added filters → EMA Distance 3% improved Return/DD to 6.00x
+- Phase 3: Limit orders → 1% offset + 3 bar wait → 8.44x Return/DD (final)
 
 ---
 
@@ -164,28 +174,30 @@ Higher R:R = Better risk-adjusted performance.
 ---
 
 ## Quick Reference Table (Ranked by Return/DD Ratio - Most Important!)
-| Rank | Strategy | Return/DD | Return | Max DD | R:R | Token |
-|------|----------|-----------|--------|--------|-----|-------|
-| 🥇 | **MOODENG RSI** | **10.68x** | **+24.02%** | **-2.25%** | 5.75x | MOODENG |
-| 🥈 | **TRUMP Volume Zones** ⚠️ | **10.56x** | **+8.06%** | **-0.76%** | 4.00x | TRUMP |
-| 🥉 | **DOGE BingX Zones** ⚠️ | **10.75x** | **+5.15%** | **-0.48%** | 10.75x | DOGE |
-| 4 | **FARTCOIN SHORT** | **8.88x** | **+20.08%** | **-2.26%** | 8.88x | FARTCOIN |
-| 5 | **FARTCOIN LONG** | **7.16x** | **+10.38%** | **-1.45%** | 7.14x | FARTCOIN |
-| 6 | **PEPE Volume Zones** | **6.80x** | **+2.57%** | **-0.38%** | 2.00x | PEPE |
-| 7 | PENGU Volume Zones | 4.35x | +17.39% | -4.00% | 1.90x | PENGU |
-| 8 | ETH BB3 STD | 4.10x | +15.43% | -3.76% | 2.22x | ETH |
-| 9 | ETH Volume Zones | 3.60x | +3.78% | -1.05% | 2.00x | ETH |
-| 10 | DOGE Mean Reversion | 2.61x | +7.64% | -2.93% | 4.55x | DOGE |
+| Rank | Strategy | Return/DD | Return | Max DD | Trades | Token |
+|------|----------|-----------|--------|--------|--------|-------|
+| 🥇 | **MOODENG RSI** | **10.68x** | **+24.02%** | **-2.25%** | 129 | MOODENG |
+| 🥈 | **DOGE BingX Zones** ⚠️ | **10.75x** | **+5.15%** | **-0.48%** | 22 | DOGE |
+| 🥉 | **TRUMP Volume Zones** ⚠️ | **10.56x** | **+8.06%** | **-0.76%** | 21 | TRUMP |
+| 4 | **FARTCOIN ATR Limit** 🆕 | **8.44x** | **+101.11%** | **-11.98%** | 94 | FARTCOIN |
+| 5 | **PEPE Volume Zones** | **6.80x** | **+2.57%** | **-0.38%** | 15 | PEPE |
+| 6 | PENGU Volume Zones | 4.35x | +17.39% | -4.00% | 100 | PENGU |
+| 7 | ETH BB3 STD | 4.10x | +15.43% | -3.76% | 121 | ETH |
+| 8 | ETH Volume Zones | 3.60x | +3.78% | -1.05% | 17 | ETH |
+| 9 | DOGE Mean Reversion | 2.61x | +7.64% | -2.93% | 28 | DOGE |
 
-**Legend:** ⚠️ = Outlier-dependent (requires discipline to take all signals)
+**Legend:** ⚠️ = Outlier-dependent (requires discipline to take all signals), 🆕 = New strategy (Dec 2025)
 
-**⭐ NEW:** DOGE BingX Zones optimized Dec 9, 2025 - now ranks #3!
+**⭐ NEW:**
+- **FARTCOIN ATR Limit** optimized Dec 9, 2025 - ranks #4 with 8.44x Return/DD!
+- **DOGE BingX Zones** optimized Dec 9, 2025 - ranks #2!
 
 **Code Location:** `bingx-trading-bot/strategies/`
-- `multi_timeframe_long.py`
-- `trend_distance_short.py`
+- FARTCOIN: `trading/fartcoin_limit_tp6x_test.py`
+- Historical strategies: `multi_timeframe_long.py`, `trend_distance_short.py`
 
 **Data Source (for quick lookup):**
+- FARTCOIN optimization: `trading/results/fartcoin_limit_order_test.csv`, `trading/results/fartcoin_concept_comparison.csv`
 - Full calculations: `bingx-trading-bot/calculate_real_pnl_with_leverage.py`
 - Strategy implementations: `bingx-trading-bot/strategies/`
 - Backtest results: `trading/explosive-v7-advanced.py`, `trading/multi-timeframe-long-v7.py`
