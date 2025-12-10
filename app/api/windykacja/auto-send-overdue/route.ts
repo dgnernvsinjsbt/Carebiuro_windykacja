@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
+import { parseFiscalSync, updateFiscalSync } from '@/lib/fiscal-sync-parser';
 import { parseClientFlags } from '@/lib/client-flags-v2';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmailReminder } from '@/lib/mailgun';
+import { sendSmsReminder } from '@/lib/sms';
+import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
 
 /**
  * Auto-send E1 + S1 for invoices 30+ days old for clients with windykacja enabled
@@ -170,7 +173,18 @@ export async function POST(request: NextRequest) {
         // 4. Send E1 + S1 for each qualifying invoice
         for (const invoice of qualifyingInvoices) {
           const invoiceNumber = invoice.number || `INV-${invoice.id}`;
-          const fiscalSync = parseFiscalSync(invoice.internal_note);
+
+          // ✅ RE-FETCH FRESH data from Supabase before checking flags
+          console.log(`[AutoSendOverdue] Re-fetching invoice ${invoice.id} from Supabase for fresh flags...`);
+          let freshInvoice;
+          try {
+            freshInvoice = await invoicesDb.getById(invoice.id);
+          } catch (err) {
+            console.error(`[AutoSendOverdue] Failed to re-fetch invoice ${invoice.id}, skipping:`, err);
+            continue;
+          }
+
+          const fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
           let emailSent = false;
           let smsSent = false;
@@ -178,33 +192,50 @@ export async function POST(request: NextRequest) {
           try {
             // Send E1 if not already sent
             // Check both: our system (EMAIL_1) AND Fakturownia (email_status='sent')
-            const e1AlreadySent = fiscalSync?.EMAIL_1 || invoice.email_status === 'sent';
+            const e1AlreadySent = fiscalSync?.EMAIL_1 || freshInvoice.email_status === 'sent';
 
             if (!e1AlreadySent) {
               console.log(`[AutoSendOverdue] Sending E1 for invoice ${invoice.id} (${invoiceNumber})`);
 
-              const apiUrl = process.env.NODE_ENV === 'development'
-                ? 'http://localhost:3000/api/reminder'
-                : `${request.nextUrl.origin}/api/reminder`;
+              const emailData = {
+                nazwa_klienta: freshInvoice.buyer_name || 'Klient',
+                numer_faktury: freshInvoice.number || `#${freshInvoice.id}`,
+                kwota: ((freshInvoice.total || 0) - (freshInvoice.paid || 0)).toFixed(2),
+                waluta: freshInvoice.currency || 'EUR',
+                termin: freshInvoice.payment_to
+                  ? new Date(freshInvoice.payment_to).toLocaleDateString('pl-PL')
+                  : 'brak',
+              };
 
-              const emailResponse = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  invoice_id: invoice.id,
-                  type: 'email',
-                  level: '1',
-                }),
-              });
+              const result = await sendEmailReminder(
+                'EMAIL_1',
+                freshInvoice.buyer_email || 'brak@email.com',
+                emailData,
+                freshInvoice.id
+              );
 
-              const emailData = await emailResponse.json();
-
-              if (emailData.success) {
+              if (result.success) {
                 console.log(`[AutoSendOverdue] ✓ E1 sent for invoice ${invoice.id}`);
                 emailSent = true;
                 totalEmailSent++;
+
+                // Update Fiscal Sync immediately
+                const currentDate = new Date().toISOString();
+                const updatedInternalNote = updateFiscalSync(
+                  freshInvoice.internal_note,
+                  'EMAIL_1',
+                  true,
+                  currentDate
+                );
+
+                await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
+                await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+                await commentsDb.logAction(invoice.id, 'Sent EMAIL reminder (level 1)', 'local');
+
+                // Update freshInvoice for next iteration
+                freshInvoice.internal_note = updatedInternalNote;
               } else {
-                console.error(`[AutoSendOverdue] ✗ Failed to send E1 for invoice ${invoice.id}: ${emailData.error}`);
+                console.error(`[AutoSendOverdue] ✗ Failed to send E1 for invoice ${invoice.id}: ${result.error}`);
                 totalFailed++;
               }
 
@@ -216,28 +247,48 @@ export async function POST(request: NextRequest) {
             if (!fiscalSync?.SMS_1) {
               console.log(`[AutoSendOverdue] Sending S1 for invoice ${invoice.id} (${invoiceNumber})`);
 
-              const apiUrl = process.env.NODE_ENV === 'development'
-                ? 'http://localhost:3000/api/reminder'
-                : `${request.nextUrl.origin}/api/reminder`;
+              if (!freshInvoice.buyer_phone) {
+                console.error(`[AutoSendOverdue] ✗ No phone number for invoice ${invoice.id}`);
+                totalFailed++;
+                await new Promise(resolve => setTimeout(resolve, 500));
+                continue;
+              }
 
-              const smsResponse = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  invoice_id: invoice.id,
-                  type: 'sms',
-                  level: '1',
-                }),
-              });
+              const smsData = {
+                nazwa_klienta: freshInvoice.buyer_name || 'Klient',
+                numer_faktury: freshInvoice.number || `#${freshInvoice.id}`,
+                kwota: ((freshInvoice.total || 0) - (freshInvoice.paid || 0)).toFixed(2),
+                waluta: freshInvoice.currency || 'EUR',
+                termin: freshInvoice.payment_to
+                  ? new Date(freshInvoice.payment_to).toLocaleDateString('pl-PL')
+                  : 'brak',
+              };
 
-              const smsData = await smsResponse.json();
+              const result = await sendSmsReminder(
+                'REMINDER_1',
+                freshInvoice.buyer_phone,
+                smsData
+              );
 
-              if (smsData.success) {
+              if (result.success) {
                 console.log(`[AutoSendOverdue] ✓ S1 sent for invoice ${invoice.id}`);
                 smsSent = true;
                 totalSmsSent++;
+
+                // Update Fiscal Sync immediately
+                const currentDate = new Date().toISOString();
+                const updatedInternalNote = updateFiscalSync(
+                  freshInvoice.internal_note,
+                  'SMS_1',
+                  true,
+                  currentDate
+                );
+
+                await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
+                await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+                await commentsDb.logAction(invoice.id, 'Sent SMS reminder (level 1)', 'local');
               } else {
-                console.error(`[AutoSendOverdue] ✗ Failed to send S1 for invoice ${invoice.id}: ${smsData.error}`);
+                console.error(`[AutoSendOverdue] ✗ Failed to send S1 for invoice ${invoice.id}: ${result.error}`);
                 totalFailed++;
               }
 

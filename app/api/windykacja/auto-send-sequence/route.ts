@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
+import { parseFiscalSync, updateFiscalSync } from '@/lib/fiscal-sync-parser';
 import { parseClientFlags } from '@/lib/client-flags-v2';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmailReminder } from '@/lib/mailgun';
+import { sendSmsReminder } from '@/lib/sms';
+import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
 import type { FiscalSyncData } from '@/types';
 
 /**
@@ -213,10 +216,21 @@ export async function POST(request: NextRequest) {
         // 4. Check sequence for each invoice
         for (const invoice of qualifyingInvoices) {
           const invoiceNumber = invoice.number || `INV-${invoice.id}`;
-          const fiscalSync = parseFiscalSync(invoice.internal_note);
+
+          // ✅ RE-FETCH FRESH data from Supabase before checking flags
+          console.log(`[AutoSendSequence] Re-fetching invoice ${invoice.id} from Supabase for fresh flags...`);
+          let freshInvoice;
+          try {
+            freshInvoice = await invoicesDb.getById(invoice.id);
+          } catch (err) {
+            console.error(`[AutoSendSequence] Failed to re-fetch invoice ${invoice.id}, skipping:`, err);
+            continue;
+          }
+
+          const fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
           // Get E1 date (from our system or Fakturownia)
-          const e1Date = getE1Date(invoice, fiscalSync);
+          const e1Date = getE1Date(freshInvoice, fiscalSync);
 
           if (!e1Date) {
             // E1 not sent yet - skip (auto-send-overdue handles E1)
@@ -237,7 +251,7 @@ export async function POST(request: NextRequest) {
             if (step.prevCheck && fiscalSync?.[step.prevCheck] !== true) {
               // For EMAIL_2, we also accept Fakturownia's email_status=sent as E1
               if (step.check === 'EMAIL_2') {
-                if (invoice.email_status !== 'sent') {
+                if (freshInvoice.email_status !== 'sent') {
                   continue;
                 }
               } else {
@@ -270,23 +284,53 @@ export async function POST(request: NextRequest) {
             console.log(`[AutoSendSequence] Sending ${step.type.toUpperCase()}_${step.level} for invoice ${invoice.id} (${invoiceNumber})`);
 
             try {
-              const apiUrl = process.env.NODE_ENV === 'development'
-                ? 'http://localhost:3000/api/reminder'
-                : `${request.nextUrl.origin}/api/reminder`;
+              // Prepare message data
+              const messageData = {
+                nazwa_klienta: freshInvoice.buyer_name || 'Klient',
+                numer_faktury: freshInvoice.number || `#${freshInvoice.id}`,
+                kwota: ((freshInvoice.total || 0) - (freshInvoice.paid || 0)).toFixed(2),
+                waluta: freshInvoice.currency || 'EUR',
+                termin: freshInvoice.payment_to
+                  ? new Date(freshInvoice.payment_to).toLocaleDateString('pl-PL')
+                  : 'brak',
+              };
 
-              const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  invoice_id: invoice.id,
-                  type: step.type,
-                  level: step.level,
-                }),
-              });
+              let result;
 
-              const data = await response.json();
+              // Send email or SMS directly
+              if (step.type === 'email') {
+                const templateId = `EMAIL_${step.level}` as 'EMAIL_1' | 'EMAIL_2' | 'EMAIL_3';
+                result = await sendEmailReminder(
+                  templateId,
+                  freshInvoice.buyer_email || 'brak@email.com',
+                  messageData,
+                  freshInvoice.id
+                );
+              } else if (step.type === 'sms') {
+                if (!freshInvoice.buyer_phone) {
+                  console.error(`[AutoSendSequence] ✗ No phone number for invoice ${invoice.id}`);
+                  totalFailed++;
+                  results.push({
+                    client_id: client.id,
+                    client_name: client.name,
+                    invoice_id: invoice.id,
+                    invoice_number: invoiceNumber,
+                    action: `${step.type.toUpperCase()}_${step.level}`,
+                    success: false,
+                    error: 'Brak numeru telefonu',
+                  });
+                  continue;
+                }
 
-              if (data.success) {
+                const templateKey = `REMINDER_${step.level}` as 'REMINDER_1' | 'REMINDER_2' | 'REMINDER_3';
+                result = await sendSmsReminder(
+                  templateKey,
+                  freshInvoice.buyer_phone,
+                  messageData
+                );
+              }
+
+              if (result && result.success) {
                 console.log(`[AutoSendSequence] ✓ ${step.type.toUpperCase()}_${step.level} sent for invoice ${invoice.id}`);
                 if (step.type === 'email') {
                   totalEmailSent++;
@@ -294,6 +338,27 @@ export async function POST(request: NextRequest) {
                   totalSmsSent++;
                 }
                 actionTaken = true;
+
+                // Update Fiscal Sync immediately
+                const currentDate = new Date().toISOString();
+                const fieldName = step.check as keyof FiscalSyncData;
+                const updatedInternalNote = updateFiscalSync(
+                  freshInvoice.internal_note,
+                  fieldName,
+                  true,
+                  currentDate
+                );
+
+                await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
+                await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+                await commentsDb.logAction(
+                  invoice.id,
+                  `Sent ${step.type.toUpperCase()} reminder (level ${step.level})`,
+                  'local'
+                );
+
+                // Update freshInvoice for next iteration
+                freshInvoice.internal_note = updatedInternalNote;
 
                 results.push({
                   client_id: client.id,
@@ -304,7 +369,7 @@ export async function POST(request: NextRequest) {
                   success: true,
                 });
               } else {
-                console.error(`[AutoSendSequence] ✗ Failed to send ${step.type.toUpperCase()}_${step.level} for invoice ${invoice.id}: ${data.error}`);
+                console.error(`[AutoSendSequence] ✗ Failed to send ${step.type.toUpperCase()}_${step.level} for invoice ${invoice.id}: ${result?.error}`);
                 totalFailed++;
 
                 results.push({
@@ -314,7 +379,7 @@ export async function POST(request: NextRequest) {
                   invoice_number: invoiceNumber,
                   action: `${step.type.toUpperCase()}_${step.level}`,
                   success: false,
-                  error: data.error,
+                  error: result?.error,
                 });
               }
 

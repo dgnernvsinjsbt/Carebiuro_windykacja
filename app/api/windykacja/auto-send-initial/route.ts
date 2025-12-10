@@ -155,7 +155,18 @@ export async function POST(request: NextRequest) {
     let failureCount = 0;
 
     for (const invoice of invoicesToProcess) {
-      const fiscalSync = parseFiscalSync(invoice.internal_note);
+      // ✅ RE-FETCH FRESH data from Supabase before checking flags
+      // This prevents race conditions within single instance and reduces stale data issues
+      console.log(`[AutoSendInitial] Re-fetching invoice ${invoice.id} from Supabase for fresh flags...`);
+      let freshInvoice;
+      try {
+        freshInvoice = await invoicesDb.getById(invoice.id);
+      } catch (err) {
+        console.error(`[AutoSendInitial] Failed to re-fetch invoice ${invoice.id}, skipping:`, err);
+        continue;
+      }
+
+      const fiscalSync = parseFiscalSync(freshInvoice.internal_note);
       const invoiceResults: any = {
         invoice_id: invoice.id,
         invoice_number: invoice.number || `INV-${invoice.id}`,
@@ -168,30 +179,30 @@ export async function POST(request: NextRequest) {
         try {
           console.log(`[AutoSendInitial] Sending E1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
-          // Prepare email data
+          // Prepare email data (use freshInvoice for current data)
           const emailData = {
-            nazwa_klienta: invoice.buyer_name || 'Klient',
-            numer_faktury: invoice.number || `#${invoice.id}`,
-            kwota: ((invoice.total || 0) - (invoice.paid || 0)).toFixed(2),
-            waluta: invoice.currency || 'EUR',
-            termin: invoice.payment_to
-              ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+            nazwa_klienta: freshInvoice.buyer_name || 'Klient',
+            numer_faktury: freshInvoice.number || `#${freshInvoice.id}`,
+            kwota: ((freshInvoice.total || 0) - (freshInvoice.paid || 0)).toFixed(2),
+            waluta: freshInvoice.currency || 'EUR',
+            termin: freshInvoice.payment_to
+              ? new Date(freshInvoice.payment_to).toLocaleDateString('pl-PL')
               : 'brak',
           };
 
           // Send email directly
           const result = await sendEmailReminder(
             'EMAIL_1',
-            invoice.buyer_email || 'brak@email.com',
+            freshInvoice.buyer_email || 'brak@email.com',
             emailData,
-            invoice.id
+            freshInvoice.id
           );
 
           if (result.success) {
-            // Update Fiscal Sync in Fakturownia
+            // Update Fiscal Sync in Fakturownia (use fresh internal_note)
             const currentDate = new Date().toISOString();
             const updatedInternalNote = updateFiscalSync(
-              invoice.internal_note,
+              freshInvoice.internal_note,
               'EMAIL_1',
               true,
               currentDate
@@ -207,10 +218,10 @@ export async function POST(request: NextRequest) {
               'local'
             );
 
-            // Log to message history
+            // Log to message history (use freshInvoice for current data)
             try {
               const historyEntry = prepareMessageHistoryEntry(
-                invoice,
+                freshInvoice,
                 'email',
                 1,
                 { sent_by: 'auto', is_auto_initial: true }
@@ -244,36 +255,36 @@ export async function POST(request: NextRequest) {
         try {
           console.log(`[AutoSendInitial] Sending S1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
-          if (!invoice.buyer_phone) {
+          if (!freshInvoice.buyer_phone) {
             console.error(`[AutoSendInitial] ✗ No phone number for invoice ${invoice.id}`);
             failureCount++;
             invoiceResults.failed.push({ type: 'S1', error: 'Brak numeru telefonu' });
             continue;
           }
 
-          // Prepare SMS data
+          // Prepare SMS data (use freshInvoice for current data)
           const smsData = {
-            nazwa_klienta: invoice.buyer_name || 'Klient',
-            numer_faktury: invoice.number || `#${invoice.id}`,
-            kwota: ((invoice.total || 0) - (invoice.paid || 0)).toFixed(2),
-            waluta: invoice.currency || 'EUR',
-            termin: invoice.payment_to
-              ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+            nazwa_klienta: freshInvoice.buyer_name || 'Klient',
+            numer_faktury: freshInvoice.number || `#${freshInvoice.id}`,
+            kwota: ((freshInvoice.total || 0) - (freshInvoice.paid || 0)).toFixed(2),
+            waluta: freshInvoice.currency || 'EUR',
+            termin: freshInvoice.payment_to
+              ? new Date(freshInvoice.payment_to).toLocaleDateString('pl-PL')
               : 'brak',
           };
 
           // Send SMS directly
           const result = await sendSmsReminder(
             'REMINDER_1',
-            invoice.buyer_phone,
+            freshInvoice.buyer_phone,
             smsData
           );
 
           if (result.success) {
-            // Update Fiscal Sync in Fakturownia
+            // Update Fiscal Sync in Fakturownia (use fresh internal_note)
             const currentDate = new Date().toISOString();
             const updatedInternalNote = updateFiscalSync(
-              invoice.internal_note,
+              freshInvoice.internal_note,
               'SMS_1',
               true,
               currentDate
@@ -289,10 +300,10 @@ export async function POST(request: NextRequest) {
               'local'
             );
 
-            // Log to message history
+            // Log to message history (use freshInvoice for current data)
             try {
               const historyEntry = prepareMessageHistoryEntry(
-                invoice,
+                freshInvoice,
                 'sms',
                 1,
                 { sent_by: 'auto', is_auto_initial: true }
