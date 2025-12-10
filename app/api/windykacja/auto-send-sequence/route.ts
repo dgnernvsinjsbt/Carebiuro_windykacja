@@ -222,6 +222,10 @@ export async function POST(request: NextRequest) {
           let freshInvoice;
           try {
             freshInvoice = await invoicesDb.getById(invoice.id);
+            if (!freshInvoice) {
+              console.error(`[AutoSendSequence] Invoice ${invoice.id} not found in Supabase, skipping`);
+              continue;
+            }
           } catch (err) {
             console.error(`[AutoSendSequence] Failed to re-fetch invoice ${invoice.id}, skipping:`, err);
             continue;
