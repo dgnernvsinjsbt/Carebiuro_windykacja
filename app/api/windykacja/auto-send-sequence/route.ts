@@ -345,10 +345,9 @@ export async function POST(request: NextRequest) {
 
                 // Update Fiscal Sync immediately
                 const currentDate = new Date().toISOString();
-                const fieldName = step.check as keyof FiscalSyncData;
                 const updatedInternalNote = updateFiscalSync(
                   freshInvoice.internal_note,
-                  fieldName,
+                  step.check,
                   true,
                   currentDate
                 );
