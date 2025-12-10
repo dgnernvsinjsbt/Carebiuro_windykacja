@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          const fiscalSync = parseFiscalSync(freshInvoice.internal_note);
+          let fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
           let emailSent = false;
           let smsSent = false;

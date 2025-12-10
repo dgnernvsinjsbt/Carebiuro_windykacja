@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          const fiscalSync = parseFiscalSync(freshInvoice.internal_note);
+          let fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
           // Get E1 date (from our system or Fakturownia)
           const e1Date = getE1Date(freshInvoice, fiscalSync);
