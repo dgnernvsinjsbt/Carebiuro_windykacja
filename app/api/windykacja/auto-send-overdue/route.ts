@@ -235,9 +235,6 @@ export async function POST(request: NextRequest) {
                 await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
                 await invoicesDb.updateComment(invoice.id, updatedInternalNote);
                 await commentsDb.logAction(invoice.id, 'Sent EMAIL reminder (level 1)', 'local');
-
-                // Update freshInvoice for next iteration
-                freshInvoice.internal_note = updatedInternalNote;
               } else {
                 console.error(`[AutoSendOverdue] ✗ Failed to send E1 for invoice ${invoice.id}: ${result.error}`);
                 totalFailed++;
@@ -246,6 +243,23 @@ export async function POST(request: NextRequest) {
               // Small delay to avoid overwhelming APIs
               await new Promise(resolve => setTimeout(resolve, 500));
             }
+
+            // ============================================================
+            // S1 CHECK: Re-fetch from Supabase to get latest flags (includes E1 if just sent)
+            // ============================================================
+            console.log(`[AutoSendOverdue] Re-fetching invoice ${invoice.id} for S1 check...`);
+            try {
+              freshInvoice = await invoicesDb.getById(invoice.id);
+              if (!freshInvoice) {
+                console.error(`[AutoSendOverdue] Invoice ${invoice.id} not found in Supabase for S1 check`);
+                continue;
+              }
+            } catch (err) {
+              console.error(`[AutoSendOverdue] Failed to re-fetch invoice ${invoice.id} for S1 check:`, err);
+              continue;
+            }
+
+            fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
             // Send S1 if not already sent
             if (!fiscalSync?.SMS_1) {
@@ -290,10 +304,6 @@ export async function POST(request: NextRequest) {
 
                 await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
                 await invoicesDb.updateComment(invoice.id, updatedInternalNote);
-
-                // Update freshInvoice for next iteration
-                freshInvoice.internal_note = updatedInternalNote;
-
                 await commentsDb.logAction(invoice.id, 'Sent SMS reminder (level 1)', 'local');
               } else {
                 console.error(`[AutoSendOverdue] ✗ Failed to send S1 for invoice ${invoice.id}: ${result.error}`);

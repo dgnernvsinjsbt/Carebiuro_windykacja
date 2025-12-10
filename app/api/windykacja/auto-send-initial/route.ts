@@ -155,9 +155,17 @@ export async function POST(request: NextRequest) {
     let failureCount = 0;
 
     for (const invoice of invoicesToProcess) {
-      // ✅ RE-FETCH FRESH data from Supabase before checking flags
-      // This prevents race conditions within single instance and reduces stale data issues
-      console.log(`[AutoSendInitial] Re-fetching invoice ${invoice.id} from Supabase for fresh flags...`);
+      const invoiceResults: any = {
+        invoice_id: invoice.id,
+        invoice_number: invoice.number || `INV-${invoice.id}`,
+        sent: [],
+        failed: [],
+      };
+
+      // ============================================================
+      // E1 CHECK: Re-fetch from Supabase to get latest flags
+      // ============================================================
+      console.log(`[AutoSendInitial] Re-fetching invoice ${invoice.id} for E1 check...`);
       let freshInvoice;
       try {
         freshInvoice = await invoicesDb.getById(invoice.id);
@@ -170,13 +178,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const fiscalSync = parseFiscalSync(freshInvoice.internal_note);
-      const invoiceResults: any = {
-        invoice_id: invoice.id,
-        invoice_number: invoice.number || `INV-${invoice.id}`,
-        sent: [],
-        failed: [],
-      };
+      let fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
       // Send E1 if needed
       if (!fiscalSync?.EMAIL_1) {
@@ -214,9 +216,6 @@ export async function POST(request: NextRequest) {
 
             await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
             await invoicesDb.updateComment(invoice.id, updatedInternalNote);
-
-            // Update in-memory internal_note so next send (S1) builds on top of this
-            freshInvoice.internal_note = updatedInternalNote;
 
             // Log to comments
             await commentsDb.logAction(
@@ -256,6 +255,25 @@ export async function POST(request: NextRequest) {
           console.error(`[AutoSendInitial] Error sending E1:`, error);
         }
       }
+
+      // ============================================================
+      // S1 CHECK: Re-fetch from Supabase to get latest flags (includes E1 if just sent)
+      // ============================================================
+      console.log(`[AutoSendInitial] Re-fetching invoice ${invoice.id} for S1 check...`);
+      try {
+        freshInvoice = await invoicesDb.getById(invoice.id);
+        if (!freshInvoice) {
+          console.error(`[AutoSendInitial] Invoice ${invoice.id} not found in Supabase for S1 check`);
+          results.push(invoiceResults);
+          continue;
+        }
+      } catch (err) {
+        console.error(`[AutoSendInitial] Failed to re-fetch invoice ${invoice.id} for S1 check:`, err);
+        results.push(invoiceResults);
+        continue;
+      }
+
+      fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
       // Send S1 if needed
       if (!fiscalSync?.SMS_1) {
@@ -299,9 +317,6 @@ export async function POST(request: NextRequest) {
 
             await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
             await invoicesDb.updateComment(invoice.id, updatedInternalNote);
-
-            // Update in-memory internal_note for consistency
-            freshInvoice.internal_note = updatedInternalNote;
 
             // Log to comments
             await commentsDb.logAction(

@@ -246,6 +246,23 @@ export async function POST(request: NextRequest) {
           let actionTaken = false;
 
           for (const step of SEQUENCE) {
+            // ============================================================
+            // RE-FETCH before EACH step to get latest flags from Supabase
+            // ============================================================
+            console.log(`[AutoSendSequence] Re-fetching invoice ${invoice.id} for ${step.check} check...`);
+            try {
+              freshInvoice = await invoicesDb.getById(invoice.id);
+              if (!freshInvoice) {
+                console.error(`[AutoSendSequence] Invoice ${invoice.id} not found in Supabase for ${step.check} check`);
+                break;
+              }
+            } catch (err) {
+              console.error(`[AutoSendSequence] Failed to re-fetch invoice ${invoice.id} for ${step.check} check:`, err);
+              break;
+            }
+
+            fiscalSync = parseFiscalSync(freshInvoice.internal_note);
+
             // Skip if this step already done
             if (fiscalSync?.[step.check] === true) {
               continue;
@@ -359,9 +376,6 @@ export async function POST(request: NextRequest) {
                   `Sent ${step.type.toUpperCase()} reminder (level ${step.level})`,
                   'local'
                 );
-
-                // Update freshInvoice for next iteration
-                freshInvoice.internal_note = updatedInternalNote;
 
                 results.push({
                   client_id: client.id,
