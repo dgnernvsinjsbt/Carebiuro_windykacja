@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseFiscalSync } from '@/lib/fiscal-sync-parser';
-import { supabase } from '@/lib/supabase';
+import { parseFiscalSync, updateFiscalSync } from '@/lib/fiscal-sync-parser';
+import { supabase, invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
+import { sendEmailReminder } from '@/lib/mailgun';
+import { sendSmsReminder } from '@/lib/sms';
+import { fakturowniaApi } from '@/lib/fakturownia';
 
 /**
  * Auto-send E1, S1 (initial informational messages) for newly issued invoices
@@ -156,30 +159,66 @@ export async function POST(request: NextRequest) {
         try {
           console.log(`[AutoSendInitial] Sending E1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
-          const apiUrl = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000/api/reminder'
-            : `${request.nextUrl.origin}/api/reminder`;
+          // Prepare email data
+          const emailData = {
+            nazwa_klienta: invoice.buyer_name || 'Klient',
+            numer_faktury: invoice.number || `#${invoice.id}`,
+            kwota: ((invoice.total || 0) - (invoice.paid || 0)).toFixed(2),
+            waluta: invoice.currency || 'EUR',
+            termin: invoice.payment_to
+              ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+              : 'brak',
+          };
 
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              invoice_id: invoice.id,
-              type: 'email',
-              level: '1',
-            }),
-          });
+          // Send email directly
+          const result = await sendEmailReminder(
+            'EMAIL_1',
+            invoice.buyer_email || 'brak@email.com',
+            emailData,
+            invoice.id
+          );
 
-          const data = await response.json();
+          if (result.success) {
+            // Update Fiscal Sync in Fakturownia
+            const currentDate = new Date().toISOString();
+            const updatedInternalNote = updateFiscalSync(
+              invoice.internal_note,
+              'EMAIL_1',
+              true,
+              currentDate
+            );
 
-          if (data.success) {
+            await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
+            await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+
+            // Log to comments
+            await commentsDb.logAction(
+              invoice.id,
+              'Sent EMAIL reminder (level 1)',
+              'local'
+            );
+
+            // Log to message history
+            try {
+              const historyEntry = prepareMessageHistoryEntry(
+                invoice,
+                'email',
+                1,
+                { sent_by: 'auto', is_auto_initial: true }
+              );
+              await messageHistoryDb.logMessage(historyEntry);
+            } catch (historyErr) {
+              console.error(`[AutoSendInitial] Failed to log E1 to history:`, historyErr);
+              // Don't fail the whole operation
+            }
+
             emailCount++;
             invoiceResults.sent.push('E1');
             console.log(`[AutoSendInitial] ✓ E1 sent for invoice ${invoice.id}`);
           } else {
             failureCount++;
-            invoiceResults.failed.push({ type: 'E1', error: data.error });
-            console.log(`[AutoSendInitial] ✗ Failed to send E1: ${data.error}`);
+            invoiceResults.failed.push({ type: 'E1', error: result.error });
+            console.log(`[AutoSendInitial] ✗ Failed to send E1: ${result.error}`);
           }
 
           // Small delay between requests
@@ -196,30 +235,72 @@ export async function POST(request: NextRequest) {
         try {
           console.log(`[AutoSendInitial] Sending S1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 
-          const apiUrl = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000/api/reminder'
-            : `${request.nextUrl.origin}/api/reminder`;
+          if (!invoice.buyer_phone) {
+            console.error(`[AutoSendInitial] ✗ No phone number for invoice ${invoice.id}`);
+            failureCount++;
+            invoiceResults.failed.push({ type: 'S1', error: 'Brak numeru telefonu' });
+            continue;
+          }
 
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              invoice_id: invoice.id,
-              type: 'sms',
-              level: '1',
-            }),
-          });
+          // Prepare SMS data
+          const smsData = {
+            nazwa_klienta: invoice.buyer_name || 'Klient',
+            numer_faktury: invoice.number || `#${invoice.id}`,
+            kwota: ((invoice.total || 0) - (invoice.paid || 0)).toFixed(2),
+            waluta: invoice.currency || 'EUR',
+            termin: invoice.payment_to
+              ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+              : 'brak',
+          };
 
-          const data = await response.json();
+          // Send SMS directly
+          const result = await sendSmsReminder(
+            'REMINDER_1',
+            invoice.buyer_phone,
+            smsData
+          );
 
-          if (data.success) {
+          if (result.success) {
+            // Update Fiscal Sync in Fakturownia
+            const currentDate = new Date().toISOString();
+            const updatedInternalNote = updateFiscalSync(
+              invoice.internal_note,
+              'SMS_1',
+              true,
+              currentDate
+            );
+
+            await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
+            await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+
+            // Log to comments
+            await commentsDb.logAction(
+              invoice.id,
+              'Sent SMS reminder (level 1)',
+              'local'
+            );
+
+            // Log to message history
+            try {
+              const historyEntry = prepareMessageHistoryEntry(
+                invoice,
+                'sms',
+                1,
+                { sent_by: 'auto', is_auto_initial: true }
+              );
+              await messageHistoryDb.logMessage(historyEntry);
+            } catch (historyErr) {
+              console.error(`[AutoSendInitial] Failed to log S1 to history:`, historyErr);
+              // Don't fail the whole operation
+            }
+
             smsCount++;
             invoiceResults.sent.push('S1');
             console.log(`[AutoSendInitial] ✓ S1 sent for invoice ${invoice.id}`);
           } else {
             failureCount++;
-            invoiceResults.failed.push({ type: 'S1', error: data.error });
-            console.log(`[AutoSendInitial] ✗ Failed to send S1: ${data.error}`);
+            invoiceResults.failed.push({ type: 'S1', error: result.error });
+            console.log(`[AutoSendInitial] ✗ Failed to send S1: ${result.error}`);
           }
 
           // Small delay between requests
