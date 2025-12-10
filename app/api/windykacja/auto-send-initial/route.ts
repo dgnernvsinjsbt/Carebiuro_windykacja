@@ -215,6 +215,9 @@ export async function POST(request: NextRequest) {
             await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
             await invoicesDb.updateComment(invoice.id, updatedInternalNote);
 
+            // Update in-memory internal_note so next send (S1) builds on top of this
+            freshInvoice.internal_note = updatedInternalNote;
+
             // Log to comments
             await commentsDb.logAction(
               invoice.id,
@@ -296,6 +299,9 @@ export async function POST(request: NextRequest) {
 
             await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
             await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+
+            // Update in-memory internal_note for consistency
+            freshInvoice.internal_note = updatedInternalNote;
 
             // Log to comments
             await commentsDb.logAction(

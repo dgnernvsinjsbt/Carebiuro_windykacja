@@ -290,6 +290,10 @@ export async function POST(request: NextRequest) {
 
                 await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
                 await invoicesDb.updateComment(invoice.id, updatedInternalNote);
+
+                // Update freshInvoice for next iteration
+                freshInvoice.internal_note = updatedInternalNote;
+
                 await commentsDb.logAction(invoice.id, 'Sent SMS reminder (level 1)', 'local');
               } else {
                 console.error(`[AutoSendOverdue] ✗ Failed to send S1 for invoice ${invoice.id}: ${result.error}`);
