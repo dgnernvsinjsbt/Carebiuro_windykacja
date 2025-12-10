@@ -35,11 +35,11 @@ export const runtime = 'nodejs';
 const DAYS_BETWEEN_STEPS = 14;
 
 interface SequenceStep {
-  check: keyof FiscalSyncData;       // Field to check if already sent (e.g., 'EMAIL_2')
+  check: keyof Omit<FiscalSyncData, 'UPDATED'>;       // Field to check if already sent (e.g., 'EMAIL_2')
   dateField: keyof FiscalSyncData;   // Previous step's date field (e.g., 'EMAIL_1_DATE')
   type: 'email' | 'sms';
   level: string;
-  prevCheck?: keyof FiscalSyncData;  // Previous step that must be completed
+  prevCheck?: keyof Omit<FiscalSyncData, 'UPDATED'>;  // Previous step that must be completed
 }
 
 // Sequence definition - Two parallel tracks:
