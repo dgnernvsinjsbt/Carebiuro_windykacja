@@ -138,6 +138,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // BATCH PROCESSING: Limit to 10 invoices per execution to avoid Vercel timeout
+    const BATCH_SIZE = 10;
+    const invoicesToProcess = eligibleInvoices.slice(0, BATCH_SIZE);
+    const remaining = eligibleInvoices.length - invoicesToProcess.length;
+
+    if (remaining > 0) {
+      console.log(`[AutoSendInitial] Processing first ${BATCH_SIZE} invoices, ${remaining} remaining for next run`);
+    }
+
     // Send E1/S1/W1 for each eligible invoice
     const results: any[] = [];
     let emailCount = 0;
@@ -145,7 +154,7 @@ export async function POST(request: NextRequest) {
     let whatsappCount = 0;
     let failureCount = 0;
 
-    for (const invoice of eligibleInvoices) {
+    for (const invoice of invoicesToProcess) {
       const fiscalSync = parseFiscalSync(invoice.internal_note);
       const invoiceResults: any = {
         invoice_id: invoice.id,
@@ -319,11 +328,15 @@ export async function POST(request: NextRequest) {
     }
 
     const totalSent = emailCount + smsCount;
-    console.log(`[AutoSendInitial] Completed: ${totalSent} total sent (E1: ${emailCount}, S1: ${smsCount}), ${failureCount} failed`);
+    const summaryMessage = remaining > 0
+      ? `Batch completed: ${totalSent} messages sent, ${failureCount} failed. ${remaining} invoices remaining for next run.`
+      : `Auto-send completed: ${totalSent} messages sent, ${failureCount} failed`;
+
+    console.log(`[AutoSendInitial] ${summaryMessage}`);
 
     return NextResponse.json({
       success: true,
-      message: `Auto-send completed: ${totalSent} messages sent, ${failureCount} failed`,
+      message: summaryMessage,
       sent: {
         email: emailCount,
         sms: smsCount,
@@ -331,6 +344,8 @@ export async function POST(request: NextRequest) {
         total: totalSent,
       },
       failed: failureCount,
+      processed: invoicesToProcess.length,
+      remaining: remaining,
       results,
     });
 
