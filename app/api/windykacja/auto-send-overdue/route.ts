@@ -118,6 +118,18 @@ export async function POST(request: NextRequest) {
     let totalFailed = 0;
     const results: any[] = [];
 
+    // Detailed failure tracking
+    const failureBreakdown = {
+      email_already_sent: 0,
+      email_no_address: 0,
+      email_send_failed: 0,
+      sms_already_sent: 0,
+      sms_no_phone: 0,
+      sms_send_failed: 0,
+      invoice_processing_error: 0,
+      client_processing_error: 0,
+    };
+
     // 2. Process each client
     for (const client of clients) {
       console.log(`[AutoSendOverdue] Processing client: ${client.name} (ID: ${client.id})`);
@@ -198,7 +210,15 @@ export async function POST(request: NextRequest) {
             // Check both: our system (EMAIL_1) AND Fakturownia (email_status='sent')
             const e1AlreadySent = fiscalSync?.EMAIL_1 || freshInvoice.email_status === 'sent';
 
-            if (!e1AlreadySent) {
+            if (e1AlreadySent) {
+              console.log(`[AutoSendOverdue] ⊘ E1 already sent for invoice ${invoice.id} - skipping`);
+              failureBreakdown.email_already_sent++;
+              totalFailed++;
+            } else if (!freshInvoice.buyer_email) {
+              console.error(`[AutoSendOverdue] ✗ No email address for invoice ${invoice.id}`);
+              failureBreakdown.email_no_address++;
+              totalFailed++;
+            } else {
               console.log(`[AutoSendOverdue] Sending E1 for invoice ${invoice.id} (${invoiceNumber})`);
 
               const emailData = {
@@ -213,7 +233,7 @@ export async function POST(request: NextRequest) {
 
               const result = await sendEmailReminder(
                 'EMAIL_1',
-                freshInvoice.buyer_email || 'brak@email.com',
+                freshInvoice.buyer_email,
                 emailData,
                 freshInvoice.id
               );
@@ -237,6 +257,7 @@ export async function POST(request: NextRequest) {
                 await commentsDb.logAction(invoice.id, 'Sent EMAIL reminder (level 1)', 'local');
               } else {
                 console.error(`[AutoSendOverdue] ✗ Failed to send E1 for invoice ${invoice.id}: ${result.error}`);
+                failureBreakdown.email_send_failed++;
                 totalFailed++;
               }
 
@@ -262,15 +283,17 @@ export async function POST(request: NextRequest) {
             fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
             // Send S1 if not already sent
-            if (!fiscalSync?.SMS_1) {
+            if (fiscalSync?.SMS_1) {
+              console.log(`[AutoSendOverdue] ⊘ S1 already sent for invoice ${invoice.id} - skipping`);
+              failureBreakdown.sms_already_sent++;
+              totalFailed++;
+            } else if (!freshInvoice.buyer_phone) {
+              console.error(`[AutoSendOverdue] ✗ No phone number for invoice ${invoice.id}`);
+              failureBreakdown.sms_no_phone++;
+              totalFailed++;
+              await new Promise(resolve => setTimeout(resolve, 500));
+            } else {
               console.log(`[AutoSendOverdue] Sending S1 for invoice ${invoice.id} (${invoiceNumber})`);
-
-              if (!freshInvoice.buyer_phone) {
-                console.error(`[AutoSendOverdue] ✗ No phone number for invoice ${invoice.id}`);
-                totalFailed++;
-                await new Promise(resolve => setTimeout(resolve, 500));
-                continue;
-              }
 
               const smsData = {
                 nazwa_klienta: freshInvoice.buyer_name || 'Klient',
@@ -307,6 +330,7 @@ export async function POST(request: NextRequest) {
                 await commentsDb.logAction(invoice.id, 'Sent SMS reminder (level 1)', 'local');
               } else {
                 console.error(`[AutoSendOverdue] ✗ Failed to send S1 for invoice ${invoice.id}: ${result.error}`);
+                failureBreakdown.sms_send_failed++;
                 totalFailed++;
               }
 
@@ -325,6 +349,7 @@ export async function POST(request: NextRequest) {
 
           } catch (error: any) {
             console.error(`[AutoSendOverdue] Error processing invoice ${invoice.id}:`, error);
+            failureBreakdown.invoice_processing_error++;
             totalFailed++;
             results.push({
               client_id: client.id,
@@ -338,6 +363,7 @@ export async function POST(request: NextRequest) {
 
       } catch (error: any) {
         console.error(`[AutoSendOverdue] Error processing client ${client.id}:`, error);
+        failureBreakdown.client_processing_error++;
         totalFailed++;
       }
     }
@@ -345,6 +371,7 @@ export async function POST(request: NextRequest) {
     const totalSent = totalEmailSent + totalSmsSent;
 
     console.log(`[AutoSendOverdue] Completed: ${totalSent} total sent (E1: ${totalEmailSent}, S1: ${totalSmsSent}), ${totalFailed} failed`);
+    console.log(`[AutoSendOverdue] Failure breakdown:`, JSON.stringify(failureBreakdown, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -355,6 +382,7 @@ export async function POST(request: NextRequest) {
         total: totalSent,
       },
       failed: totalFailed,
+      failure_breakdown: failureBreakdown,
       clients_processed: clients.length,
       results,
     });
