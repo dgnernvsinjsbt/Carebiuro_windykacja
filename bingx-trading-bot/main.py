@@ -327,6 +327,12 @@ class TradingEngine:
                         self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
                         return
 
+                    # Check if already have pending order for this strategy (CRITICAL FIX)
+                    existing_pending = self.pending_order_manager.get_pending_orders_for_strategy(signal['strategy'])
+                    if existing_pending:
+                        self.logger.warning(f"  ❌ Already have {len(existing_pending)} pending order(s) for {signal['strategy']} - skipping")
+                        return
+
                     # Place pending limit order
                     await self._place_pending_limit_order(signal)
 
@@ -343,6 +349,12 @@ class TradingEngine:
                     # Check position limits
                     if not self.position_manager.can_open_position(signal['strategy']):
                         self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
+                        return
+
+                    # Check if already have pending order for this strategy (CRITICAL FIX)
+                    existing_pending = self.pending_order_manager.get_pending_orders_for_strategy(signal['strategy'])
+                    if existing_pending:
+                        self.logger.warning(f"  ❌ Already have {len(existing_pending)} pending order(s) for {signal['strategy']} - skipping")
                         return
 
                     # Execute trade
