@@ -35,6 +35,7 @@ from strategies.doge_volume_zones import DogeVolumeZonesStrategy
 from strategies.fartcoin_atr_limit import FartcoinATRLimitStrategy
 from strategies.trumpsol_contrarian import TrumpsolContrarianStrategy
 from strategies.pippin_fresh_crosses import PippinFreshCrossesStrategy
+from strategies.pepe_contrarian_short import PepeContrarianShortStrategy
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
@@ -92,6 +93,11 @@ class TradingEngine:
             strategy_config = self.config.get_strategy_config('trumpsol_contrarian')
             self.strategies.append(TrumpsolContrarianStrategy(strategy_config.__dict__))
             self.metrics.register_strategy('trumpsol_contrarian')
+
+        if self.config.is_strategy_enabled('pepe_contrarian_short'):
+            strategy_config = self.config.get_strategy_config('pepe_contrarian_short')
+            self.strategies.append(PepeContrarianShortStrategy(strategy_config.__dict__))
+            self.metrics.register_strategy('pepe_contrarian_short')
 
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)
@@ -316,6 +322,17 @@ class TradingEngine:
                 if signal.get('type') == 'PENDING_LIMIT_REQUEST':
                     self.logger.info(f"  📝 PENDING LIMIT REQUEST: {signal['strategy']} {signal['direction']} @ ${signal['limit_price']:.6f}")
 
+                    # Send email notification for signal generation
+                    if self.notifier:
+                        await self.notifier.notify_signal_generated(
+                            strategy=signal['strategy'],
+                            symbol=symbol,
+                            direction=signal['direction'],
+                            signal_price=signal.get('signal_price', signal['limit_price']),
+                            limit_price=signal['limit_price'],
+                            confidence=signal.get('confidence')
+                        )
+
                     # Check risk management before placing limit order
                     can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
                     if not can_trade:
@@ -517,11 +534,41 @@ class TradingEngine:
                 self.logger.info(f"   Limit: ${pending.limit_price:.6f}")
                 self.logger.info(f"   Qty: {pending.quantity}")
                 self.logger.info(f"   Max wait: {pending.max_wait_bars} bars")
+
+                # Send email notification
+                if self.notifier:
+                    await self.notifier.notify_limit_order_placed(
+                        strategy=strategy,
+                        symbol=symbol,
+                        direction=signal['direction'],
+                        limit_price=pending.limit_price,
+                        quantity=pending.quantity,
+                        order_id=pending.order_id
+                    )
             else:
                 self.logger.error(f"❌ Failed to create pending limit order")
 
+                # Send error email
+                if self.notifier:
+                    await self.notifier.notify_order_error(
+                        strategy=strategy,
+                        symbol=symbol,
+                        direction=signal['direction'],
+                        error_message="Failed to create pending limit order"
+                    )
+
         except Exception as e:
             self.logger.error(f"❌ Error placing pending limit order: {e}", exc_info=True)
+
+            # Send error email
+            if self.notifier:
+                await self.notifier.notify_order_error(
+                    strategy=strategy,
+                    symbol=symbol,
+                    direction=signal.get('direction', 'UNKNOWN'),
+                    error_message=str(e),
+                    order_details=f"Limit price: {signal.get('limit_price', 'N/A')}"
+                )
 
     async def _place_sl_tp_for_filled_order(self, signal: dict) -> None:
         """

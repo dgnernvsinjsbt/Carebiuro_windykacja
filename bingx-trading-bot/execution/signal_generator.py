@@ -22,7 +22,10 @@ class SignalGenerator:
             if signal:
                 signal['strategy'] = strategy.name
                 signals.append(signal)
-                self.logger.info(f"Signal: {strategy.name} {signal['direction']} @ {signal['entry_price']}")
+                # Log signal with appropriate price field
+                price = signal.get('entry_price') or signal.get('limit_price') or signal.get('signal_price', 0.0)
+                signal_type = signal.get('type', 'SIGNAL')
+                self.logger.info(f"Signal: {strategy.name} {signal['direction']} @ ${price:.6f} ({signal_type})")
         return signals
 
     def resolve_conflicts(self, signals: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:

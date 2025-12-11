@@ -315,6 +315,209 @@ class EmailNotifier:
 
         return await self._send_email(subject, html)
 
+    async def notify_signal_generated(
+        self,
+        strategy: str,
+        symbol: str,
+        direction: str,
+        signal_price: float,
+        limit_price: float = None,
+        confidence: float = None
+    ) -> bool:
+        """Notify when signal is generated (before order placement)"""
+        if not self._can_send('signal_generated'):
+            return False
+
+        is_limit = limit_price is not None
+        order_type = "LIMIT" if is_limit else "MARKET"
+
+        subject = f"📊 Signal: {direction} {symbol} @ ${signal_price:.6f}"
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px;">
+            <h2 style="color: #3b82f6;">📊 Signal Generated</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td><strong>Strategy:</strong></td><td>{strategy}</td></tr>
+                <tr><td><strong>Symbol:</strong></td><td>{symbol}</td></tr>
+                <tr><td><strong>Direction:</strong></td><td style="color: {'#22c55e' if direction == 'LONG' else '#ef4444'};">{direction}</td></tr>
+                <tr><td><strong>Order Type:</strong></td><td>{order_type}</td></tr>
+                <tr><td><strong>Signal Price:</strong></td><td>${signal_price:.6f}</td></tr>
+                {f'<tr><td><strong>Limit Price:</strong></td><td>${limit_price:.6f}</td></tr>' if is_limit else ''}
+                {f'<tr><td><strong>Confidence:</strong></td><td>{confidence*100:.1f}%</td></tr>' if confidence else ''}
+            </table>
+
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            </p>
+        </div>
+        """
+
+        return await self._send_email(subject, html)
+
+    async def notify_limit_order_placed(
+        self,
+        strategy: str,
+        symbol: str,
+        direction: str,
+        limit_price: float,
+        quantity: float,
+        order_id: str
+    ) -> bool:
+        """Notify when limit order is placed on exchange"""
+        if not self._can_send('limit_order_placed'):
+            return False
+
+        subject = f"📝 Limit Order Placed: {direction} {symbol}"
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px;">
+            <h2 style="color: #3b82f6;">📝 Limit Order Placed</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td><strong>Strategy:</strong></td><td>{strategy}</td></tr>
+                <tr><td><strong>Symbol:</strong></td><td>{symbol}</td></tr>
+                <tr><td><strong>Direction:</strong></td><td>{direction}</td></tr>
+                <tr><td><strong>Limit Price:</strong></td><td>${limit_price:.6f}</td></tr>
+                <tr><td><strong>Quantity:</strong></td><td>{quantity:.4f}</td></tr>
+                <tr><td><strong>Order ID:</strong></td><td style="font-size: 10px;">{order_id}</td></tr>
+            </table>
+
+            <p style="background: #eff6ff; padding: 10px; border-left: 3px solid #3b82f6;">
+                ⏳ Waiting for limit to fill (max 3 bars)
+            </p>
+
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            </p>
+        </div>
+        """
+
+        return await self._send_email(subject, html)
+
+    async def notify_limit_order_filled(
+        self,
+        strategy: str,
+        symbol: str,
+        direction: str,
+        fill_price: float,
+        quantity: float,
+        bars_waited: int
+    ) -> bool:
+        """Notify when limit order is filled"""
+        if not self._can_send('limit_order_filled'):
+            return False
+
+        subject = f"✅ Limit Filled: {direction} {symbol} @ ${fill_price:.6f}"
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px;">
+            <h2 style="color: #22c55e;">✅ Limit Order Filled</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td><strong>Strategy:</strong></td><td>{strategy}</td></tr>
+                <tr><td><strong>Symbol:</strong></td><td>{symbol}</td></tr>
+                <tr><td><strong>Direction:</strong></td><td>{direction}</td></tr>
+                <tr><td><strong>Fill Price:</strong></td><td>${fill_price:.6f}</td></tr>
+                <tr><td><strong>Quantity:</strong></td><td>{quantity:.4f}</td></tr>
+                <tr><td><strong>Wait Time:</strong></td><td>{bars_waited} bar(s)</td></tr>
+            </table>
+
+            <p style="background: #f0fdf4; padding: 10px; border-left: 3px solid #22c55e;">
+                ✅ Position opened with SL/TP
+            </p>
+
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            </p>
+        </div>
+        """
+
+        return await self._send_email(subject, html)
+
+    async def notify_limit_order_cancelled(
+        self,
+        strategy: str,
+        symbol: str,
+        direction: str,
+        limit_price: float,
+        reason: str
+    ) -> bool:
+        """Notify when limit order is cancelled"""
+        if not self._can_send('limit_order_cancelled'):
+            return False
+
+        subject = f"🚫 Limit Cancelled: {direction} {symbol}"
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px;">
+            <h2 style="color: #f59e0b;">🚫 Limit Order Cancelled</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td><strong>Strategy:</strong></td><td>{strategy}</td></tr>
+                <tr><td><strong>Symbol:</strong></td><td>{symbol}</td></tr>
+                <tr><td><strong>Direction:</strong></td><td>{direction}</td></tr>
+                <tr><td><strong>Limit Price:</strong></td><td>${limit_price:.6f}</td></tr>
+                <tr><td><strong>Reason:</strong></td><td>{reason}</td></tr>
+            </table>
+
+            <p style="background: #fef3c7; padding: 10px; border-left: 3px solid #f59e0b;">
+                ⚠️ Price did not reach limit - no trade executed
+            </p>
+
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            </p>
+        </div>
+        """
+
+        return await self._send_email(subject, html)
+
+    async def notify_order_error(
+        self,
+        strategy: str,
+        symbol: str,
+        direction: str,
+        error_message: str,
+        order_details: str = ""
+    ) -> bool:
+        """Notify when order placement fails"""
+        # Always send order errors (override rate limit for critical failures)
+        event_key = f'order_error_{symbol}'
+        if not self._can_send(event_key):
+            # Allow at least 1 error per symbol per minute (instead of 5 min)
+            last_sent = self._last_sent.get(event_key)
+            if last_sent and (datetime.utcnow() - last_sent) < timedelta(minutes=1):
+                return False
+            self._last_sent[event_key] = datetime.utcnow()
+
+        subject = f"❌ Order Failed: {direction} {symbol}"
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px;">
+            <h2 style="color: #ef4444;">❌ Order Placement Failed</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td><strong>Strategy:</strong></td><td>{strategy}</td></tr>
+                <tr><td><strong>Symbol:</strong></td><td>{symbol}</td></tr>
+                <tr><td><strong>Direction:</strong></td><td>{direction}</td></tr>
+                <tr><td><strong>Error:</strong></td><td style="color: #ef4444;">{error_message}</td></tr>
+            </table>
+
+            {f'<pre style="background: #fef2f2; padding: 10px; overflow-x: auto; font-size: 11px;">{order_details}</pre>' if order_details else ''}
+
+            <p style="background: #fef2f2; padding: 10px; border-left: 3px solid #ef4444;">
+                ⚠️ Signal generated but order could not be placed
+            </p>
+
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            </p>
+        </div>
+        """
+
+        return await self._send_email(subject, html)
+
 
 # Global notifier instance
 _notifier: Optional[EmailNotifier] = None

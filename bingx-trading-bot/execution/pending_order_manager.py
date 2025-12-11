@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import logging
 
 from execution.bingx_client import BingXClient, BingXAPIError
+from monitoring.notifications import get_notifier
 
 
 class PendingOrder:
@@ -125,7 +126,7 @@ class PendingOrderManager:
             order = await self.client.place_order(
                 symbol=symbol,
                 side=side,
-                position_side="BOTH",  # One-way mode
+                position_side=direction,  # Use LONG or SHORT (Hedge mode compatible)
                 order_type="LIMIT",
                 price=limit_price,
                 quantity=quantity
@@ -189,6 +190,18 @@ class PendingOrderManager:
                 # Check if timeout
                 if pending.is_timeout(current_bar):
                     self.logger.warning(f"⏱️  Pending order {order_id} TIMEOUT ({pending.bars_waited} bars)")
+
+                    # Send email notification before cancelling
+                    notifier = get_notifier()
+                    if notifier:
+                        await notifier.notify_limit_order_cancelled(
+                            strategy=pending.strategy,
+                            symbol=pending.symbol,
+                            direction=pending.direction,
+                            limit_price=pending.limit_price,
+                            reason=f"Timeout after {pending.bars_waited} bars"
+                        )
+
                     await self._cancel_order(pending)
                     orders_to_remove.append(order_id)
                     continue
@@ -209,6 +222,18 @@ class PendingOrderManager:
                     self.logger.info(f"✅ Limit order FILLED: {order_id}")
                     self.logger.info(f"   Filled @ ${avg_price:.6f} (qty: {filled_qty})")
                     self.logger.info(f"   Waited {pending.bars_waited} bars")
+
+                    # Send email notification
+                    notifier = get_notifier()
+                    if notifier:
+                        await notifier.notify_limit_order_filled(
+                            strategy=pending.strategy,
+                            symbol=pending.symbol,
+                            direction=pending.direction,
+                            fill_price=avg_price,
+                            quantity=filled_qty,
+                            bars_waited=pending.bars_waited
+                        )
 
                     # Create signal for SL/TP placement
                     signal = {
