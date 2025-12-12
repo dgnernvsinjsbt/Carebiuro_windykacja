@@ -42,27 +42,24 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## 🏆 ACTIVE STRATEGIES (4 Total)
+## 🏆 ACTIVE STRATEGIES (3 Total)
 
 | Rank | Strategy | Return/DD | Return | Max DD | Trades | Token | Status |
 |------|----------|-----------|--------|--------|--------|-------|--------|
 | 🥇 | **PIPPIN Fresh Crosses** 🆕 | **12.71x** | **+21.76%** | -1.71% | 10 | PIPPIN | ✅ LIVE |
-| 🥈 | **DOGE Volume Zones** ⚠️ | **10.75x** | **+5.15%** | -0.48% | 22 | DOGE | ✅ LIVE |
-| 🥉 | **FARTCOIN ATR Limit** | **8.44x** | **+101.11%** | -11.98% | 94 | FARTCOIN | ✅ LIVE |
-| 4 | **TRUMPSOL Contrarian** | **5.17x** | **+17.49%** | -3.38% | 77 | TRUMPSOL | ✅ LIVE |
+| 🥈 | **FARTCOIN ATR Limit** | **8.44x** | **+101.11%** | -11.98% | 94 | FARTCOIN | ✅ LIVE |
+| 🥉 | **TRUMPSOL Contrarian** | **5.17x** | **+17.49%** | -3.38% | 77 | TRUMPSOL | ✅ LIVE |
 
 **Legend:**
-- ⚠️ = Outlier-dependent (requires discipline to take all signals)
 - 🆕 = New strategy (Dec 2025)
 - ✅ = Active in production
 
 **Code Location:** `bingx-trading-bot/strategies/`
 - `pippin_fresh_crosses.py`
 - `fartcoin_atr_limit.py`
-- `doge_volume_zones.py`
 - `trumpsol_contrarian.py`
 
-**Archived Strategies:** See [ARCHIVUM_STRATEGII.md](ARCHIVUM_STRATEGII.md) for MOODENG, PEPE, TRUMP, UNI, ETH, PENGU strategies.
+**Archived Strategies:** See [ARCHIVUM_STRATEGII.md](ARCHIVUM_STRATEGII.md) for MOODENG, PEPE, TRUMP, UNI, ETH, PENGU, **DOGE** strategies.
 
 ---
 
@@ -192,96 +189,7 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## Strategy 3: DOGE Volume Zones (BingX Optimized - Outlier Harvester)
-
-| Metric | Value |
-|--------|-------|
-| **Return/DD Ratio** | **10.75x** ⭐ |
-| **Return** | +5.15% (32 days BingX) |
-| **Max Drawdown** | **-0.48%** (shallowest!) |
-| **Win Rate** | 63.6% |
-| **Trades** | 22 |
-| **Actual R:R** | 4.0x ATR TP / 1.5x ATR SL |
-| **Direction** | LONG + SHORT |
-| **Timeframe** | 1-min |
-| **⚠️ Outlier Dependency** | **95.3%** from top 5 trades |
-
-### Entry - Accumulation Zones (LONG)
-
-- Detect 5+ consecutive bars with volume > 1.5x average
-- Zone must be at local low (20-bar lookback)
-- Enter **Asia/EU session (07:00-14:00 UTC) ONLY** ⚠️
-- Market order (0.05% taker fee)
-
-### Entry - Distribution Zones (SHORT)
-
-- Detect 5+ consecutive bars with volume > 1.5x average
-- Zone must be at local high (20-bar lookback)
-- Enter **Asia/EU session (07:00-14:00 UTC) ONLY** ⚠️
-- Market order (0.05% taker fee)
-
-### Exits
-
-- **Stop Loss**: 1.5x ATR(14) (tighter for lower volatility session)
-- **Take Profit**: 4.0x ATR (absolute ATR target, not R:R)
-- **Max Hold**: 90 bars (90 minutes)
-
-### Fees
-
-0.10% per trade (0.05% taker x2)
-
-### Why It Works (But Differently)
-
-- **CRITICAL:** This is an outlier-harvesting strategy like TRUMP Volume Zones
-- Top 5 trades = 95.3% of all profits (remaining 17 = +0.24%)
-- Must take EVERY signal - cannot cherry-pick
-- Asia/EU session has cleaner volume zone follow-through on BingX
-- ATR-based TP (4.0x) captures explosive moves better than R:R
-- LONGs contribute 88.5% of profits (keep SHORTs for 11.5%)
-
-### Session Analysis (BingX vs LBank)
-
-| Exchange | Session | Return/DD | Notes |
-|----------|---------|-----------|-------|
-| **BingX** | **Asia/EU (07-14)** | **10.75x** | ⭐ OPTIMAL |
-| BingX | Overnight (21-07) | 1.08x | Fails on BingX |
-| LBank | Overnight (21-07) | 7.15x | Optimal on LBank |
-
-**⚠️ Exchange-Specific Behavior:** Parameters don't transfer between exchanges!
-
-### Configuration (BingX Optimized)
-
-```python
-{
-    'volume_threshold': 1.5,      # 1.5x average volume
-    'min_zone_bars': 5,           # 5+ consecutive bars
-    'sl_type': 'atr',
-    'sl_value': 1.5,              # 1.5x ATR stop (tighter)
-    'tp_type': 'atr_multiple',    # ATR-based (not R:R!)
-    'tp_value': 4.0,              # 4.0x ATR target
-    'session': 'asia_eu',         # 07:00-14:00 UTC ONLY
-    'max_hold_bars': 90           # 90 minute max hold
-}
-```
-
-### Data & Code
-
-- **Data**: `trading/doge_30d_bingx.csv` (46,080 candles, 32 days)
-- **Optimizer**: `trading/doge_bingx_comprehensive_optimizer.py` (567 configs tested)
-- **Report**: `trading/strategies/DOGE_BINGX_VOLUME_ZONES_FINAL.md`
-- **Trades**: `trading/results/doge_bingx_optimized_trades.csv` (22 trades)
-- **Bot**: `bingx-trading-bot/strategies/doge_volume_zones.py`
-
-### Key Discovery
-
-- Comprehensive re-optimization with ATR-based TP + relaxed filters
-- NO configuration with Return/DD > 5.0x has Top5 < 80% (fundamental to DOGE)
-- Strategy works by catching 3-5 explosive moves per month
-- Remaining trades tread water (+0.24% from 17 trades)
-
----
-
-## Strategy 4: TRUMPSOL Contrarian (Mean Reversion) 🆕
+## Strategy 3: TRUMPSOL Contrarian (Mean Reversion) 🆕
 
 | Metric | Value |
 |--------|-------|

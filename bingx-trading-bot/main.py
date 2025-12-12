@@ -31,7 +31,6 @@ from monitoring.notifications import EmailNotifier, init_notifier, get_notifier
 from monitoring.status_reporter import get_reporter
 from database.trade_logger import TradeLogger
 from data.indicators import IndicatorCalculator
-from strategies.doge_volume_zones import DogeVolumeZonesStrategy
 from strategies.fartcoin_atr_limit import FartcoinATRLimitStrategy
 from strategies.trumpsol_contrarian import TrumpsolContrarianStrategy
 from strategies.pippin_fresh_crosses import PippinFreshCrossesStrategy
@@ -83,11 +82,6 @@ class TradingEngine:
             strategy_config = self.config.get_strategy_config('fartcoin_atr_limit')
             self.strategies.append(FartcoinATRLimitStrategy(strategy_config.__dict__))
             self.metrics.register_strategy('fartcoin_atr_limit')
-
-        if self.config.is_strategy_enabled('doge_volume_zones'):
-            strategy_config = self.config.get_strategy_config('doge_volume_zones')
-            self.strategies.append(DogeVolumeZonesStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('doge_volume_zones')
 
         if self.config.is_strategy_enabled('trumpsol_contrarian'):
             strategy_config = self.config.get_strategy_config('trumpsol_contrarian')
@@ -493,8 +487,15 @@ class TradingEngine:
             strategy_config = self.config.get_strategy_config(strategy)
             risk_pct = strategy_config.base_risk_pct
 
-            # Simplified position sizing for limit order
-            position_value = self.account_balance * self.config.bingx.default_leverage
+            # Use fixed position value (e.g., $6 USDT per trade) or fallback to % based
+            fixed_value = self.config.bingx.fixed_position_value_usdt
+            if fixed_value and fixed_value > 0:
+                position_value = fixed_value
+                self.logger.info(f"Using fixed position value: ${position_value:.2f} USDT")
+            else:
+                # Fallback to account balance based sizing
+                position_value = self.account_balance * self.config.bingx.default_leverage
+                self.logger.info(f"Using %-based sizing: ${position_value:.2f} USDT")
             quantity = position_value / signal['limit_price']
 
             # Round to contract precision
