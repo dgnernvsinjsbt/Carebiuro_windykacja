@@ -7,7 +7,6 @@ FARTCOIN ATR Expansion (Limit Order) Strategy
 Entry Conditions:
 - ATR Expansion: Current ATR > 1.5x rolling 20-bar average (volatility breakout)
 - EMA Distance Filter: Price within 3% of EMA(20) (prevents late entries)
-- TREND FILTER: LONG only in uptrend (close > SMA50), SHORT only in downtrend (close < SMA50)
 - Directional Candle: Bullish (close > open) for LONG, Bearish for SHORT
 - Limit Order: Place 1% away from signal price, wait max 3 bars for fill
 
@@ -70,14 +69,10 @@ class FartcoinATRLimitStrategy(BaseStrategy):
         current = df_1min.iloc[-1]
         current_bar = len(df_1min) - 1
 
-        # Check required indicators (including trend filter columns)
-        required_cols = ['atr', 'ema_20', 'sma_50', 'close', 'open', 'high', 'low']
+        # Check required indicators
+        required_cols = ['atr', 'ema_20', 'close', 'open', 'high', 'low']
         if any(pd.isna(current.get(col)) for col in required_cols):
             return None
-
-        # Determine trend from SMA50
-        in_uptrend = current['close'] > current['sma_50']
-        in_downtrend = current['close'] < current['sma_50']
 
         # Calculate ATR expansion ratio
         df_recent = df_1min.tail(self.atr_lookback_bars)
@@ -97,22 +92,16 @@ class FartcoinATRLimitStrategy(BaseStrategy):
         if ema_distance_pct > self.ema_distance_max_pct:
             return None
 
-        # Determine direction from candle
+        # Determine direction from candle (bullish = LONG, bearish = SHORT)
         is_bullish = current['close'] > current['open']
         is_bearish = current['close'] < current['open']
 
-        if not (is_bullish or is_bearish):
-            return None  # Doji - skip
-
-        # TREND FILTER: Only trade in direction of trend
-        # LONG: Must be bullish candle AND in uptrend (close > SMA50)
-        # SHORT: Must be bearish candle AND in downtrend (close < SMA50)
-        if is_bullish and in_uptrend:
+        if is_bullish:
             direction = 'LONG'
-        elif is_bearish and in_downtrend:
+        elif is_bearish:
             direction = 'SHORT'
         else:
-            return None  # Candle direction doesn't match trend - skip
+            return None  # Doji - skip
 
         # Calculate limit price (1% away from signal)
         signal_price = current['close']
@@ -152,8 +141,6 @@ class FartcoinATRLimitStrategy(BaseStrategy):
             'ema_distance_pct': ema_distance_pct,
             'limit_offset_pct': self.limit_offset_pct,
             'max_hold_bars': self.max_hold_bars,
-            'sma_50': current['sma_50'],
-            'trend': 'UPTREND' if in_uptrend else 'DOWNTREND',
         }
 
     def should_exit_time(self, current_bar_index: int, entry_bar_index: int) -> bool:
