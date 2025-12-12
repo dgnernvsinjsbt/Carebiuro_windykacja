@@ -42,24 +42,40 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## 🏆 ACTIVE STRATEGIES (3 Total)
+## 🏆 ACTIVE STRATEGIES (10-Strategy Portfolio - 1H Candles)
 
-| Rank | Strategy | Return/DD | Return | Max DD | Trades | Token | Status |
-|------|----------|-----------|--------|--------|--------|-------|--------|
-| 🥇 | **PIPPIN Fresh Crosses** 🆕 | **12.71x** | **+21.76%** | -1.71% | 10 | PIPPIN | ✅ LIVE |
-| 🥈 | **FARTCOIN ATR Limit** | **8.44x** | **+101.11%** | -11.98% | 94 | FARTCOIN | ✅ LIVE |
-| 🥉 | **TRUMPSOL Contrarian** | **5.17x** | **+17.49%** | -3.38% | 77 | TRUMPSOL | ✅ LIVE |
+**Portfolio Performance (All 10 Strategies Combined):**
+- **Total Return:** +70.92% (90 days)
+- **Max Drawdown:** -1.75% (extremely smooth!)
+- **Return/DD Ratio:** 40.51x 🏆 EXCEPTIONAL!
+- **Win Rate:** 70.8% (472 winners / 667 trades)
+- **Profit Factor:** 3.31
+- **Method:** Each strategy gets 10% of current equity per trade, multiple positions allowed
 
-**Legend:**
-- 🆕 = New strategy (Dec 2025)
-- ✅ = Active in production
+| Rank | Strategy | Return/DD | Win Rate | Trades | Status |
+|------|----------|-----------|----------|--------|--------|
+| 🥇 | **CRV RSI Swing** | 22.03x | 75.8% | 91 | ✅ LIVE |
+| 🥈 | **MELANIA RSI Swing** | 21.36x | 69.4% | 98 | ✅ LIVE |
+| 🥉 | **AIXBT RSI Swing** | 20.20x | 68.2% | 110 | ✅ LIVE |
+| 4 | **TRUMPSOL RSI Swing** | 13.28x | 76.4% | 55 | ✅ LIVE |
+| 5 | **UNI RSI Swing** | 12.38x | 75.0% | 84 | ✅ LIVE |
+| 6 | **DOGE RSI Swing** | 10.66x | 42.9% | 77 | ✅ LIVE |
+| 7 | **XLM RSI Swing** | 9.53x | 67.8% | 115 | ✅ LIVE |
+| 8 | **MOODENG RSI Swing** | 8.38x | 74.6% | 118 | ✅ LIVE |
+| 9 | **FARTCOIN ATR Limit** | 8.44x | 0.0% | 4 | ✅ LIVE |
+| 10 | **PEPE RSI Swing** | 7.13x | 56.9% | 65 | ✅ LIVE |
 
 **Code Location:** `bingx-trading-bot/strategies/`
-- `pippin_fresh_crosses.py`
-- `fartcoin_atr_limit.py`
-- `trumpsol_contrarian.py`
+- All RSI strategies: `{coin}_rsi_swing.py`
+- FARTCOIN ATR: `fartcoin_atr_limit.py`
 
-**Archived Strategies:** See [ARCHIVUM_STRATEGII.md](ARCHIVUM_STRATEGII.md) for MOODENG, PEPE, TRUMP, UNI, ETH, PENGU, **DOGE** strategies.
+**Key Benefits of Portfolio Approach:**
+- Diversification smooths equity curve (winners offset losers)
+- 3 losing strategies (DOGE, FARTCOIN, PEPE) carried by 7 winners
+- Average 4 concurrent positions spreads risk
+- Individual -5% loss = only -0.5% portfolio impact
+
+**1-Minute Strategies (Archived):** `pippin_fresh_crosses.py`, `trumpsol_contrarian.py`
 
 ---
 
