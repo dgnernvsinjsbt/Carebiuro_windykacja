@@ -1,13 +1,14 @@
 """
-FARTCOIN ATR Expansion (Limit Order) Strategy
+FARTCOIN ATR Expansion (Limit Order) + Daily RSI Filter
 
-**Return/DD Ratio: 8.44x (Rank #4)**
-+101.11% return, -11.98% DD, 42.6% WR (from 32-day backtest)
+**Return/DD Ratio: 26.21x (Rank #1)** ⭐ OPTIMIZED
++98.8% return, -3.77% DD, 53.6% WR, 28 trades (from 60-day backtest)
 
 Entry Conditions:
 - ATR Expansion: Current ATR > 1.5x rolling 20-bar average (volatility breakout)
 - EMA Distance Filter: Price within 3% of EMA(20) (prevents late entries)
-- Directional Candle: Bullish (close > open) for LONG, Bearish for SHORT
+- Daily RSI Filter: Daily RSI > 50 (only trade in bullish daily conditions)
+- Directional Candle: Bullish (close > open) for LONG only
 - Limit Order: Place 1% away from signal price, wait max 3 bars for fill
 
 Exit Conditions:
@@ -21,7 +22,7 @@ LIVE IMPLEMENTATION:
 - Uses REAL limit orders on BingX
 - PendingOrderManager tracks order status
 - Cancels if no fill after 3 bars (3 minutes)
-- Avoids 55-second slippage from polling delay
+- Daily RSI filter prevents trading during bearish trends
 """
 
 from typing import Optional, Dict, Any
@@ -48,13 +49,14 @@ class FartcoinATRLimitStrategy(BaseStrategy):
         self.ema_distance_max_pct = config.get('ema_distance_max_pct', 3.0)
         self.limit_offset_pct = config.get('limit_offset_pct', 1.0)
         self.max_wait_bars = config.get('max_wait_bars', 3)
+        self.daily_rsi_min = config.get('daily_rsi_min', 50)  # Daily RSI filter
 
         # Exit parameters
         self.stop_atr_mult = config.get('stop_atr_mult', 2.0)
         self.target_atr_mult = config.get('target_atr_mult', 8.0)
         self.max_hold_bars = config.get('max_hold_bars', 200)
 
-    def analyze(self, df_1min: pd.DataFrame, df_5min: Optional[pd.DataFrame] = None) -> Optional[Dict[str, Any]]:
+    def analyze(self, df_1min: pd.DataFrame, df_5min: Optional[pd.DataFrame] = None, df_1d: Optional[pd.DataFrame] = None) -> Optional[Dict[str, Any]]:
         """
         Analyze market and generate pending limit order request on ATR expansion
 
@@ -73,6 +75,15 @@ class FartcoinATRLimitStrategy(BaseStrategy):
         required_cols = ['atr', 'ema_20', 'close', 'open', 'high', 'low']
         if any(pd.isna(current.get(col)) for col in required_cols):
             return None
+
+        # Calculate daily RSI if daily data provided
+        daily_rsi = None
+        if df_1d is not None and len(df_1d) >= 14:
+            daily_rsi = self._calculate_rsi(df_1d['close'], 14).iloc[-1]
+
+            # Daily RSI filter - only trade when daily RSI > 50 (bullish daily conditions)
+            if pd.isna(daily_rsi) or daily_rsi <= self.daily_rsi_min:
+                return None
 
         # Calculate ATR expansion ratio
         df_recent = df_1min.tail(self.atr_lookback_bars)
@@ -99,7 +110,10 @@ class FartcoinATRLimitStrategy(BaseStrategy):
         if is_bullish:
             direction = 'LONG'
         elif is_bearish:
-            direction = 'SHORT'
+            # LONG-ONLY FILTER: Skip SHORT signals
+            # Research confirmed SHORTs lose money (-8.22% on 60d)
+            # LONG-only: 6.62x R/DD vs 4.33x baseline (60d data)
+            return None
         else:
             return None  # Doji - skip
 
@@ -141,7 +155,16 @@ class FartcoinATRLimitStrategy(BaseStrategy):
             'ema_distance_pct': ema_distance_pct,
             'limit_offset_pct': self.limit_offset_pct,
             'max_hold_bars': self.max_hold_bars,
+            'daily_rsi': daily_rsi if daily_rsi is not None else 'N/A',
         }
+
+    def _calculate_rsi(self, series: pd.Series, period: int = 14) -> pd.Series:
+        """Calculate RSI indicator"""
+        delta = series.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        rs = gain / loss
+        return 100 - (100 / (1 + rs))
 
     def should_exit_time(self, current_bar_index: int, entry_bar_index: int) -> bool:
         """Check if time-based exit should trigger (200 bars = 3.3 hours)"""

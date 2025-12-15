@@ -38,24 +38,27 @@ class OrderExecutor:
         fixed_position_value_usdt: float = 0.0  # If set, uses fixed USDT value per trade
     ) -> float:
         """
-        Calculate position size - Position = Equity × Leverage OR Fixed USDT Value
+        Calculate position size - Position = (Equity × Risk% × Leverage) OR Fixed USDT Value
 
-        Examples (percentage-based):
-        - 1x leverage + $12 equity → $12 position (100% of equity)
-        - 2x leverage + $12 equity → $24 position (200% of equity)
-        - 10x leverage + $12 equity → $120 position (1000% of equity)
+        Examples (percentage-based with NO leverage):
+        - 10% risk + $100 equity + 1x leverage → $10 position (10% of equity)
+        - 20% risk + $100 equity + 1x leverage → $20 position (20% of equity)
+
+        Examples (percentage-based WITH leverage):
+        - 10% risk + $100 equity + 5x leverage → $50 position (50% of equity)
+        - 10% risk + $100 equity + 10x leverage → $100 position (100% of equity)
 
         Examples (fixed value):
         - fixed_position_value_usdt=6 → $6 position (regardless of equity)
         - With 5x leverage: $6 position requires $1.2 margin
-        - With $12 balance: 10 simultaneous positions possible
+        - With $100 balance: 16 simultaneous positions possible
 
         Args:
             signal: Trading signal with entry price
             account_balance: Current USDT balance (equity)
-            risk_pct: NOT USED - kept for API compatibility
+            risk_pct: Position size as % of equity (e.g., 10.0 = 10% of equity)
             contract_info: Contract specifications
-            leverage: Position multiplier (1x=100%, 10x=1000% of equity)
+            leverage: Leverage multiplier for BingX (1x = no leverage, 5x/10x = leveraged)
             leverage_mode: NOT USED - kept for API compatibility
             fixed_position_value_usdt: If > 0, uses fixed USDT value instead of % based
 
@@ -65,14 +68,14 @@ class OrderExecutor:
         entry_price = signal['entry_price']
         stop_loss = signal['stop_loss']
 
-        # Position value: Fixed USDT or Equity × Leverage
+        # Position value: Fixed USDT or Equity × Risk %
         if fixed_position_value_usdt > 0:
             position_value = fixed_position_value_usdt
             self.logger.info(f"Using fixed position value: ${position_value:.2f} USDT")
         else:
-            # Fallback to percentage-based sizing
-            position_value = account_balance * leverage
-            self.logger.info(f"Using percentage-based sizing: ${position_value:.2f} USDT ({leverage * 100}% of equity)")
+            # Use risk_pct for position sizing (e.g., 10% = 0.10 of equity)
+            position_value = account_balance * (risk_pct / 100) * leverage
+            self.logger.info(f"Using percentage-based sizing: ${position_value:.2f} USDT ({risk_pct}% of equity × {leverage}x leverage)")
 
         position_size = position_value / entry_price
 
@@ -105,7 +108,8 @@ class OrderExecutor:
             self.logger.info(f"Position value: ${actual_position_value:.2f} USDT (fixed)")
             self.logger.info(f"Leverage: {leverage}x → Margin required: ${margin_required:.2f}")
         else:
-            self.logger.info(f"Position value: ${actual_position_value:.2f} ({leverage * 100}% of equity)")
+            equity_pct = (risk_pct * leverage)
+            self.logger.info(f"Position value: ${actual_position_value:.2f} ({risk_pct}% × {leverage}x = {equity_pct}% of equity)")
             self.logger.info(f"Leverage: {leverage}x")
         self.logger.info(f"SL distance: {sl_distance_pct:.2f}% → Risk if stopped: ${risk_if_stopped:.2f}")
 
@@ -149,13 +153,16 @@ class OrderExecutor:
             contracts = await self.client.get_contract_info(symbol)
             contract = contracts[0] if isinstance(contracts, list) else contracts
 
+            # Extract direction early (needed for hedge mode)
+            direction = signal['direction']
+
             # Set leverage on BingX (if > 1x)
             if leverage > 1:
                 try:
                     self.logger.info(f"Setting leverage to {leverage}x for {symbol}...")
                     await self.client.set_leverage(
                         symbol=symbol,
-                        side="BOTH",  # One-way mode
+                        side=direction,  # Hedge mode: use actual direction
                         leverage=leverage
                     )
                     self.logger.info(f"✓ Leverage set to {leverage}x")
@@ -172,8 +179,6 @@ class OrderExecutor:
                 leverage_mode,
                 fixed_position_value_usdt
             )
-
-            direction = signal['direction']
             entry_price = signal['entry_price']
             stop_loss = signal['stop_loss']
             take_profit = signal['take_profit']
@@ -200,22 +205,39 @@ class OrderExecutor:
                 entry_order = await self.client.place_order(
                     symbol=symbol,
                     side=entry_side,
-                    position_side="BOTH",  # One-way mode
+                    position_side=direction,  # Hedge mode: use actual direction
                     order_type="MARKET",
                     quantity=quantity
                 )
             else:
-                # Use limit order at signal price
+                # Use limit order with attached SL/TP
                 price_precision = contract.get('pricePrecision', 4)
                 entry_price_rounded = round(entry_price, price_precision)
+                sl_price_rounded = round(stop_loss, price_precision)
+                tp_price_rounded = round(take_profit, price_precision)
+
+                # Prepare SL/TP configs (attached to entry order)
+                stop_loss_config = {
+                    "type": "STOP_MARKET",
+                    "stopPrice": sl_price_rounded,
+                    "workingType": "MARK_PRICE"
+                }
+
+                take_profit_config = {
+                    "type": "TAKE_PROFIT_MARKET",
+                    "stopPrice": tp_price_rounded,
+                    "workingType": "MARK_PRICE"
+                }
 
                 entry_order = await self.client.place_order(
                     symbol=symbol,
                     side=entry_side,
-                    position_side="BOTH",
+                    position_side=direction,  # Hedge mode: use actual direction
                     order_type="LIMIT",
                     quantity=quantity,
-                    price=entry_price_rounded
+                    price=entry_price_rounded,
+                    stop_loss=stop_loss_config,
+                    take_profit=take_profit_config
                 )
 
             # Extract order ID
@@ -235,7 +257,27 @@ class OrderExecutor:
             if use_market_order:
                 await asyncio.sleep(1)
 
-            # STEP 2: Place stop-loss order (with retry logic)
+            # For limit orders, SL/TP are already attached - skip separate placement
+            if not use_market_order:
+                self.logger.info("✓ Limit order placed with attached SL/TP")
+                self.logger.info(f"   Entry will fill at: ${entry_price_rounded}")
+                self.logger.info(f"   Stop-loss trigger: ${sl_price_rounded}")
+                self.logger.info(f"   Take-profit trigger: ${tp_price_rounded}")
+
+                return {
+                    'success': True,
+                    'entry_order_id': entry_order_id,
+                    'sl_order_id': 'attached',
+                    'tp_order_id': 'attached',
+                    'position_size': quantity,
+                    'entry_price': entry_price_rounded,
+                    'stop_loss': sl_price_rounded,
+                    'take_profit': tp_price_rounded,
+                    'entry_status': 'PENDING',
+                    'note': 'Limit order with attached SL/TP - will activate when entry fills'
+                }
+
+            # STEP 2: Place stop-loss order (with retry logic) - MARKET ORDERS ONLY
             self.logger.info("\nSTEP 2: Placing stop-loss order...")
 
             price_precision = contract.get('pricePrecision', 4)
@@ -250,11 +292,11 @@ class OrderExecutor:
                     sl_order = await self.client.place_order(
                         symbol=symbol,
                         side=exit_side,
-                        position_side="BOTH",
+                        position_side=direction,  # Hedge mode: use actual direction
                         order_type="STOP_MARKET",
                         quantity=quantity,
-                        stop_price=sl_price,
-                        reduce_only=True
+                        stop_price=sl_price
+                        # Note: reduce_only not supported in hedge mode (position_side handles this)
                     )
 
                     if isinstance(sl_order, dict) and 'order' in sl_order:
@@ -276,7 +318,7 @@ class OrderExecutor:
                             await self.client.place_order(
                                 symbol=symbol,
                                 side=exit_side,
-                                position_side="BOTH",
+                                position_side=direction,  # Hedge mode: use actual direction
                                 order_type="MARKET",
                                 quantity=quantity
                             )
@@ -303,11 +345,11 @@ class OrderExecutor:
                     tp_order = await self.client.place_order(
                         symbol=symbol,
                         side=exit_side,
-                        position_side="BOTH",
+                        position_side=direction,  # Hedge mode: use actual direction
                         order_type="TAKE_PROFIT_MARKET",
                         quantity=quantity,
-                        stop_price=tp_price,
-                        reduce_only=True
+                        stop_price=tp_price
+                        # Note: reduce_only not supported in hedge mode (position_side handles this)
                     )
 
                     if isinstance(tp_order, dict) and 'order' in tp_order:
@@ -335,7 +377,7 @@ class OrderExecutor:
                             await self.client.place_order(
                                 symbol=symbol,
                                 side=exit_side,
-                                position_side="BOTH",
+                                position_side=direction,  # Hedge mode: use actual direction
                                 order_type="MARKET",
                                 quantity=quantity
                             )
@@ -399,7 +441,7 @@ class OrderExecutor:
                         await self.client.place_order(
                             symbol=symbol,
                             side=exit_side,
-                            position_side="BOTH",
+                            position_side=direction,  # Hedge mode: use actual direction
                             order_type="MARKET",
                             quantity=quantity
                         )
@@ -438,7 +480,7 @@ class OrderExecutor:
             close_order = await self.client.place_order(
                 symbol=symbol,
                 side=exit_side,
-                position_side="BOTH",
+                position_side=side,  # Hedge mode: use actual position side (LONG/SHORT)
                 order_type="MARKET",
                 quantity=quantity
             )
