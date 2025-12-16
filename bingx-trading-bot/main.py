@@ -31,19 +31,10 @@ from monitoring.notifications import EmailNotifier, init_notifier, get_notifier
 from monitoring.status_reporter import get_reporter
 from database.trade_logger import TradeLogger
 from data.indicators import IndicatorCalculator
-from strategies.fartcoin_atr_limit import FartcoinATRLimitStrategy
-from strategies.btc_rsi_swing import BTCRSISwingStrategy
-from strategies.eth_rsi_swing import ETHRSISwingStrategy
-from strategies.pepe_rsi_swing import PEPERSISwingStrategy
-from strategies.doge_rsi_swing import DOGERSISwingStrategy
-from strategies.moodeng_rsi_swing import MOODENGRSISwingStrategy
-from strategies.trumpsol_rsi_swing import TRUMPSOLRSISwingStrategy
-from strategies.crv_rsi_swing import CRVRSISwingStrategy
-from strategies.melania_rsi_swing import MELANIARSISwingStrategy
-from strategies.melania_rsi_optimized import MelaniaRSIOptimized
-from strategies.aixbt_rsi_swing import AIXBTRSISwingStrategy
-from strategies.uni_rsi_swing import UNIRSISwingStrategy
-from strategies.xlm_rsi_swing import XLMRSISwingStrategy
+from strategies.fartcoin_short_reversal import FartcoinShortReversal
+from strategies.moodeng_short_reversal import MoodengShortReversal
+from strategies.melania_short_reversal import MelaniaShortReversal
+from strategies.doge_short_reversal import DogeShortReversal
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
@@ -79,79 +70,42 @@ class TradingEngine:
         self.db = TradeLogger(self.config.get_database_url(), self.config.database.echo)
         self.metrics = PerformanceTracker(initial_capital=10000)
 
-        # Initialize strategies (Active: BTC, ETH, PEPE, DOGE RSI Swing + FARTCOIN ATR)
+        # Initialize strategies (4-Coin SHORT Reversal Portfolio)
         self.strategies = []
 
-        if self.config.is_strategy_enabled('btc_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('btc_rsi_swing')
-            self.strategies.append(BTCRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('btc_rsi_swing')
+        # Strategy class mapping
+        strategy_classes = {
+            'fartcoin_short_reversal': FartcoinShortReversal,
+            'moodeng_short_reversal': MoodengShortReversal,
+            'melania_short_reversal': MelaniaShortReversal,
+            'doge_short_reversal': DogeShortReversal,
+        }
 
-        if self.config.is_strategy_enabled('eth_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('eth_rsi_swing')
-            self.strategies.append(ETHRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('eth_rsi_swing')
+        # Load enabled strategies dynamically
+        for strategy_name, strategy_class in strategy_classes.items():
+            if self.config.is_strategy_enabled(strategy_name):
+                strategy_config = self.config.get_strategy_config(strategy_name)
+                strategy = strategy_class(strategy_config.__dict__)
+                self.strategies.append(strategy)
+                self.metrics.register_strategy(strategy_name)
+                self.logger.info(f"✅ {strategy_name.upper()} LOADED - {strategy.symbol}")
 
-        if self.config.is_strategy_enabled('pepe_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('pepe_rsi_swing')
-            self.strategies.append(PEPERSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('pepe_rsi_swing')
-
-        if self.config.is_strategy_enabled('doge_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('doge_rsi_swing')
-            self.strategies.append(DOGERSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('doge_rsi_swing')
-
-        if self.config.is_strategy_enabled('moodeng_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('moodeng_rsi_swing')
-            self.strategies.append(MOODENGRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('moodeng_rsi_swing')
-
-        if self.config.is_strategy_enabled('trumpsol_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('trumpsol_rsi_swing')
-            self.strategies.append(TRUMPSOLRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('trumpsol_rsi_swing')
-
-        if self.config.is_strategy_enabled('fartcoin_atr_limit'):
-            strategy_config = self.config.get_strategy_config('fartcoin_atr_limit')
-            self.strategies.append(FartcoinATRLimitStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('fartcoin_atr_limit')
-
-        if self.config.is_strategy_enabled('crv_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('crv_rsi_swing')
-            self.strategies.append(CRVRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('crv_rsi_swing')
-
-        if self.config.is_strategy_enabled('melania_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('melania_rsi_swing')
-            self.strategies.append(MELANIARSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('melania_rsi_swing')
-
-        if self.config.is_strategy_enabled('aixbt_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('aixbt_rsi_swing')
-            self.strategies.append(AIXBTRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('aixbt_rsi_swing')
-
-        if self.config.is_strategy_enabled('uni_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('uni_rsi_swing')
-            self.strategies.append(UNIRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('uni_rsi_swing')
-
-        if self.config.is_strategy_enabled('xlm_rsi_swing'):
-            strategy_config = self.config.get_strategy_config('xlm_rsi_swing')
-            self.strategies.append(XLMRSISwingStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('xlm_rsi_swing')
-
-        if self.config.is_strategy_enabled('melania_rsi_optimized'):
-            self.strategies.append(MelaniaRSIOptimized())
-            self.metrics.register_strategy('melania_rsi_optimized')
-            self.logger.info("✅ MELANIA RSI OPTIMIZED STRATEGY LOADED (+3,441% return, 53.43x R/DD)")
+        self.logger.info(f"📊 Total strategies loaded: {len(self.strategies)}")
+        self.logger.info("💰 Portfolio: FARTCOIN, MOODENG, MELANIA, DOGE (SHORT reversal)")
 
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)
 
-        max_positions = {s.name: self.config.get_strategy_config(s.name).max_positions
-                        for s in self.strategies}
+        max_positions = {}
+        for s in self.strategies:
+            # Get strategy name (from BaseStrategy.name attribute)
+            strategy_name = s.name
+            strategy_config = self.config.get_strategy_config(strategy_name)
+            if strategy_config:
+                max_positions[strategy_name] = strategy_config.max_positions
+            else:
+                max_positions[strategy_name] = 1  # Default to 1 position
+
         self.position_manager = PositionManager(max_positions)
         self.risk_manager = RiskManager(self.config.trading.risk_management)
 
@@ -244,20 +198,20 @@ class TradingEngine:
 
     async def _fetch_and_analyze(self, symbol: str) -> tuple:
         """
-        Fetch 300 1-hour candles and calculate indicators (identical to backtests)
+        Fetch 300 15-minute candles and calculate indicators (for MELANIA strategy)
 
         Returns:
-            (df_1h, df_4h, latest_candle_data) or (None, None, None) on error
+            (df_15m, df_4h, latest_candle_data) or (None, None, None) on error
         """
         try:
-            # Fetch last 300 hours with explicit time range
+            # Fetch last 300 15-minute candles with explicit time range
             now = datetime.now(timezone.utc)
             end_time = int(now.timestamp() * 1000)
-            start_time = end_time - (300 * 60 * 60 * 1000)  # 300 hours ago
+            start_time = end_time - (300 * 15 * 60 * 1000)  # 300 15-minute candles ago
 
             klines = await self.bingx.get_klines(
                 symbol=symbol,
-                interval='1h',
+                interval='15m',
                 start_time=start_time,
                 end_time=end_time,
                 limit=300
@@ -276,10 +230,10 @@ class TradingEngine:
 
             # Calculate indicators
             calc = IndicatorCalculator(df)
-            df_1h = calc.add_all_indicators()
+            df_15m = calc.add_all_indicators()
 
             # Build 4-hour candles (for multi-timeframe strategies)
-            df_4h = df_1h.resample('4h', on='timestamp').agg({
+            df_4h = df_15m.resample('4h', on='timestamp').agg({
                 'open': 'first',
                 'high': 'max',
                 'low': 'min',
@@ -293,12 +247,12 @@ class TradingEngine:
             df_4h = calc_4h.add_all_indicators()
 
             # Get latest closed candle (second to last, since last might be forming)
-            if len(df_1h) >= 2:
-                latest = df_1h.iloc[-2]
+            if len(df_15m) >= 2:
+                latest = df_15m.iloc[-2]
             else:
-                latest = df_1h.iloc[-1]
+                latest = df_15m.iloc[-1]
 
-            return df_1h, df_4h, latest
+            return df_15m, df_4h, latest
 
         except Exception as e:
             self.logger.error(f"Error fetching/analyzing {symbol}: {e}", exc_info=True)
@@ -320,9 +274,9 @@ class TradingEngine:
                     await self._place_sl_tp_for_filled_order(filled_signal)
 
             # Fetch and analyze (same as backtests!)
-            df_1h, df_4h, latest = await self._fetch_and_analyze(symbol)
+            df_15m, df_4h, latest = await self._fetch_and_analyze(symbol)
 
-            if df_1h is None:
+            if df_15m is None:
                 return
 
             # ============================================================
@@ -360,7 +314,7 @@ class TradingEngine:
             # ============================================================
             # GENERATE SIGNALS
             # ============================================================
-            signals = self.signal_generator.generate_signals(df_1h, df_4h, symbol)
+            signals = self.signal_generator.generate_signals(df_15m, df_4h, symbol)
 
             if signals:
                 signal = self.signal_generator.resolve_conflicts(signals)
@@ -752,8 +706,8 @@ class TradingEngine:
 
         try:
             self.logger.info("=" * 70)
-            self.logger.info("SIMPLIFIED POLLING MODE - 1H CANDLES")
-            self.logger.info("Every hour: Fetch 300 1h candles → Calculate → Log → Trade")
+            self.logger.info("SIMPLIFIED POLLING MODE - 15M CANDLES (FOR MELANIA)")
+            self.logger.info("Every 15 minutes: Fetch 300 15m candles → Calculate → Log → Trade")
             self.logger.info("=" * 70)
 
             while self.running:
@@ -762,12 +716,18 @@ class TradingEngine:
                     self.logger.warning("Stop file detected, shutting down")
                     break
 
-                # Wait until exactly :01 of next hour (candle fully settled)
+                # Wait until :01 of next 15-min candle (candle fully settled)
                 now = datetime.now(timezone.utc)
-                next_hour = (now + timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
-                wait_seconds = (next_hour - now).total_seconds()
+                # Calculate next 15-minute boundary (:00, :15, :30, :45)
+                current_minute = now.minute
+                next_15min = ((current_minute // 15) + 1) * 15
+                if next_15min >= 60:
+                    next_poll = (now + timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+                else:
+                    next_poll = now.replace(minute=next_15min, second=0, microsecond=0) + timedelta(minutes=1)
+                wait_seconds = (next_poll - now).total_seconds()
                 if wait_seconds > 0:
-                    self.logger.info(f"⏰ Waiting {wait_seconds/60:.0f} minutes until {next_hour.strftime('%H:%M:%S UTC')}")
+                    self.logger.info(f"⏰ Waiting {wait_seconds/60:.1f} minutes until {next_poll.strftime('%H:%M:%S UTC')}")
                     await asyncio.sleep(wait_seconds)
 
                 # Now it's top of the hour - process all symbols

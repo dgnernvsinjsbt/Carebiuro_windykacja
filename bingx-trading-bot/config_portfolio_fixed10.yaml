@@ -1,0 +1,321 @@
+# Trading Engine Configuration - 9-COIN RSI PORTFOLIO (FIXED 10%)
+# Portfolio Performance (90d backtest): +35.19% return, -1.69% max DD, 20.78x R/R ratio, 212 trades
+# Position Sizing: FIXED 10% of equity per trade (matches backtest exactly)
+
+# Trading Configuration
+trading:
+  enabled: true  # LIVE TRADING ENABLED
+  testnet: false  # Production mode
+
+  symbols:
+    - CRV-USDT        # 22.03x R/DD, 76.5% WR, 17 trades
+    - MELANIA-USDT    # 21.36x R/DD, 75.0% WR, 16 trades
+    - AIXBT-USDT      # 20.20x R/DD, 91.9% WR, 37 trades
+    - TRUMPSOL-USDT   # 13.28x R/DD, 96.8% WR, 31 trades
+    - UNI-USDT        # 12.38x R/DD, 95.8% WR, 24 trades
+    - DOGE-USDT       # 10.66x R/DD, 95.0% WR, 20 trades
+    - XLM-USDT        # 9.53x R/DD, 95.2% WR, 21 trades
+    - MOODENG-USDT    # 8.38x R/DD, 90.3% WR, 31 trades
+    - 1000PEPE-USDT   # 7.13x R/DD, 93.9% WR, 33 trades
+
+  strategies:
+    # ============================================================================
+    # CRV RSI SWING - 🏆 BEST! (22.03x R/R)
+    # ============================================================================
+    crv_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0        # 10% fixed position size
+      max_risk_pct: 10.0         # Fixed (no scaling)
+      max_positions: 1
+
+      # RSI parameters (EXACT from backtest)
+      rsi_low: 25                # LONG when RSI crosses above 25
+      rsi_high: 70               # SHORT when RSI crosses below 70
+
+      # Limit order parameters
+      limit_offset_pct: 1.5      # Place limit 1.5% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters (EXACT from backtest)
+      stop_atr_mult: 1.0         # Stop loss: 1.0x ATR
+      tp_atr_mult: 1.5           # Take profit: 1.5x ATR
+      max_hold_bars: 0           # No time exit (let RSI/SL/TP handle it)
+
+      # Risk settings
+      win_streak_scaling: 0.0    # No scaling - fixed 10%
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # MELANIA RSI SWING - 🥈 (21.36x R/R)
+    # ============================================================================
+    melania_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 27
+      rsi_high: 65
+
+      limit_offset_pct: 1.5
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.5
+      tp_atr_mult: 2.0
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # AIXBT RSI SWING - 🥉 (20.20x R/R)
+    # ============================================================================
+    aixbt_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 30
+      rsi_high: 65
+
+      limit_offset_pct: 1.5
+      max_wait_bars: 5
+
+      stop_atr_mult: 2.0
+      tp_atr_mult: 1.0
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # TRUMPSOL RSI SWING - (13.28x R/R)
+    # ============================================================================
+    trumpsol_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 30
+      rsi_high: 65
+
+      limit_offset_pct: 1.0
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.0
+      tp_atr_mult: 0.5
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # UNI RSI SWING - (12.38x R/R)
+    # ============================================================================
+    uni_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 27
+      rsi_high: 65
+
+      limit_offset_pct: 2.0
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.0
+      tp_atr_mult: 1.0
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # DOGE RSI SWING - (10.66x R/R)
+    # ============================================================================
+    doge_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 27
+      rsi_high: 65
+
+      limit_offset_pct: 1.0
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.5
+      tp_atr_mult: 1.0
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # XLM RSI SWING - (9.53x R/R)
+    # ============================================================================
+    xlm_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 27
+      rsi_high: 65
+
+      limit_offset_pct: 1.5
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.5
+      tp_atr_mult: 1.5
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # MOODENG RSI SWING - (8.38x R/R)
+    # ============================================================================
+    moodeng_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 27
+      rsi_high: 65
+
+      limit_offset_pct: 2.0
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.5
+      tp_atr_mult: 1.5
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # PEPE RSI SWING - (7.13x R/R)
+    # ============================================================================
+    pepe_rsi_swing:
+      enabled: true
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+      rsi_low: 27
+      rsi_high: 65
+
+      limit_offset_pct: 1.5
+      max_wait_bars: 5
+
+      stop_atr_mult: 1.0
+      tp_atr_mult: 1.0
+      max_hold_bars: 0
+
+      win_streak_scaling: 0.0
+      use_trailing_stop: false
+      use_partial_exits: false
+
+    # ============================================================================
+    # DISABLED STRATEGIES
+    # ============================================================================
+    btc_rsi_swing:
+      enabled: false
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+    eth_rsi_swing:
+      enabled: false
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+    fartcoin_atr_limit:
+      enabled: false
+      base_risk_pct: 10.0
+      max_risk_pct: 10.0
+      max_positions: 1
+
+  risk_management:
+    max_portfolio_risk: 100.0    # Allow multiple positions (10% each)
+    max_drawdown: 50.0           # Emergency stop at -50%
+    cooldown_after_loss: 0       # No cooldown
+    max_consecutive_losses: 999  # No limit
+    max_daily_loss_pct: 50.0     # Max daily loss %
+    max_position_size_pct: 50    # Allow up to 50% per position (5 concurrent)
+
+# Data Provider (not used with BingX, but required by config parser)
+data:
+  provider: bingx
+  websocket_url: ""
+  rest_api_url: ""
+  candle_interval: 1h
+  buffer_size: 300
+  max_price_change_pct: 20.0
+  min_volume_threshold: 100
+  reconnect_attempts: 5
+  reconnect_delay_seconds: 5
+  max_reconnect_delay: 60
+
+# BingX API
+bingx:
+  api_key: ${BINGX_API_KEY}        # From .env file
+  api_secret: ${BINGX_API_SECRET}  # From .env file
+
+  testnet: false                   # PRODUCTION MODE
+  base_url: "https://open-api.bingx.com"
+
+  requests_per_minute: 1200
+
+  default_leverage: 1              # NO LEVERAGE - use 1x only
+  leverage_mode: "conservative"    # Not used but required by config
+
+  fixed_position_value_usdt: 0     # DISABLED - use 10% of equity instead
+
+# Database
+database:
+  url: "sqlite:///data/trades.db"
+  echo: false
+
+# Logging
+logging:
+  level: "INFO"
+  console_output: true
+  file_output: true
+  file_path: "logs/trading.log"
+  max_size_mb: 10
+  backup_count: 5
+  json_format: false
+
+# Safety
+safety:
+  dry_run: false                  # 🔴 LIVE TRADING ENABLED!
+  stop_file: "STOP"
+  min_account_balance: 5.0        # Min $5 balance (10% = $0.50 per trade)
+  close_positions_on_shutdown: false
+
+# Notifications (optional)
+notifications:
+  enabled: false
+  resend_api_key: ""
+  to_email: "your-email@example.com"
+
+# Remote monitoring (optional)
+monitoring:
+  enabled: false
+  status_url: ""

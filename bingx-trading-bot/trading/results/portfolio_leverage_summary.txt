@@ -1,0 +1,19 @@
+PORTFOLIO WITH LEVERAGE - FINAL RESULTS
+======================================================================
+
+Starting Capital: $100.00 USDT
+Ending Equity: $170.92 USDT
+Net Profit: $70.92 USDT
+
+Total Return: 70.92%
+Max Drawdown: -1.75%
+Return/DD Ratio: 40.51x
+
+Total Signals: 817
+Filled Trades: 667 (100%)
+Win Rate: 70.8%
+Profit Factor: 3.31
+
+Method: Each trade gets current_equity / 10
+Leverage: YES (never skip trades)
+Fees: 0.07% round-trip

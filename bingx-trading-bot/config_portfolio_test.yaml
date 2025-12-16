@@ -1,0 +1,365 @@
+# Trading Engine Configuration - RSI SWING STRATEGIES
+# 10 strategies: CRV, MELANIA, AIXBT, TRUMPSOL, UNI, DOGE, XLM, MOODENG, FARTCOIN, PEPE
+# Portfolio Performance: +70.92% return, -1.75% max DD, 40.51x Return/DD ratio
+
+# Trading Configuration
+trading:
+  enabled: true  # LIVE TRADING ENABLED
+  testnet: false  # Production mode
+
+  symbols:
+    - CRV-USDT        # RSI 27/65 + 1.0% limit (22.03x R/DD) 🏆 BEST!
+    - MELANIA-USDT    # RSI 27/65 + 1.0% limit (21.36x R/DD, 77% WR!)
+    - AIXBT-USDT      # RSI 27/65 + 1.0% limit (20.20x R/DD)
+    - TRUMPSOL-USDT   # RSI 30/65 + 1.0% limit (13.28x R/DD)
+    - UNI-USDT        # RSI 30/65 + 1.0% limit (12.38x R/DD)
+    - DOGE-USDT       # RSI 27/65 + 0.1% limit (10.66x R/DD)
+    - XLM-USDT        # RSI 30/65 + 0.5% limit (9.53x R/DD)
+    - MOODENG-USDT    # RSI 30/65 + 1.0% limit (8.38x R/DD)
+    - FARTCOIN-USDT   # ATR Expansion + 1.0% limit (8.44x R/DD)
+    - 1000PEPE-USDT   # RSI 30/65 + 0.6% limit (7.13x R/DD)
+
+  strategies:
+    btc_rsi_swing:
+      enabled: false  # DISABLED - minimum position too large for account
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1           # 1 position at a time
+
+      # RSI parameters
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 0.5      # Place limit 0.5% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let RSI exit hit
+      use_partial_exits: false   # No partial exits
+      max_hold_hours: 3.0        # Max 3 hours
+
+    eth_rsi_swing:
+      enabled: false  # DISABLED - minimum position too large for account (can enable later)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters (higher exit!)
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 68               # SHORT when RSI crosses below 68 (let winners run!)
+
+      # Limit order parameters
+      limit_offset_pct: 0.6      # Place limit 0.6% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    pepe_rsi_swing:
+      enabled: true  # 7.13x R/DD, +159.56% return, -22.37% DD, 134 trades (90d)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 0.6      # Place limit 0.6% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    doge_rsi_swing:
+      enabled: true  # 10.66x R/DD, +176.48% return, -16.56% DD, 142 trades (90d)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters (lower entry!)
+      rsi_low: 27                # LONG when RSI crosses above 27 (deeper oversold!)
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters (tight!)
+      limit_offset_pct: 0.1      # Place limit 0.1% away (tight! keeps fill rate high)
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    moodeng_rsi_swing:
+      enabled: true  # 8.38x R/DD, +184.44% return, -22.01% DD, 90 trades (41d, 1h)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1.0% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    trumpsol_rsi_swing:
+      enabled: true  # 🏆 13.28x R/DD, +70.90% return, -5.34% DD, 49 trades (41d, 1h) - BEST!
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1.0% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    fartcoin_atr_limit:
+      enabled: true  # 8.44x R/DD, +101.11% return, -11.98% DD, 94 trades (32d)
+      base_risk_pct: 1.5         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 3.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # ATR expansion parameters
+      atr_expansion_mult: 1.5    # ATR > 1.5x average = volatility breakout
+      atr_lookback_bars: 20      # Lookback for ATR average
+      ema_distance_max_pct: 3.0  # Max 3% distance from EMA(20)
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1% away from signal price
+      max_wait_bars: 3           # Wait max 3 bars for limit fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss distance (2x ATR)
+      target_atr_mult: 8.0       # Take profit distance (8x ATR) = 4:1 R:R
+      max_hold_bars: 4           # Time exit after 4 bars (4 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.5
+
+    crv_rsi_swing:
+      enabled: true  # 🏆 22.03x R/DD, +125.65% return, -5.70% DD, 64 trades (41d, 1h) - BEST!
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters (lower entry for deeper oversold)
+      rsi_low: 27                # LONG when RSI crosses above 27 (deeper oversold!)
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1.0% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    melania_rsi_swing:
+      enabled: true  # 21.36x R/DD, +206.79% return, -9.68% DD, 77.0% WR!, 74 trades (41d, 1h)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 27                # LONG when RSI crosses above 27
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1.0% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    aixbt_rsi_swing:
+      enabled: true  # 20.20x R/DD, +175.14% return, -8.67% DD, 69.7% WR, 76 trades (41d, 1h)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 27                # LONG when RSI crosses above 27
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1.0% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    uni_rsi_swing:
+      enabled: true  # 12.38x R/DD, +161.86% return, -13.07% DD, 64.8% WR, 88 trades (41d, 1h)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 1.0      # Place limit 1.0% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+    xlm_rsi_swing:
+      enabled: true  # 9.53x R/DD, +138.29% return, -14.51% DD, 64.0% WR, 100 trades (41d, 1h)
+      base_risk_pct: 2.0         # IGNORED - using fixed_position_value_usdt
+      max_risk_pct: 4.0          # IGNORED - using fixed_position_value_usdt
+      max_positions: 1
+
+      # RSI parameters
+      rsi_low: 30                # LONG when RSI crosses above 30
+      rsi_high: 65               # SHORT when RSI crosses below 65
+
+      # Limit order parameters
+      limit_offset_pct: 0.5      # Place limit 0.5% away from signal
+      max_wait_bars: 5           # Wait max 5 bars for fill
+
+      # Exit parameters
+      stop_atr_mult: 2.0         # Stop loss: 2x ATR
+      max_hold_bars: 3           # Time exit: 3 bars (3 hours on 1h chart)
+
+      # Risk settings
+      win_streak_scaling: 0.5
+      use_trailing_stop: false
+      use_partial_exits: false
+      max_hold_hours: 3.0
+
+  risk_management:
+    max_portfolio_risk: 5.0     # % of account
+    max_drawdown: 35.0          # % before emergency stop
+    cooldown_after_loss: 60     # minutes
+    max_consecutive_losses: 3   # Stop after N losses
+    max_daily_loss_pct: 25.0    # Max daily loss %
+    max_position_size_pct: 40   # Max % of capital per position
+
+# BingX API
+bingx:
+  api_key: "YOUR_API_KEY_HERE"           # Get from https://bingx.com/
+  api_secret: "YOUR_API_SECRET_HERE"     # Get from https://bingx.com/
+
+  testnet: false                         # Production mode
+  base_url: "https://open-api.bingx.com" # Production URL
+
+  default_leverage: 10                   # 10x leverage for all positions
+  leverage_mode: "ISOLATED"              # ISOLATED (safer) or CROSS
+
+  fixed_position_value_usdt: 6           # Fixed $6 USDT per trade (ignores risk_pct)
+
+# Database
+database:
+  url: "sqlite:///data/trades.db"
+  echo: false
+
+# Logging
+logging:
+  level: "INFO"
+  console_output: true
+  file_output: true
+  file_path: "logs/trading.log"
+  max_size_mb: 10
+  backup_count: 5
+  json_format: false
+
+# Safety
+safety:
+  dry_run: false                         # ⚠️ FALSE = LIVE TRADING!
+  stop_file: "STOP"                      # Create this file to stop bot
+  min_account_balance: 10.0              # Min $10 USDT balance
+  close_positions_on_shutdown: false     # Keep positions open on shutdown
+
+# Notifications (optional)
+notifications:
+  enabled: false                         # Email notifications disabled by default
+  resend_api_key: ""                     # Resend.com API key (if enabled)
+  to_email: "your-email@example.com"     # Your email address
+
+# Remote monitoring (optional)
+monitoring:
+  enabled: false                         # Remote status reporting disabled by default
+  status_url: ""                         # URL to send status updates

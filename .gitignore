@@ -42,3 +42,4 @@ Thumbs.db
 # Config files with API secrets
 config.yaml
 **/config.yaml
+Nova-Style/

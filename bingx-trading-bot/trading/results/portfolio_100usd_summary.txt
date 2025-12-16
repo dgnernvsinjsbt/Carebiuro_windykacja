@@ -1,0 +1,18 @@
+PORTFOLIO SIMULATION SUMMARY
+======================================================================
+
+Starting Capital: $100.00 USDT
+Ending Equity: $218.93 USDT
+Net Profit: $118.93 USDT
+
+Total Return: 118.93%
+Max Drawdown: -3.39%
+Return/DD Ratio: 35.05x
+
+Total Trades: 671
+Win Rate: 72.0%
+Profit Factor: 3.17
+
+Leverage: 1x
+Fees: 0.07% round-trip
+Allocation: Equal-weighted across 7 coins

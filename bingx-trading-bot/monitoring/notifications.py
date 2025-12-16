@@ -518,6 +518,28 @@ class EmailNotifier:
 
         return await self._send_email(subject, html)
 
+    async def notify_bot_stopped(self, reason: str = "Manual shutdown") -> bool:
+        """Notify when bot stops"""
+        subject = "🛑 Trading Bot Stopped"
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px;">
+            <h2 style="color: #f59e0b;">🛑 Bot Stopped</h2>
+
+            <p><strong>Reason:</strong> {reason}</p>
+
+            <p style="background: #fef3c7; padding: 10px; border-left: 3px solid #f59e0b;">
+                ⚠️ Trading bot has been shut down
+            </p>
+
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            </p>
+        </div>
+        """
+
+        return await self._send_email(subject, html)
+
 
 # Global notifier instance
 _notifier: Optional[EmailNotifier] = None

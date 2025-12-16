@@ -42,38 +42,159 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
-## 🏆 ACTIVE STRATEGIES (10-Strategy Portfolio - 1H Candles)
+## 🐛 CRITICAL BUG FIXES (Dec 2025)
 
-**Portfolio Performance (All 10 Strategies Combined):**
-- **Total Return:** +70.92% (90 days)
-- **Max Drawdown:** -1.75% (extremely smooth!)
-- **Return/DD Ratio:** 40.51x 🏆 EXCEPTIONAL!
-- **Win Rate:** 70.8% (472 winners / 667 trades)
-- **Profit Factor:** 3.31
-- **Method:** Each strategy gets 10% of current equity per trade, multiple positions allowed
+**Four critical bugs were discovered and fixed on Dec 15, 2025:**
 
-| Rank | Strategy | Return/DD | Win Rate | Trades | Status |
-|------|----------|-----------|----------|--------|--------|
-| 🥇 | **CRV RSI Swing** | 22.03x | 75.8% | 91 | ✅ LIVE |
-| 🥈 | **MELANIA RSI Swing** | 21.36x | 69.4% | 98 | ✅ LIVE |
-| 🥉 | **AIXBT RSI Swing** | 20.20x | 68.2% | 110 | ✅ LIVE |
-| 4 | **TRUMPSOL RSI Swing** | 13.28x | 76.4% | 55 | ✅ LIVE |
-| 5 | **UNI RSI Swing** | 12.38x | 75.0% | 84 | ✅ LIVE |
-| 6 | **DOGE RSI Swing** | 10.66x | 42.9% | 77 | ✅ LIVE |
-| 7 | **XLM RSI Swing** | 9.53x | 67.8% | 115 | ✅ LIVE |
-| 8 | **MOODENG RSI Swing** | 8.38x | 74.6% | 118 | ✅ LIVE |
-| 9 | **FARTCOIN ATR Limit** | 8.44x | 0.0% | 4 | ✅ LIVE |
-| 10 | **PEPE RSI Swing** | 7.13x | 56.9% | 65 | ✅ LIVE |
+### Bug #1: RSI Calculation (CRITICAL - Invalidated All Previous Results)
+
+**Problem**: Bot was using Simple Moving Average (SMA) instead of Wilder's EMA for RSI calculation.
+
+**Impact**: RSI values differed by 5-20 points from BingX/TradingView. Bot showed RSI 66.87 when actual was 58.23.
+
+**Fix**: Replaced `gain.rolling(window=period).mean()` with proper Wilder's smoothing:
+- First value: SMA of first 14 periods
+- Subsequent values: `new_avg = (prev_avg * 13 + current_value) / 14`
+
+**File**: `bingx-trading-bot/data/indicators.py:40-75`
+
+**Verification**: RSI values now match BingX exactly.
+
+### Bug #2: Symbol Matching
+
+**Problem**: Strategy symbols ('1000PEPE') didn't match config symbols ('1000PEPE-USDT'), causing all strategies to be filtered out.
+
+**Impact**: No signals generated despite RSI crossovers occurring.
+
+**Fix**: Added symbol base extraction in signal_generator.py:
+```python
+symbol_base = symbol.split('-')[0]  # Extract "1000PEPE" from "1000PEPE-USDT"
+if strategy.symbol != symbol and strategy.symbol != symbol_base:
+    continue
+```
+
+**File**: `bingx-trading-bot/execution/signal_generator.py:20-23`
+
+### Bug #3: Field Name Mismatch
+
+**Problem**: Strategies return 'side' field but main.py expects 'direction', causing KeyError.
+
+**Impact**: Bot would crash when trying to access signal['direction'].
+
+**Fix**: Normalize field names in signal_generator.py:
+```python
+if 'side' in signal and 'direction' not in signal:
+    signal['direction'] = signal['side']
+```
+
+**File**: `bingx-trading-bot/execution/signal_generator.py:31-32`
+
+### Bug #4: Type Mismatch
+
+**Problem**: Strategies return type='LIMIT' but main.py checks for 'PENDING_LIMIT_REQUEST'.
+
+**Impact**: Limit orders skipped pending order flow and went to wrong execution path.
+
+**Fix**: Normalize type in signal_generator.py:
+```python
+if signal.get('type') == 'LIMIT':
+    signal['type'] = 'PENDING_LIMIT_REQUEST'
+```
+
+**File**: `bingx-trading-bot/execution/signal_generator.py:34-35`
+
+### Re-optimization Results
+
+After fixing these bugs, ALL strategies were re-optimized with corrected RSI:
+- Tested 432 parameter combinations per coin (9 coins total)
+- Parameter grid: 3 RSI_low × 3 RSI_high × 4 limit_offset × 3 SL_ATR × 4 TP_ATR
+- All 9 strategy files updated with new optimal parameters
+- Portfolio results improved significantly with proper RSI calculation
+
+**⚠️ IMPORTANT**: All results shown below use CORRECTED RSI (Wilder's EMA method).
+
+---
+
+## 🏆 ACTIVE STRATEGIES (9-Coin RSI Portfolio - OPTIMIZED)
+
+**Portfolio Performance (Sep 15 - Dec 11, 2025):**
+- **Total Return:** +24.75% (87 days)
+- **Max Drawdown:** -1.08% (extremely smooth!)
+- **Return/DD Ratio:** 23.01x 🏆 EXCEPTIONAL!
+- **Win Rate:** 76.6% (82 winners / 25 losers)
+- **Profit Factor:** 4.05x
+- **Sharpe Ratio:** 8.07 ⭐
+- **Total Trades:** 107 (1.23/day avg)
+- **Method:** Each coin gets 10% of current equity per trade, multiple positions allowed, compounding
+
+**Performance by Coin (Ranked by Total Profit):**
+
+| Rank | Coin | Profit | Trades | Win% | Avg P&L | Individual R/R | Status |
+|------|------|--------|--------|------|---------|----------------|--------|
+| 🥇 | **MELANIA-USDT** | +$79.79 | 16 | 75.0% | +$4.99 | 19.44x | ⭐ STAR |
+| 🥈 | **MOODENG-USDT** | +$74.79 | 20 | 85.0% | +$3.74 | 26.96x | ⭐ BEST R/R |
+| 🥉 | **XLM-USDT** | +$24.41 | 9 | 88.9% | +$2.71 | 22.52x | ⭐ BEST WIN% |
+| 4 | **PEPE-USDT** | +$21.72 | 12 | 83.3% | +$1.81 | 21.88x | ✅ LIVE |
+| 5 | **AIXBT-USDT** | +$17.72 | 15 | 73.3% | +$1.18 | 12.49x | ✅ LIVE |
+| 6 | **DOGE-USDT** | +$16.60 | 9 | 88.9% | +$1.84 | 17.30x | ✅ LIVE |
+| 7 | **TRUMPSOL-USDT** | +$11.48 | 12 | 91.7% | +$0.96 | 6.32x | ✅ LIVE |
+| 8 | **UNI-USDT** | +$5.83 | 2 | 50.0% | +$2.91 | 20.84x | ⚠️ LOW SAMPLE |
+| ❌ | **CRV-USDT** | -$4.82 | 12 | 33.3% | -$0.40 | 21.83x | ❌ ONLY LOSER |
+
+**Optimized Parameters (per coin):**
+- **RSI Levels:** 25-30 (low) / 65-70 (high) - varies by coin volatility
+- **Limit Offset:** 0.5-2.0% - optimized for fill rate vs better entry
+- **Stop Loss:** 1.0-2.0x ATR - adaptive to volatility
+- **Take Profit:** 0.5-2.0x ATR - optimized per coin
+- **Optimization:** 432 combinations tested per coin (3×3×4×3×4 grid)
 
 **Code Location:** `bingx-trading-bot/strategies/`
-- All RSI strategies: `{coin}_rsi_swing.py`
-- FARTCOIN ATR: `fartcoin_atr_limit.py`
+- All strategies: `{coin}_rsi_swing.py`
+- Configs: `optimal_configs_90d.csv`
 
-**Key Benefits of Portfolio Approach:**
-- Diversification smooths equity curve (winners offset losers)
-- 3 losing strategies (DOGE, FARTCOIN, PEPE) carried by 7 winners
-- Average 4 concurrent positions spreads risk
-- Individual -5% loss = only -0.5% portfolio impact
+**Key Benefits:**
+- Diversification smooths equity curve (8/9 coins profitable)
+- CRV losses (-$4.82) easily offset by winners
+- -1.08% max drawdown = extremely safe
+- 76.6% win rate = psychologically easy to trade
+- Optimization improved Return/DD by 614% (3.22x → 23.01x)
+
+### Recent Performance (Dec 8-15, 2025)
+
+**7-Day Test Period:**
+- **Total Return:** -0.95% (challenging week)
+- **Max Drawdown:** -3.23%
+- **Return/DD Ratio:** 0.29x
+- **Win Rate:** 50.0% (15W / 15L)
+- **Profit Factor:** 0.78x (losing more than winning)
+- **Total Trades:** 30 (4.3/day avg)
+- **Best Trade:** +5.93% (MOODENG SHORT on Dec 8)
+- **Worst Trade:** -6.10% (AIXBT)
+
+**Performance by Coin (Dec 8-15):**
+
+| Coin | Trades | Win% | Total P&L | Status |
+|------|--------|------|-----------|--------|
+| **DOGE-USDT** | 4 | 100.0% | +$0.60 | ✅ BEST |
+| **CRV-USDT** | 1 | 100.0% | +$0.09 | ✅ |
+| **TRUMPSOL-USDT** | 1 | 100.0% | +$0.07 | ✅ |
+| **UNI-USDT** | 4 | 25.0% | -$0.06 | ⚠️ |
+| **MOODENG-USDT** | 6 | 33.3% | -$0.28 | ⚠️ |
+| **PEPE-USDT** | 7 | 42.9% | -$0.36 | ⚠️ |
+| **AIXBT-USDT** | 7 | 42.9% | -$1.01 | ❌ WORST |
+| **MELANIA-USDT** | 0 | - | $0.00 | (No signals) |
+| **XLM-USDT** | 0 | - | $0.00 | (No signals) |
+
+**Analysis:**
+- Mixed results during a challenging market week
+- DOGE was the standout performer (100% win rate)
+- AIXBT struggled with 6 losing trades
+- MELANIA and XLM had no RSI crossovers (stable prices)
+- Overall portfolio down slightly but within acceptable drawdown limits
+
+**Data Location:**
+- `dec8_15_all_trades.csv` - All 30 trades with full details
+- `dec8_15_by_coin.csv` - Performance breakdown by coin
 
 **1-Minute Strategies (Archived):** `pippin_fresh_crosses.py`, `trumpsol_contrarian.py`
 

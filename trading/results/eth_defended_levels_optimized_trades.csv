@@ -1,2 +1,0 @@
-entry_time,entry_price,direction,exit_price,exit_reason,pnl_pct,session,hours_held,volume_ratio,cumulative,running_max,drawdown
-2025-11-18 15:02:00,3047.5,LONG,3017.025,SL,-1.0999999999999972,us,12,6.778217539446523,-1.0999999999999972,-1.0999999999999972,0.0

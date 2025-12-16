@@ -141,3 +141,7 @@ class FartcoinShortReversal(BaseStrategy):
         self.signal_bar_idx = None
         self.swing_low = None
         self.armed = False
+
+    def analyze(self, df_1min: pd.DataFrame, df_5min: Optional[pd.DataFrame] = None) -> Optional[Dict[str, Any]]:
+        """Wrapper for generate_signals to match BaseStrategy interface"""
+        return self.generate_signals(df_1min, [])

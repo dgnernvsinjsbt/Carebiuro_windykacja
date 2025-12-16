@@ -16,16 +16,30 @@ class SignalGenerator:
             if not strategy.enabled:
                 continue
             # Filter: only run strategy if it matches this symbol
-            if symbol and strategy.symbol and strategy.symbol != symbol:
-                continue
+            # Handle both 'MOODENG' and 'MOODENG-USDT' formats
+            if symbol and strategy.symbol:
+                symbol_base = symbol.split('-')[0]  # Extract base symbol (e.g., '1000PEPE' from '1000PEPE-USDT')
+                if strategy.symbol != symbol and strategy.symbol != symbol_base:
+                    continue
             signal = strategy.analyze(df_1min, df_5min)
             if signal:
                 signal['strategy'] = strategy.name
+
+                # Normalize field names for compatibility
+                # Fix #1: Convert 'side' to 'direction' (main.py expects 'direction')
+                if 'side' in signal and 'direction' not in signal:
+                    signal['direction'] = signal['side']
+
+                # Fix #2: Convert 'LIMIT' type to 'PENDING_LIMIT_REQUEST' (main.py expects this)
+                if signal.get('type') == 'LIMIT':
+                    signal['type'] = 'PENDING_LIMIT_REQUEST'
+
                 signals.append(signal)
                 # Log signal with appropriate price field
                 price = signal.get('entry_price') or signal.get('limit_price') or signal.get('signal_price', 0.0)
                 signal_type = signal.get('type', 'SIGNAL')
-                self.logger.info(f"Signal: {strategy.name} {signal['direction']} @ ${price:.6f} ({signal_type})")
+                direction = signal.get('direction', 'UNKNOWN')
+                self.logger.info(f"Signal: {strategy.name} {direction} @ ${price:.6f} ({signal_type})")
         return signals
 
     def resolve_conflicts(self, signals: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
