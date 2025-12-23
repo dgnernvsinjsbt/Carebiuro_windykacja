@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
       invoiceQuery = invoiceQuery.in('client_id', windykacjaClientIds);
     }
 
-    const { data: allInvoices, error: invoicesError } = await invoiceQuery.order('issue_date', { ascending: false });
+    const { data: allInvoices, error: invoicesError } = await invoiceQuery.order('issue_date', { ascending: true });
 
     if (invoicesError) {
       console.error('[AutoSendSequence] Error fetching invoices:', invoicesError);
