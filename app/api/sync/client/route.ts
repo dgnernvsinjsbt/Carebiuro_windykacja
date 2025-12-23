@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { supabase, invoicesDb } from '@/lib/supabase';
+import { supabaseAdmin, invoicesDb } from '@/lib/supabase';
 import { Invoice, FakturowniaInvoice } from '@/types';
 import { verifyAndCleanInvoiceHash } from '@/lib/hash-verifier';
 
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     };
     console.log(`[SyncClient] Updating client with payload:`, JSON.stringify(updatePayload));
 
-    const { data: updateData, error: clientUpdateError } = await supabase()
+    const { data: updateData, error: clientUpdateError } = await supabaseAdmin()
       .from('clients')
       .upsert({ id: client_id, ...updatePayload })
       .select();
