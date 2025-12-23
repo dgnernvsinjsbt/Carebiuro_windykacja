@@ -16,6 +16,7 @@ export async function middleware(request: NextRequest) {
     '/api/windykacja/auto-send-initial',
     '/api/windykacja/auto-send-overdue',
     '/api/windykacja/auto-send-sequence',
+    '/api/sync/client', // TEMP: for testing
   ];
 
   // Sprawdź czy ścieżka jest publiczna
