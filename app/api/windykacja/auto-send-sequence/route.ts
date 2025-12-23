@@ -172,49 +172,74 @@ export async function POST(request: NextRequest) {
     const fourteenDaysAgo = new Date(today);
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - DAYS_BETWEEN_STEPS);
 
+    // Get client IDs for windykacja clients
+    const windykacjaClientIds = clients.map(c => c.id);
+
+    // 2. Fetch ALL qualifying invoices from Supabase in ONE query (much faster than per-client Fakturownia calls)
+    console.log(`[AutoSendSequence] Fetching invoices from Supabase for ${windykacjaClientIds.length} clients...`);
+
+    const { data: allInvoices, error: invoicesError } = await supabase
+      .from('invoices')
+      .select('*')
+      .in('client_id', windykacjaClientIds)
+      .neq('status', 'paid')
+      .neq('kind', 'canceled')
+      .order('issue_date', { ascending: false });
+
+    if (invoicesError) {
+      console.error('[AutoSendSequence] Error fetching invoices:', invoicesError);
+      return NextResponse.json(
+        { success: false, error: invoicesError.message },
+        { status: 500 }
+      );
+    }
+
+    // 3. Filter qualifying invoices (has balance, STOP not set, E1 sent)
+    const qualifyingInvoices = (allInvoices || []).filter((invoice) => {
+      const balance = (invoice.total || 0) - (invoice.paid || 0);
+      if (balance <= 0) return false;
+
+      const fiscalSync = parseFiscalSync(invoice.internal_note);
+      if (fiscalSync?.STOP === true) {
+        console.log(`[AutoSendSequence] Skipping invoice ${invoice.id} - STOP enabled`);
+        return false;
+      }
+
+      // Must have E1 or S1 sent to be in sequence
+      const e1Sent = fiscalSync?.EMAIL_1 || invoice.email_status === 'sent';
+      const s1Sent = fiscalSync?.SMS_1;
+      if (!e1Sent && !s1Sent) return false;
+
+      return true;
+    });
+
+    console.log(`[AutoSendSequence] Found ${qualifyingInvoices.length} qualifying invoices (out of ${allInvoices?.length || 0} total)`);
+
+    if (qualifyingInvoices.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No qualifying invoices for sequence',
+        sent: { email: 0, sms: 0, total: 0 },
+        failed: 0,
+      });
+    }
+
+    // BATCH PROCESSING: Limit to 20 invoices per execution to avoid Vercel timeout
+    const BATCH_SIZE = 20;
+    const invoicesToProcess = qualifyingInvoices.slice(0, BATCH_SIZE);
+    const remaining = qualifyingInvoices.length - invoicesToProcess.length;
+
+    if (remaining > 0) {
+      console.log(`[AutoSendSequence] Processing first ${BATCH_SIZE} invoices, ${remaining} remaining for next run`);
+    }
+
     let totalEmailSent = 0;
     let totalSmsSent = 0;
     let totalFailed = 0;
     const results: any[] = [];
 
-    // 2. Process each client
-    for (const client of clients) {
-      console.log(`[AutoSendSequence] Processing client: ${client.name} (ID: ${client.id})`);
-
-      try {
-        const invoices = await fakturowniaApi.getInvoicesByClientId(client.id, 500);
-
-        if (!invoices || invoices.length === 0) {
-          console.log(`[AutoSendSequence] No invoices for client ${client.id}`);
-          continue;
-        }
-
-        // 3. Filter qualifying invoices (open, has balance, STOP not set)
-        // NOTE: No 30-day check here - that's only for E1/S1 in auto-send-overdue
-        const qualifyingInvoices = invoices.filter((invoice) => {
-          // Skip paid invoices
-          if (invoice.status === 'paid') return false;
-          // Skip canceled invoices
-          if (invoice.kind === 'canceled') return false;
-
-          // Skip if no unpaid balance
-          const balance = parseFloat(invoice.price_gross || '0') - parseFloat(invoice.paid || '0');
-          if (balance <= 0) return false;
-
-          // Skip if STOP flag is set
-          const fiscalSync = parseFiscalSync(invoice.internal_note);
-          if (fiscalSync?.STOP === true) {
-            console.log(`[AutoSendSequence] Skipping invoice ${invoice.id} - STOP enabled`);
-            return false;
-          }
-
-          return true;
-        });
-
-        console.log(`[AutoSendSequence] Found ${qualifyingInvoices.length} qualifying invoices for client ${client.id}`);
-
-        // 4. Check sequence for each invoice
-        for (const invoice of qualifyingInvoices) {
+    // 4. Check sequence for each invoice
+    for (const invoice of invoicesToProcess) {
           const invoiceNumber = invoice.number || `INV-${invoice.id}`;
 
           // ✅ RE-FETCH FRESH data from Supabase before checking flags
@@ -331,9 +356,10 @@ export async function POST(request: NextRequest) {
                 if (!freshInvoice.buyer_phone) {
                   console.error(`[AutoSendSequence] ✗ No phone number for invoice ${invoice.id}`);
                   totalFailed++;
+                  const clientForNoPhone = clients.find(c => c.id === invoice.client_id);
                   results.push({
-                    client_id: client.id,
-                    client_name: client.name,
+                    client_id: invoice.client_id,
+                    client_name: clientForNoPhone?.name || 'Unknown',
                     invoice_id: invoice.id,
                     invoice_number: invoiceNumber,
                     action: `${step.type.toUpperCase()}_${step.level}`,
@@ -377,9 +403,10 @@ export async function POST(request: NextRequest) {
                   'local'
                 );
 
+                const clientForSuccess = clients.find(c => c.id === invoice.client_id);
                 results.push({
-                  client_id: client.id,
-                  client_name: client.name,
+                  client_id: invoice.client_id,
+                  client_name: clientForSuccess?.name || 'Unknown',
                   invoice_id: invoice.id,
                   invoice_number: invoiceNumber,
                   action: `${step.type.toUpperCase()}_${step.level}`,
@@ -389,9 +416,10 @@ export async function POST(request: NextRequest) {
                 console.error(`[AutoSendSequence] ✗ Failed to send ${step.type.toUpperCase()}_${step.level} for invoice ${invoice.id}: ${result?.error}`);
                 totalFailed++;
 
+                const clientForFail = clients.find(c => c.id === invoice.client_id);
                 results.push({
-                  client_id: client.id,
-                  client_name: client.name,
+                  client_id: invoice.client_id,
+                  client_name: clientForFail?.name || 'Unknown',
                   invoice_id: invoice.id,
                   invoice_number: invoiceNumber,
                   action: `${step.type.toUpperCase()}_${step.level}`,
@@ -401,15 +429,16 @@ export async function POST(request: NextRequest) {
               }
 
               // Delay to avoid overwhelming APIs
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise(resolve => setTimeout(resolve, 100));
 
             } catch (error: any) {
               console.error(`[AutoSendSequence] Error sending ${step.type}_${step.level} for invoice ${invoice.id}:`, error);
               totalFailed++;
 
+              const clientForError = clients.find(c => c.id === invoice.client_id);
               results.push({
-                client_id: client.id,
-                client_name: client.name,
+                client_id: invoice.client_id,
+                client_name: clientForError?.name || 'Unknown',
                 invoice_id: invoice.id,
                 invoice_number: invoiceNumber,
                 action: `${step.type.toUpperCase()}_${step.level}`,
@@ -423,12 +452,6 @@ export async function POST(request: NextRequest) {
               break;
             }
           }
-        }
-
-      } catch (error: any) {
-        console.error(`[AutoSendSequence] Error processing client ${client.id}:`, error);
-        totalFailed++;
-      }
     }
 
     const totalSent = totalEmailSent + totalSmsSent;
@@ -437,7 +460,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Sequence check completed: ${totalSent} messages sent, ${totalFailed} failed`,
+      message: `Sequence check completed: ${totalSent} messages sent, ${totalFailed} failed${remaining > 0 ? `, ${remaining} remaining` : ''}`,
       sent: {
         email: totalEmailSent,
         sms: totalSmsSent,
@@ -445,7 +468,8 @@ export async function POST(request: NextRequest) {
       },
       failed: totalFailed,
       clients_processed: clients.length,
-      days_between_steps: DAYS_BETWEEN_STEPS,
+      invoices_processed: invoicesToProcess.length,
+      invoices_remaining: remaining,
       results,
     });
 
@@ -458,7 +482,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Vercel Cron sends GET requests
+// Vercel Cron sends GET requests by default, so we need to handle them
 export async function GET(request: NextRequest) {
   console.log('[AutoSendSequence] GET request received, forwarding to POST handler');
   return POST(request);

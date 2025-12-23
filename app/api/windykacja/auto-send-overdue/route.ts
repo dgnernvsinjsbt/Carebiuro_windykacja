@@ -112,6 +112,70 @@ export async function POST(request: NextRequest) {
     today.setHours(0, 0, 0, 0);
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoIso = thirtyDaysAgo.toISOString().split('T')[0];
+
+    // Get client IDs for windykacja clients
+    const windykacjaClientIds = clients.map(c => c.id);
+
+    // 2. Fetch ALL qualifying invoices from Supabase in ONE query (much faster than per-client Fakturownia calls)
+    console.log(`[AutoSendOverdue] Fetching invoices from Supabase for ${windykacjaClientIds.length} clients...`);
+
+    const { data: allInvoices, error: invoicesError } = await supabase
+      .from('invoices')
+      .select('*')
+      .in('client_id', windykacjaClientIds)
+      .neq('status', 'paid')
+      .neq('kind', 'canceled')
+      .neq('kind', 'vat')
+      .lte('issue_date', thirtyDaysAgoIso)
+      .order('issue_date', { ascending: false });
+
+    if (invoicesError) {
+      console.error('[AutoSendOverdue] Error fetching invoices:', invoicesError);
+      return NextResponse.json(
+        { success: false, error: invoicesError.message },
+        { status: 500 }
+      );
+    }
+
+    // Filter for unpaid balance and not STOP
+    const qualifyingInvoices = (allInvoices || []).filter((invoice) => {
+      const balance = (invoice.total || 0) - (invoice.paid || 0);
+      if (balance <= 0) return false;
+
+      const fiscalSync = parseFiscalSync(invoice.internal_note);
+      if (fiscalSync?.STOP === true) {
+        console.log(`[AutoSendOverdue] Skipping invoice ${invoice.id} - STOP enabled`);
+        return false;
+      }
+
+      // Skip if E1 and S1 already sent
+      const e1Sent = fiscalSync?.EMAIL_1 || invoice.email_status === 'sent';
+      const s1Sent = fiscalSync?.SMS_1;
+      if (e1Sent && s1Sent) return false;
+
+      return true;
+    });
+
+    console.log(`[AutoSendOverdue] Found ${qualifyingInvoices.length} qualifying invoices (out of ${allInvoices?.length || 0} total for windykacja clients)`);
+
+    if (qualifyingInvoices.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No qualifying invoices for overdue reminders',
+        sent: { email: 0, sms: 0, total: 0 },
+        failed: 0,
+      });
+    }
+
+    // BATCH PROCESSING: Limit to 20 invoices per execution to avoid Vercel timeout
+    const BATCH_SIZE = 20;
+    const invoicesToProcess = qualifyingInvoices.slice(0, BATCH_SIZE);
+    const remaining = qualifyingInvoices.length - invoicesToProcess.length;
+
+    if (remaining > 0) {
+      console.log(`[AutoSendOverdue] Processing first ${BATCH_SIZE} invoices, ${remaining} remaining for next run`);
+    }
 
     let totalEmailSent = 0;
     let totalSmsSent = 0;
@@ -130,60 +194,8 @@ export async function POST(request: NextRequest) {
       client_processing_error: 0,
     };
 
-    // 2. Process each client
-    for (const client of clients) {
-      console.log(`[AutoSendOverdue] Processing client: ${client.name} (ID: ${client.id})`);
-
-      try {
-        // Fetch client's invoices from Fakturownia (fresh data with latest comments)
-        const invoices = await fakturowniaApi.getInvoicesByClientId(client.id, 500);
-
-        if (!invoices || invoices.length === 0) {
-          console.log(`[AutoSendOverdue] No invoices for client ${client.id}`);
-          continue;
-        }
-
-        console.log(`[AutoSendOverdue] Found ${invoices.length} total invoices for client ${client.id}`);
-
-        // 3. Filter qualifying invoices (30+ days since issue_date)
-        const qualifyingInvoices = invoices.filter((invoice) => {
-          // Skip paid invoices
-          if (invoice.status === 'paid') return false;
-
-          // Skip canceled invoices
-          if (invoice.kind === 'canceled') return false;
-
-          // Skip VAT invoices - they are always paid (issued only after proforma payment)
-          if (invoice.kind === 'vat') return false;
-
-          // Skip if no unpaid balance
-          const balance = parseFloat(invoice.price_gross || '0') - parseFloat(invoice.paid || '0');
-          if (balance <= 0) return false;
-
-          // Check if invoice is 30+ days old (from issue_date)
-          if (!invoice.issue_date) return false;
-          const issueDate = new Date(invoice.issue_date);
-          issueDate.setHours(0, 0, 0, 0);
-          if (issueDate > thirtyDaysAgo) return false; // Not 30 days old yet
-
-          // Parse fiscal sync
-          const fiscalSync = parseFiscalSync(invoice.internal_note);
-
-          // Skip if STOP enabled
-          if (fiscalSync?.STOP === true) {
-            console.log(`[AutoSendOverdue] Skipping invoice ${invoice.id} - STOP enabled`);
-            return false;
-          }
-
-          return true;
-        });
-
-        console.log(`[AutoSendOverdue] Found ${qualifyingInvoices.length} qualifying invoices for client ${client.id}`);
-
-        if (qualifyingInvoices.length === 0) continue;
-
-        // 4. Send E1 + S1 for each qualifying invoice
-        for (const invoice of qualifyingInvoices) {
+    // 3. Process each qualifying invoice
+    for (const invoice of invoicesToProcess) {
           const invoiceNumber = invoice.number || `INV-${invoice.id}`;
 
           // ✅ RE-FETCH FRESH data from Supabase before checking flags
@@ -262,7 +274,7 @@ export async function POST(request: NextRequest) {
               }
 
               // Small delay to avoid overwhelming APIs
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
 
             // ============================================================
@@ -291,7 +303,6 @@ export async function POST(request: NextRequest) {
               console.error(`[AutoSendOverdue] ✗ No phone number for invoice ${invoice.id}`);
               failureBreakdown.sms_no_phone++;
               totalFailed++;
-              await new Promise(resolve => setTimeout(resolve, 500));
             } else {
               console.log(`[AutoSendOverdue] Sending S1 for invoice ${invoice.id} (${invoiceNumber})`);
 
@@ -335,12 +346,15 @@ export async function POST(request: NextRequest) {
               }
 
               // Small delay
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
 
+            // Find client info for this invoice
+            const client = clients.find(c => c.id === invoice.client_id);
+
             results.push({
-              client_id: client.id,
-              client_name: client.name,
+              client_id: invoice.client_id,
+              client_name: client?.name || 'Unknown',
               invoice_id: invoice.id,
               invoice_number: invoiceNumber,
               email_sent: emailSent,
@@ -351,21 +365,16 @@ export async function POST(request: NextRequest) {
             console.error(`[AutoSendOverdue] Error processing invoice ${invoice.id}:`, error);
             failureBreakdown.invoice_processing_error++;
             totalFailed++;
+
+            const client = clients.find(c => c.id === invoice.client_id);
             results.push({
-              client_id: client.id,
-              client_name: client.name,
+              client_id: invoice.client_id,
+              client_name: client?.name || 'Unknown',
               invoice_id: invoice.id,
               invoice_number: invoiceNumber,
               error: error.message,
             });
           }
-        }
-
-      } catch (error: any) {
-        console.error(`[AutoSendOverdue] Error processing client ${client.id}:`, error);
-        failureBreakdown.client_processing_error++;
-        totalFailed++;
-      }
     }
 
     const totalSent = totalEmailSent + totalSmsSent;
@@ -375,7 +384,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Daily windykacja completed: ${totalSent} messages sent (E1: ${totalEmailSent}, S1: ${totalSmsSent}), ${totalFailed} failed`,
+      message: `Daily windykacja completed: ${totalSent} messages sent (E1: ${totalEmailSent}, S1: ${totalSmsSent}), ${totalFailed} failed${remaining > 0 ? `, ${remaining} remaining` : ''}`,
       sent: {
         email: totalEmailSent,
         sms: totalSmsSent,
@@ -384,6 +393,8 @@ export async function POST(request: NextRequest) {
       failed: totalFailed,
       failure_breakdown: failureBreakdown,
       clients_processed: clients.length,
+      invoices_processed: invoicesToProcess.length,
+      invoices_remaining: remaining,
       results,
     });
 
