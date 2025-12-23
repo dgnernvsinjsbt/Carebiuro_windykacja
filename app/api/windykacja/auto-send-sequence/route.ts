@@ -283,9 +283,7 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          // Check each step in sequence
-          let actionTaken = false;
-
+          // Check each step in sequence (E2, S2, E3, S3)
           for (const step of SEQUENCE) {
             // ============================================================
             // RE-FETCH before EACH step to get latest flags from Supabase
@@ -400,7 +398,6 @@ export async function POST(request: NextRequest) {
                 } else {
                   totalSmsSent++;
                 }
-                actionTaken = true;
 
                 // Update Fiscal Sync immediately
                 const currentDate = new Date().toISOString();
@@ -418,6 +415,19 @@ export async function POST(request: NextRequest) {
                   `Sent ${step.type.toUpperCase()} reminder (level ${step.level})`,
                   'local'
                 );
+
+                // Log to message history
+                try {
+                  const historyEntry = prepareMessageHistoryEntry(
+                    freshInvoice,
+                    step.type,
+                    parseInt(step.level),
+                    { sent_by: 'auto', is_auto_sequence: true }
+                  );
+                  await messageHistoryDb.logMessage(historyEntry);
+                } catch (historyErr) {
+                  console.error(`[AutoSendSequence] Failed to log ${step.check} to history:`, historyErr);
+                }
 
                 const clientForSuccess = clients.find(c => c.id === invoice.client_id);
                 results.push({
@@ -461,11 +471,6 @@ export async function POST(request: NextRequest) {
                 success: false,
                 error: error.message,
               });
-            }
-
-            // Only one action per invoice per day
-            if (actionTaken) {
-              break;
             }
           }
     }
