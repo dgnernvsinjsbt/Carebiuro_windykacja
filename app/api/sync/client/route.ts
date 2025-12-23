@@ -62,8 +62,7 @@ export async function POST(request: NextRequest) {
 
     const { data: updateData, error: clientUpdateError } = await supabase()
       .from('clients')
-      .update(updatePayload)
-      .eq('id', client_id)
+      .upsert({ id: client_id, ...updatePayload })
       .select();
 
     if (clientUpdateError) {
