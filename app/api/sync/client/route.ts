@@ -159,6 +159,13 @@ export async function POST(request: NextRequest) {
     revalidatePath('/'); // Home page
     revalidatePath(`/client/${client_id}`); // Client detail page
 
+    // VERIFY: Query the client from DB to confirm save worked
+    const { data: verifyClient, error: verifyError } = await supabaseAdmin()
+      .from('clients')
+      .select('id, name, phone, email')
+      .eq('id', client_id)
+      .single();
+
     return NextResponse.json({
       success: true,
       data: {
@@ -166,6 +173,8 @@ export async function POST(request: NextRequest) {
         synced_invoices: invoicesToSync.length,
         client_phone_from_api: clientPhone,
         client_name: clientData.name,
+        // Verification data - what's actually in the database now
+        db_verification: verifyError ? { error: verifyError.message } : verifyClient,
       },
     });
   } catch (error: any) {
