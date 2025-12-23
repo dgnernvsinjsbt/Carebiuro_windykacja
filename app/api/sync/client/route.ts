@@ -165,6 +165,8 @@ export async function POST(request: NextRequest) {
       data: {
         client_id,
         synced_invoices: invoicesToSync.length,
+        client_phone_from_api: clientPhone,
+        client_name: clientData.name,
       },
     });
   } catch (error: any) {
