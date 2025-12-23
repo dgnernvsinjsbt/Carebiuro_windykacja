@@ -80,6 +80,14 @@ jobs:
             -H "Content-Type: application/json" \
             --max-time 300
 
+      - name: Fix EMAIL_1 for Fakturownia-sent invoices
+        run: |
+          echo "Fixing EMAIL_1 flags for invoices sent by Fakturownia..."
+          curl -X POST "${{ secrets.VERCEL_URL }}/api/sync/fix-email-status" \
+            -H "Content-Type: application/json" \
+            -H "x-github-action: true" \
+            --max-time 300
+
       - name: Log Completion
         if: always()
         run: |
