@@ -37,6 +37,9 @@ export async function POST(request: NextRequest) {
     console.log(`[SyncClient] Client data:`, {
       id: clientData.id,
       name: clientData.name,
+      phone: clientData.phone,
+      mobile_phone: clientData.mobile_phone,
+      email: clientData.email,
       hasNote: !!clientData.note,
       notePreview: clientData.note?.substring(0, 100),
     });
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
     // STEP 2: Update client in Supabase
     // Use phone OR mobile_phone (whichever is available)
     const clientPhone = clientData.phone || clientData.mobile_phone || null;
-    console.log(`[SyncClient] Updating client in Supabase... (phone: ${clientPhone})`);
+    console.log(`[SyncClient] Phone resolution: phone="${clientData.phone}" mobile_phone="${clientData.mobile_phone}" => using "${clientPhone}"`);
     const { error: clientUpdateError } = await supabase()
       .from('clients')
       .update({
