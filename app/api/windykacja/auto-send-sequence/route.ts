@@ -130,7 +130,16 @@ async function fetchAllClients(supabase: any) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[AutoSendSequence] Starting 14-day sequence check...');
+    // TEST MODE: Filter to specific invoice if test_invoice_id is provided
+    const url = new URL(request.url);
+    const testInvoiceId = url.searchParams.get('test_invoice_id');
+    const isTestMode = !!testInvoiceId;
+
+    if (isTestMode) {
+      console.log(`[AutoSendSequence] 🧪 TEST MODE: Processing only invoice ${testInvoiceId}`);
+    } else {
+      console.log('[AutoSendSequence] Starting 14-day sequence check...');
+    }
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -175,16 +184,23 @@ export async function POST(request: NextRequest) {
     // Get client IDs for windykacja clients
     const windykacjaClientIds = clients.map(c => c.id);
 
-    // 2. Fetch ALL qualifying invoices from Supabase in ONE query (much faster than per-client Fakturownia calls)
-    console.log(`[AutoSendSequence] Fetching invoices from Supabase for ${windykacjaClientIds.length} clients...`);
-
-    const { data: allInvoices, error: invoicesError } = await supabase
+    // 2. Fetch qualifying invoices from Supabase
+    let invoiceQuery = supabase
       .from('invoices')
       .select('*')
-      .in('client_id', windykacjaClientIds)
       .neq('status', 'paid')
-      .neq('kind', 'canceled')
-      .order('issue_date', { ascending: false });
+      .neq('kind', 'canceled');
+
+    // TEST MODE: Filter to specific invoice
+    if (isTestMode) {
+      console.log(`[AutoSendSequence] 🧪 Fetching only invoice ${testInvoiceId}...`);
+      invoiceQuery = invoiceQuery.eq('id', parseInt(testInvoiceId));
+    } else {
+      console.log(`[AutoSendSequence] Fetching invoices from Supabase for ${windykacjaClientIds.length} clients...`);
+      invoiceQuery = invoiceQuery.in('client_id', windykacjaClientIds);
+    }
+
+    const { data: allInvoices, error: invoicesError } = await invoiceQuery.order('issue_date', { ascending: false });
 
     if (invoicesError) {
       console.error('[AutoSendSequence] Error fetching invoices:', invoicesError);
@@ -460,14 +476,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Sequence check completed: ${totalSent} messages sent, ${totalFailed} failed${remaining > 0 ? `, ${remaining} remaining` : ''}`,
+      test_mode: isTestMode,
+      test_invoice_id: testInvoiceId ? parseInt(testInvoiceId) : null,
+      message: `${isTestMode ? '🧪 TEST: ' : ''}Sequence check completed: ${totalSent} messages sent, ${totalFailed} failed${remaining > 0 ? `, ${remaining} remaining` : ''}`,
       sent: {
         email: totalEmailSent,
         sms: totalSmsSent,
         total: totalSent,
       },
       failed: totalFailed,
-      clients_processed: clients.length,
+      clients_processed: isTestMode ? 1 : clients.length,
       invoices_processed: invoicesToProcess.length,
       invoices_remaining: remaining,
       results,
