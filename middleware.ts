@@ -17,6 +17,8 @@ export async function middleware(request: NextRequest) {
     '/api/windykacja/auto-send-overdue',
     '/api/windykacja/auto-send-sequence',
     '/api/sync/client', // TEMP: for testing
+    '/api/sync/addresses', // Address sync endpoint
+    '/api/client', // TEMP: for testing phone sync
   ];
 
   // Sprawdź czy ścieżka jest publiczna
