@@ -6,507 +6,322 @@ import { createClient } from '@supabase/supabase-js';
 import { sendEmailReminder } from '@/lib/mailgun';
 import { sendSmsReminder } from '@/lib/sms';
 import { invoicesDb, commentsDb, messageHistoryDb, prepareMessageHistoryEntry } from '@/lib/supabase';
-import type { FiscalSyncData } from '@/types';
 
 /**
- * Auto-send sequence: E2, E3, S2, S3 based on 14-day intervals
+ * Auto-send sequence: E1→E2→E3 and S1→S2→S3
  *
- * Runs daily at 7:30 AM via Vercel cron (after auto-send-overdue at 7:15)
+ * Dwa OSOBNE tory (email i SMS nie wpływają na siebie):
  *
- * Two parallel tracks (emails and SMS have same logic):
- * - Day 0:  E1 + S1 sent (by auto-send-overdue)
- * - Day 14: E2 + S2 automatically sent
- * - Day 28: E3 + S3 automatically sent
+ * TOR EMAIL:
+ * - E1 nie wysłany? → wyślij E1
+ * - E1 wysłany > 14 dni temu AND E2 nie wysłany? → wyślij E2
+ * - E2 wysłany > 14 dni temu AND E3 nie wysłany? → wyślij E3
  *
- * E2/E3/S2/S3 only check:
- * 1. Is windykacja enabled on client? (checked in client filter)
- * 2. Was previous step (E1/E2/S1/S2) sent 14+ days ago?
- * 3. Is invoice open (not paid, not canceled, has balance)?
- * 4. Is STOP flag false?
+ * TOR SMS:
+ * - S1 nie wysłany? → wyślij S1
+ * - S1 wysłany > 14 dni temu AND S2 nie wysłany? → wyślij S2
+ * - S2 wysłany > 14 dni temu AND S3 nie wysłany? → wyślij S3
  *
- * NOTE: The 30-day issue_date check is ONLY for E1/S1 (auto-send-overdue).
- * Once E1/S1 is sent, the sequence continues based on 14-day intervals only.
+ * WARUNKI BLOKUJĄCE:
+ * - Faktura zapłacona → nie wysyłaj
+ * - Faktura anulowana → nie wysyłaj
+ * - STOP=true → nie wysyłaj
  */
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const DAYS_BETWEEN_STEPS = 14;
 
-interface SequenceStep {
-  check: keyof Omit<FiscalSyncData, 'UPDATED'>;       // Field to check if already sent (e.g., 'EMAIL_2')
-  dateField: keyof FiscalSyncData;   // Previous step's date field (e.g., 'EMAIL_1_DATE')
-  type: 'email' | 'sms';
-  level: string;
-  prevCheck?: keyof Omit<FiscalSyncData, 'UPDATED'>;  // Previous step that must be completed
+// Helper: czy minęło X dni od daty?
+function daysSince(date: Date | null): number {
+  if (!date) return -1;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diff = now.getTime() - date.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
-// Sequence definition - Two parallel tracks:
-// Email track: E1 → E2 → E3 (14 days apart)
-// SMS track: S1 → S2 → S3 (14 days apart)
-// E1 + S1 are sent by auto-send-overdue on day 0
-const SEQUENCE: SequenceStep[] = [
-  {
-    check: 'EMAIL_2',
-    dateField: 'EMAIL_1_DATE',
-    type: 'email',
-    level: '2',
-    prevCheck: 'EMAIL_1'
-  },
-  {
-    check: 'EMAIL_3',
-    dateField: 'EMAIL_2_DATE',
-    type: 'email',
-    level: '3',
-    prevCheck: 'EMAIL_2'
-  },
-  {
-    check: 'SMS_2',
-    dateField: 'SMS_1_DATE',
-    type: 'sms',
-    level: '2',
-    prevCheck: 'SMS_1'
-  },
-  {
-    check: 'SMS_3',
-    dateField: 'SMS_2_DATE',
-    type: 'sms',
-    level: '3',
-    prevCheck: 'SMS_2'
-  },
-];
+// Helper: pobierz datę z fiscal sync
+function getDate(fiscalSync: any, field: string): Date | null {
+  const val = fiscalSync?.[field];
+  if (!val || val === 'NULL') return null;
+  return new Date(val);
+}
 
+// Helper: pobierz datę E1 (z Fakturowni lub naszego systemu)
 function getE1Date(invoice: any, fiscalSync: any): Date | null {
-  // Priority: Fakturownia's sent_time first (actual email sent date)
-  // Then our system's EMAIL_1_DATE (may be later if we just marked it)
-
-  // Check if email was sent by Fakturownia (email_status = 'sent')
+  // Najpierw Fakturownia (email_status=sent + sent_time)
   if (invoice.email_status === 'sent' && invoice.sent_time) {
     return new Date(invoice.sent_time);
   }
-
-  // Fallback: Check if E1 was sent by our system
-  if (fiscalSync?.EMAIL_1 && fiscalSync?.EMAIL_1_DATE && fiscalSync.EMAIL_1_DATE !== 'NULL') {
-    return new Date(fiscalSync.EMAIL_1_DATE);
-  }
-
-  return null;
-}
-
-function getDateFromFiscalSync(fiscalSync: any, dateField: string): Date | null {
-  const dateValue = fiscalSync?.[dateField];
-  if (!dateValue || dateValue === 'NULL') return null;
-  return new Date(dateValue);
-}
-
-// Fetch all clients using pagination (Supabase has 1000 row limit per query)
-async function fetchAllClients(supabase: any) {
-  const allClients: any[] = [];
-  const pageSize = 1000;
-  let offset = 0;
-  let hasMore = true;
-
-  while (hasMore) {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('id, name, note')
-      .range(offset, offset + pageSize - 1)
-      .order('id', { ascending: true });
-
-    if (error) throw error;
-
-    if (data && data.length > 0) {
-      allClients.push(...data);
-      offset += pageSize;
-      hasMore = data.length === pageSize;
-    } else {
-      hasMore = false;
-    }
-  }
-
-  return allClients;
+  // Potem nasz system
+  return getDate(fiscalSync, 'EMAIL_1_DATE');
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // TEST MODE: Filter to specific invoice if test_invoice_id is provided
+    // TEST MODE
     const url = new URL(request.url);
     const testInvoiceId = url.searchParams.get('test_invoice_id');
     const isTestMode = !!testInvoiceId;
 
-    if (isTestMode) {
-      console.log(`[AutoSendSequence] 🧪 TEST MODE: Processing only invoice ${testInvoiceId}`);
-    } else {
-      console.log('[AutoSendSequence] Starting 14-day sequence check...');
-    }
+    console.log(isTestMode
+      ? `[AutoSendSequence] 🧪 TEST MODE: invoice ${testInvoiceId}`
+      : '[AutoSendSequence] Starting...');
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // 1. Get all clients using pagination (Supabase has 1000 row limit)
-    let allClients: any[];
-    try {
-      allClients = await fetchAllClients(supabase);
-    } catch (error: any) {
-      console.error('[AutoSendSequence] Error fetching clients:', error);
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
+    // 1. Pobierz klientów z windykacja=true
+    const { data: allClients, error: clientsError } = await supabase
+      .from('clients')
+      .select('id, name, note');
 
-    const clients = allClients.filter(client => {
-      const flags = parseClientFlags(client.note);
+    if (clientsError) throw clientsError;
+
+    const windykacjaClients = (allClients || []).filter(c => {
+      const flags = parseClientFlags(c.note);
       return flags.windykacja === true;
     });
 
-    if (clients.length === 0) {
-      console.log('[AutoSendSequence] No clients with windykacja enabled');
+    const windykacjaClientIds = windykacjaClients.map(c => c.id);
+    console.log(`[AutoSendSequence] Klienci z windykacja=true: ${windykacjaClientIds.length}`);
+
+    if (windykacjaClientIds.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'No clients with windykacja enabled',
-        sent: { email: 0, sms: 0, total: 0 },
+        message: 'Brak klientów z windykacja=true',
+        sent: { email: 0, sms: 0 },
         failed: 0,
       });
     }
 
-    console.log(`[AutoSendSequence] Found ${clients.length} clients with windykacja enabled (out of ${allClients.length} total)`);
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const fourteenDaysAgo = new Date(today);
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - DAYS_BETWEEN_STEPS);
-
-    // Get client IDs for windykacja clients
-    const windykacjaClientIds = clients.map(c => c.id);
-
-    // 2. Fetch qualifying invoices from Supabase
+    // 2. Pobierz faktury tych klientów
     let invoiceQuery = supabase
       .from('invoices')
       .select('*')
       .neq('status', 'paid')
       .neq('kind', 'canceled');
 
-    // TEST MODE: Filter to specific invoice
     if (isTestMode) {
-      console.log(`[AutoSendSequence] 🧪 Fetching only invoice ${testInvoiceId}...`);
       invoiceQuery = invoiceQuery.eq('id', parseInt(testInvoiceId));
     } else {
-      console.log(`[AutoSendSequence] Fetching invoices from Supabase for ${windykacjaClientIds.length} clients...`);
       invoiceQuery = invoiceQuery.in('client_id', windykacjaClientIds);
     }
 
-    const { data: allInvoices, error: invoicesError } = await invoiceQuery.order('issue_date', { ascending: true });
+    const { data: invoices, error: invoicesError } = await invoiceQuery;
+    if (invoicesError) throw invoicesError;
 
-    if (invoicesError) {
-      console.error('[AutoSendSequence] Error fetching invoices:', invoicesError);
-      return NextResponse.json(
-        { success: false, error: invoicesError.message },
-        { status: 500 }
-      );
-    }
+    console.log(`[AutoSendSequence] Faktur do sprawdzenia: ${invoices?.length || 0}`);
 
-    // 3. Filter qualifying invoices (has balance, STOP not set, E1 sent)
-    const qualifyingInvoices = (allInvoices || []).filter((invoice) => {
+    let emailsSent = 0;
+    let smsSent = 0;
+    let failed = 0;
+    const results: any[] = [];
+
+    // 3. Dla KAŻDEJ faktury sprawdź DWA OSOBNE TORY
+    for (const invoice of invoices || []) {
       const balance = (invoice.total || 0) - (invoice.paid || 0);
-      if (balance <= 0) return false;
+      if (balance <= 0) continue; // zapłacona
 
       const fiscalSync = parseFiscalSync(invoice.internal_note);
       if (fiscalSync?.STOP === true) {
-        console.log(`[AutoSendSequence] Skipping invoice ${invoice.id} - STOP enabled`);
-        return false;
+        console.log(`[AutoSendSequence] ${invoice.number} - STOP, pomijam`);
+        continue;
       }
 
-      // Must have E1 or S1 sent to be in sequence
-      const e1Sent = fiscalSync?.EMAIL_1 || invoice.email_status === 'sent';
-      const s1Sent = fiscalSync?.SMS_1;
-      if (!e1Sent && !s1Sent) return false;
+      const client = windykacjaClients.find(c => c.id === invoice.client_id);
 
-      return true;
-    });
+      // ========== TOR EMAIL ==========
+      const e1Sent = fiscalSync?.EMAIL_1 === true || invoice.email_status === 'sent';
+      const e2Sent = fiscalSync?.EMAIL_2 === true;
+      const e3Sent = fiscalSync?.EMAIL_3 === true;
+      const e1Date = getE1Date(invoice, fiscalSync);
+      const e2Date = getDate(fiscalSync, 'EMAIL_2_DATE');
 
-    console.log(`[AutoSendSequence] Found ${qualifyingInvoices.length} qualifying invoices (out of ${allInvoices?.length || 0} total)`);
+      let emailToSend: 1 | 2 | 3 | null = null;
 
-    if (qualifyingInvoices.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No qualifying invoices for sequence',
-        sent: { email: 0, sms: 0, total: 0 },
-        failed: 0,
-      });
-    }
+      if (!e1Sent) {
+        emailToSend = 1;
+      } else if (!e2Sent && daysSince(e1Date) >= DAYS_BETWEEN_STEPS) {
+        emailToSend = 2;
+      } else if (!e3Sent && daysSince(e2Date) >= DAYS_BETWEEN_STEPS) {
+        emailToSend = 3;
+      }
 
-    // BATCH PROCESSING: Limit to 20 invoices per execution to avoid Vercel timeout
-    const BATCH_SIZE = 20;
-    const invoicesToProcess = qualifyingInvoices.slice(0, BATCH_SIZE);
-    const remaining = qualifyingInvoices.length - invoicesToProcess.length;
+      if (emailToSend) {
+        console.log(`[AutoSendSequence] ${invoice.number} - wysyłam E${emailToSend}`);
 
-    if (remaining > 0) {
-      console.log(`[AutoSendSequence] Processing first ${BATCH_SIZE} invoices, ${remaining} remaining for next run`);
-    }
+        try {
+          const emailData = {
+            nazwa_klienta: invoice.buyer_name || 'Klient',
+            numer_faktury: invoice.number || `#${invoice.id}`,
+            kwota: balance.toFixed(2),
+            waluta: invoice.currency || 'EUR',
+            termin: invoice.payment_to
+              ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+              : 'brak',
+          };
 
-    let totalEmailSent = 0;
-    let totalSmsSent = 0;
-    let totalFailed = 0;
-    const results: any[] = [];
+          const templateId = `EMAIL_${emailToSend}` as 'EMAIL_1' | 'EMAIL_2' | 'EMAIL_3';
+          const result = await sendEmailReminder(
+            templateId,
+            invoice.buyer_email || 'brak@email.com',
+            emailData,
+            invoice.id
+          );
 
-    // 4. Check sequence for each invoice
-    for (const invoice of invoicesToProcess) {
-          const invoiceNumber = invoice.number || `INV-${invoice.id}`;
+          if (result.success) {
+            emailsSent++;
 
-          // ✅ RE-FETCH FRESH data from Supabase before checking flags
-          console.log(`[AutoSendSequence] Re-fetching invoice ${invoice.id} from Supabase for fresh flags...`);
-          let freshInvoice;
+            // Aktualizuj flagi
+            const flagName = `EMAIL_${emailToSend}` as 'EMAIL_1' | 'EMAIL_2' | 'EMAIL_3';
+            const updatedNote = updateFiscalSync(invoice.internal_note, flagName, true, new Date().toISOString());
+            await fakturowniaApi.updateInvoiceComment(invoice.id, updatedNote);
+            await invoicesDb.updateComment(invoice.id, updatedNote);
+            await commentsDb.logAction(invoice.id, `Sent EMAIL reminder (level ${emailToSend})`, 'local');
+
+            try {
+              const historyEntry = prepareMessageHistoryEntry(invoice, 'email', emailToSend, { sent_by: 'auto' });
+              await messageHistoryDb.logMessage(historyEntry);
+            } catch (e) { /* ignore history errors */ }
+
+            results.push({
+              invoice_id: invoice.id,
+              invoice_number: invoice.number,
+              client_name: client?.name,
+              action: `EMAIL_${emailToSend}`,
+              success: true,
+            });
+          } else {
+            failed++;
+            results.push({
+              invoice_id: invoice.id,
+              invoice_number: invoice.number,
+              client_name: client?.name,
+              action: `EMAIL_${emailToSend}`,
+              success: false,
+              error: result.error,
+            });
+          }
+        } catch (err: any) {
+          failed++;
+          console.error(`[AutoSendSequence] Błąd E${emailToSend} dla ${invoice.number}:`, err.message);
+        }
+      }
+
+      // ========== TOR SMS ==========
+      const s1Sent = fiscalSync?.SMS_1 === true;
+      const s2Sent = fiscalSync?.SMS_2 === true;
+      const s3Sent = fiscalSync?.SMS_3 === true;
+      const s1Date = getDate(fiscalSync, 'SMS_1_DATE');
+      const s2Date = getDate(fiscalSync, 'SMS_2_DATE');
+
+      let smsToSend: 1 | 2 | 3 | null = null;
+
+      if (!s1Sent) {
+        smsToSend = 1;
+      } else if (!s2Sent && daysSince(s1Date) >= DAYS_BETWEEN_STEPS) {
+        smsToSend = 2;
+      } else if (!s3Sent && daysSince(s2Date) >= DAYS_BETWEEN_STEPS) {
+        smsToSend = 3;
+      }
+
+      if (smsToSend) {
+        if (!invoice.buyer_phone) {
+          console.log(`[AutoSendSequence] ${invoice.number} - brak telefonu, S${smsToSend} pominięty`);
+          failed++;
+          results.push({
+            invoice_id: invoice.id,
+            invoice_number: invoice.number,
+            client_name: client?.name,
+            action: `SMS_${smsToSend}`,
+            success: false,
+            error: 'Brak numeru telefonu',
+          });
+        } else {
+          console.log(`[AutoSendSequence] ${invoice.number} - wysyłam S${smsToSend}`);
+
           try {
-            freshInvoice = await invoicesDb.getById(invoice.id);
-            if (!freshInvoice) {
-              console.error(`[AutoSendSequence] Invoice ${invoice.id} not found in Supabase, skipping`);
-              continue;
-            }
-          } catch (err) {
-            console.error(`[AutoSendSequence] Failed to re-fetch invoice ${invoice.id}, skipping:`, err);
-            continue;
-          }
+            const smsData = {
+              nazwa_klienta: invoice.buyer_name || 'Klient',
+              numer_faktury: invoice.number || `#${invoice.id}`,
+              kwota: balance.toFixed(2),
+              waluta: invoice.currency || 'EUR',
+              termin: invoice.payment_to
+                ? new Date(invoice.payment_to).toLocaleDateString('pl-PL')
+                : 'brak',
+            };
 
-          let fiscalSync = parseFiscalSync(freshInvoice.internal_note);
+            const templateKey = `REMINDER_${smsToSend}` as 'REMINDER_1' | 'REMINDER_2' | 'REMINDER_3';
+            const result = await sendSmsReminder(templateKey, invoice.buyer_phone, smsData);
 
-          // Get E1 date (from our system or Fakturownia)
-          const e1Date = getE1Date(freshInvoice, fiscalSync);
+            if (result.success) {
+              smsSent++;
 
-          if (!e1Date) {
-            // E1 not sent yet - skip (auto-send-overdue handles E1)
-            console.log(`[AutoSendSequence] Invoice ${invoice.id} - E1 not sent yet, skipping`);
-            continue;
-          }
+              // Aktualizuj flagi
+              const flagName = `SMS_${smsToSend}` as 'SMS_1' | 'SMS_2' | 'SMS_3';
+              const updatedNote = updateFiscalSync(invoice.internal_note, flagName, true, new Date().toISOString());
+              await fakturowniaApi.updateInvoiceComment(invoice.id, updatedNote);
+              await invoicesDb.updateComment(invoice.id, updatedNote);
+              await commentsDb.logAction(invoice.id, `Sent SMS reminder (level ${smsToSend})`, 'local');
 
-          // Check each step in sequence (E2, S2, E3, S3)
-          for (const step of SEQUENCE) {
-            // ============================================================
-            // RE-FETCH before EACH step to get latest flags from Supabase
-            // ============================================================
-            console.log(`[AutoSendSequence] Re-fetching invoice ${invoice.id} for ${step.check} check...`);
-            try {
-              freshInvoice = await invoicesDb.getById(invoice.id);
-              if (!freshInvoice) {
-                console.error(`[AutoSendSequence] Invoice ${invoice.id} not found in Supabase for ${step.check} check`);
-                break;
-              }
-            } catch (err) {
-              console.error(`[AutoSendSequence] Failed to re-fetch invoice ${invoice.id} for ${step.check} check:`, err);
-              break;
-            }
+              try {
+                const historyEntry = prepareMessageHistoryEntry(invoice, 'sms', smsToSend, { sent_by: 'auto' });
+                await messageHistoryDb.logMessage(historyEntry);
+              } catch (e) { /* ignore history errors */ }
 
-            fiscalSync = parseFiscalSync(freshInvoice.internal_note);
-
-            // Skip if this step already done
-            if (fiscalSync?.[step.check] === true) {
-              continue;
-            }
-
-            // Check if previous step is done
-            if (step.prevCheck && fiscalSync?.[step.prevCheck] !== true) {
-              // For EMAIL_2, we also accept Fakturownia's email_status=sent as E1
-              if (step.check === 'EMAIL_2') {
-                if (freshInvoice.email_status !== 'sent') {
-                  continue;
-                }
-              } else {
-                continue;
-              }
-            }
-
-            // Get the date of the previous action
-            let prevDate: Date | null = null;
-
-            if (step.dateField === 'EMAIL_1_DATE') {
-              prevDate = e1Date; // Use E1 date (from our system or Fakturownia)
-            } else {
-              prevDate = getDateFromFiscalSync(fiscalSync, step.dateField);
-            }
-
-            if (!prevDate) {
-              console.log(`[AutoSendSequence] Invoice ${invoice.id} - No date for ${step.dateField}, skipping ${step.check}`);
-              continue;
-            }
-
-            // Check if 14 days have passed
-            if (prevDate > fourteenDaysAgo) {
-              const daysAgo = Math.floor((today.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
-              console.log(`[AutoSendSequence] Invoice ${invoice.id} - ${step.dateField} was ${daysAgo} days ago (need ${DAYS_BETWEEN_STEPS}), skipping ${step.check}`);
-              continue;
-            }
-
-            // Ready to send this step!
-            console.log(`[AutoSendSequence] Sending ${step.type.toUpperCase()}_${step.level} for invoice ${invoice.id} (${invoiceNumber})`);
-
-            try {
-              // Prepare message data
-              const messageData = {
-                nazwa_klienta: freshInvoice.buyer_name || 'Klient',
-                numer_faktury: freshInvoice.number || `#${freshInvoice.id}`,
-                kwota: ((freshInvoice.total || 0) - (freshInvoice.paid || 0)).toFixed(2),
-                waluta: freshInvoice.currency || 'EUR',
-                termin: freshInvoice.payment_to
-                  ? new Date(freshInvoice.payment_to).toLocaleDateString('pl-PL')
-                  : 'brak',
-              };
-
-              let result;
-
-              // Send email or SMS directly
-              if (step.type === 'email') {
-                const templateId = `EMAIL_${step.level}` as 'EMAIL_1' | 'EMAIL_2' | 'EMAIL_3';
-                result = await sendEmailReminder(
-                  templateId,
-                  freshInvoice.buyer_email || 'brak@email.com',
-                  messageData,
-                  freshInvoice.id
-                );
-              } else if (step.type === 'sms') {
-                if (!freshInvoice.buyer_phone) {
-                  console.error(`[AutoSendSequence] ✗ No phone number for invoice ${invoice.id}`);
-                  totalFailed++;
-                  const clientForNoPhone = clients.find(c => c.id === invoice.client_id);
-                  results.push({
-                    client_id: invoice.client_id,
-                    client_name: clientForNoPhone?.name || 'Unknown',
-                    invoice_id: invoice.id,
-                    invoice_number: invoiceNumber,
-                    action: `${step.type.toUpperCase()}_${step.level}`,
-                    success: false,
-                    error: 'Brak numeru telefonu',
-                  });
-                  continue;
-                }
-
-                const templateKey = `REMINDER_${step.level}` as 'REMINDER_1' | 'REMINDER_2' | 'REMINDER_3';
-                result = await sendSmsReminder(
-                  templateKey,
-                  freshInvoice.buyer_phone,
-                  messageData
-                );
-              }
-
-              if (result && result.success) {
-                console.log(`[AutoSendSequence] ✓ ${step.type.toUpperCase()}_${step.level} sent for invoice ${invoice.id}`);
-                if (step.type === 'email') {
-                  totalEmailSent++;
-                } else {
-                  totalSmsSent++;
-                }
-
-                // Update Fiscal Sync immediately
-                const currentDate = new Date().toISOString();
-                const updatedInternalNote = updateFiscalSync(
-                  freshInvoice.internal_note,
-                  step.check,
-                  true,
-                  currentDate
-                );
-
-                await fakturowniaApi.updateInvoiceComment(invoice.id, updatedInternalNote);
-                await invoicesDb.updateComment(invoice.id, updatedInternalNote);
-                await commentsDb.logAction(
-                  invoice.id,
-                  `Sent ${step.type.toUpperCase()} reminder (level ${step.level})`,
-                  'local'
-                );
-
-                // Log to message history
-                try {
-                  const historyEntry = prepareMessageHistoryEntry(
-                    freshInvoice,
-                    step.type,
-                    parseInt(step.level),
-                    { sent_by: 'auto', is_auto_sequence: true }
-                  );
-                  await messageHistoryDb.logMessage(historyEntry);
-                } catch (historyErr) {
-                  console.error(`[AutoSendSequence] Failed to log ${step.check} to history:`, historyErr);
-                }
-
-                const clientForSuccess = clients.find(c => c.id === invoice.client_id);
-                results.push({
-                  client_id: invoice.client_id,
-                  client_name: clientForSuccess?.name || 'Unknown',
-                  invoice_id: invoice.id,
-                  invoice_number: invoiceNumber,
-                  action: `${step.type.toUpperCase()}_${step.level}`,
-                  success: true,
-                });
-              } else {
-                console.error(`[AutoSendSequence] ✗ Failed to send ${step.type.toUpperCase()}_${step.level} for invoice ${invoice.id}: ${result?.error}`);
-                totalFailed++;
-
-                const clientForFail = clients.find(c => c.id === invoice.client_id);
-                results.push({
-                  client_id: invoice.client_id,
-                  client_name: clientForFail?.name || 'Unknown',
-                  invoice_id: invoice.id,
-                  invoice_number: invoiceNumber,
-                  action: `${step.type.toUpperCase()}_${step.level}`,
-                  success: false,
-                  error: result?.error,
-                });
-              }
-
-              // Delay to avoid overwhelming APIs
-              await new Promise(resolve => setTimeout(resolve, 100));
-
-            } catch (error: any) {
-              console.error(`[AutoSendSequence] Error sending ${step.type}_${step.level} for invoice ${invoice.id}:`, error);
-              totalFailed++;
-
-              const clientForError = clients.find(c => c.id === invoice.client_id);
               results.push({
-                client_id: invoice.client_id,
-                client_name: clientForError?.name || 'Unknown',
                 invoice_id: invoice.id,
-                invoice_number: invoiceNumber,
-                action: `${step.type.toUpperCase()}_${step.level}`,
+                invoice_number: invoice.number,
+                client_name: client?.name,
+                action: `SMS_${smsToSend}`,
+                success: true,
+              });
+            } else {
+              failed++;
+              results.push({
+                invoice_id: invoice.id,
+                invoice_number: invoice.number,
+                client_name: client?.name,
+                action: `SMS_${smsToSend}`,
                 success: false,
-                error: error.message,
+                error: result.error,
               });
             }
+          } catch (err: any) {
+            failed++;
+            console.error(`[AutoSendSequence] Błąd S${smsToSend} dla ${invoice.number}:`, err.message);
           }
+        }
+      }
     }
 
-    const totalSent = totalEmailSent + totalSmsSent;
-
-    console.log(`[AutoSendSequence] Completed: ${totalSent} total sent (E: ${totalEmailSent}, S: ${totalSmsSent}), ${totalFailed} failed`);
+    const totalSent = emailsSent + smsSent;
+    console.log(`[AutoSendSequence] Zakończono: ${emailsSent} emaili, ${smsSent} SMS, ${failed} błędów`);
 
     return NextResponse.json({
       success: true,
       test_mode: isTestMode,
-      test_invoice_id: testInvoiceId ? parseInt(testInvoiceId) : null,
-      message: `${isTestMode ? '🧪 TEST: ' : ''}Sequence check completed: ${totalSent} messages sent, ${totalFailed} failed${remaining > 0 ? `, ${remaining} remaining` : ''}`,
-      sent: {
-        email: totalEmailSent,
-        sms: totalSmsSent,
-        total: totalSent,
-      },
-      failed: totalFailed,
-      clients_processed: isTestMode ? 1 : clients.length,
-      invoices_processed: invoicesToProcess.length,
-      invoices_remaining: remaining,
+      message: `Wysłano: ${emailsSent} emaili, ${smsSent} SMS. Błędów: ${failed}`,
+      sent: { email: emailsSent, sms: smsSent, total: totalSent },
+      failed,
+      invoices_checked: invoices?.length || 0,
       results,
     });
 
   } catch (error: any) {
     console.error('[AutoSendSequence] Error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
 }
 
-// Vercel Cron sends GET requests by default, so we need to handle them
 export async function GET(request: NextRequest) {
-  console.log('[AutoSendSequence] GET request received, forwarding to POST handler');
   return POST(request);
 }
