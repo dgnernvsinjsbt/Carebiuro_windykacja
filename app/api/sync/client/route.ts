@@ -48,24 +48,28 @@ export async function POST(request: NextRequest) {
     // Use phone OR mobile_phone (whichever is available)
     const clientPhone = clientData.phone || clientData.mobile_phone || null;
     console.log(`[SyncClient] Phone resolution: phone="${clientData.phone}" mobile_phone="${clientData.mobile_phone}" => using "${clientPhone}"`);
-    const { error: clientUpdateError } = await supabase()
+
+    const updatePayload = {
+      name: clientData.name || null,
+      first_name: clientData.first_name || null,
+      last_name: clientData.last_name || null,
+      email: clientData.email || null,
+      phone: clientPhone,
+      note: clientData.note || null,
+      updated_at: new Date().toISOString(),
+    };
+    console.log(`[SyncClient] Updating client with payload:`, JSON.stringify(updatePayload));
+
+    const { data: updateData, error: clientUpdateError } = await supabase()
       .from('clients')
-      .update({
-        name: clientData.name || null,
-        first_name: clientData.first_name || null,
-        last_name: clientData.last_name || null,
-        email: clientData.email || null,
-        phone: clientPhone,
-        note: clientData.note || null, // WINDYKACJA tag jest tutaj
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', client_id);
+      .update(updatePayload)
+      .eq('id', client_id)
+      .select();
 
     if (clientUpdateError) {
-      console.error('[SyncClient] Error updating client:', clientUpdateError);
-      // Continue anyway - not critical
+      console.error('[SyncClient] Error updating client:', JSON.stringify(clientUpdateError));
     } else {
-      console.log('[SyncClient] ✓ Client updated');
+      console.log('[SyncClient] ✓ Client updated, result:', JSON.stringify(updateData));
     }
 
     // STEP 3: Fetch all invoices for this client from Fakturownia
