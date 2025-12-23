@@ -43,7 +43,7 @@ const BASE_URL = getBaseUrl;
  */
 class RateLimiter {
   private lastRequest: number = 0;
-  private readonly minInterval: number = 2000; // ms (2 seconds for safety)
+  private readonly minInterval: number = 500; // ms (0.5 seconds - Fakturownia allows 1 req/sec)
   private requestCount: number = 0;
   private windowStart: number = Date.now();
   private readonly maxRequestsPerHour: number = 1000;
@@ -227,6 +227,16 @@ export const fakturowniaApi = {
    */
   async getClient(id: number): Promise<FakturowniaClient> {
     return fakturowniaRequest<FakturowniaClient>(`/clients/${id}.json`);
+  },
+
+  /**
+   * Search clients by name
+   */
+  async searchClientsByName(name: string): Promise<FakturowniaClient[]> {
+    const encodedName = encodeURIComponent(name);
+    return fakturowniaRequest<FakturowniaClient[]>(
+      `/clients.json?name=${encodedName}`
+    );
   },
 
   /**

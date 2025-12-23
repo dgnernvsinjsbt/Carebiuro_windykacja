@@ -115,299 +115,268 @@ After fixing these bugs, ALL strategies were re-optimized with corrected RSI:
 
 ---
 
-## 🏆 ACTIVE STRATEGIES (9-Coin RSI Portfolio - OPTIMIZED)
+# 🎯 4-COIN SHORT REVERSAL PORTFOLIO (15m timeframe)
 
-**Portfolio Performance (Sep 15 - Dec 11, 2025):**
-- **Total Return:** +24.75% (87 days)
-- **Max Drawdown:** -1.08% (extremely smooth!)
-- **Return/DD Ratio:** 23.01x 🏆 EXCEPTIONAL!
-- **Win Rate:** 76.6% (82 winners / 25 losers)
-- **Profit Factor:** 4.05x
-- **Sharpe Ratio:** 8.07 ⭐
-- **Total Trades:** 107 (1.23/day avg)
-- **Method:** Each coin gets 10% of current equity per trade, multiple positions allowed, compounding
-
-**Performance by Coin (Ranked by Total Profit):**
-
-| Rank | Coin | Profit | Trades | Win% | Avg P&L | Individual R/R | Status |
-|------|------|--------|--------|------|---------|----------------|--------|
-| 🥇 | **MELANIA-USDT** | +$79.79 | 16 | 75.0% | +$4.99 | 19.44x | ⭐ STAR |
-| 🥈 | **MOODENG-USDT** | +$74.79 | 20 | 85.0% | +$3.74 | 26.96x | ⭐ BEST R/R |
-| 🥉 | **XLM-USDT** | +$24.41 | 9 | 88.9% | +$2.71 | 22.52x | ⭐ BEST WIN% |
-| 4 | **PEPE-USDT** | +$21.72 | 12 | 83.3% | +$1.81 | 21.88x | ✅ LIVE |
-| 5 | **AIXBT-USDT** | +$17.72 | 15 | 73.3% | +$1.18 | 12.49x | ✅ LIVE |
-| 6 | **DOGE-USDT** | +$16.60 | 9 | 88.9% | +$1.84 | 17.30x | ✅ LIVE |
-| 7 | **TRUMPSOL-USDT** | +$11.48 | 12 | 91.7% | +$0.96 | 6.32x | ✅ LIVE |
-| 8 | **UNI-USDT** | +$5.83 | 2 | 50.0% | +$2.91 | 20.84x | ⚠️ LOW SAMPLE |
-| ❌ | **CRV-USDT** | -$4.82 | 12 | 33.3% | -$0.40 | 21.83x | ❌ ONLY LOSER |
-
-**Optimized Parameters (per coin):**
-- **RSI Levels:** 25-30 (low) / 65-70 (high) - varies by coin volatility
-- **Limit Offset:** 0.5-2.0% - optimized for fill rate vs better entry
-- **Stop Loss:** 1.0-2.0x ATR - adaptive to volatility
-- **Take Profit:** 0.5-2.0x ATR - optimized per coin
-- **Optimization:** 432 combinations tested per coin (3×3×4×3×4 grid)
-
-**Code Location:** `bingx-trading-bot/strategies/`
-- All strategies: `{coin}_rsi_swing.py`
-- Configs: `optimal_configs_90d.csv`
-
-**Key Benefits:**
-- Diversification smooths equity curve (8/9 coins profitable)
-- CRV losses (-$4.82) easily offset by winners
-- -1.08% max drawdown = extremely safe
-- 76.6% win rate = psychologically easy to trade
-- Optimization improved Return/DD by 614% (3.22x → 23.01x)
-
-### Recent Performance (Dec 8-15, 2025)
-
-**7-Day Test Period:**
-- **Total Return:** -0.95% (challenging week)
-- **Max Drawdown:** -3.23%
-- **Return/DD Ratio:** 0.29x
-- **Win Rate:** 50.0% (15W / 15L)
-- **Profit Factor:** 0.78x (losing more than winning)
-- **Total Trades:** 30 (4.3/day avg)
-- **Best Trade:** +5.93% (MOODENG SHORT on Dec 8)
-- **Worst Trade:** -6.10% (AIXBT)
-
-**Performance by Coin (Dec 8-15):**
-
-| Coin | Trades | Win% | Total P&L | Status |
-|------|--------|------|-----------|--------|
-| **DOGE-USDT** | 4 | 100.0% | +$0.60 | ✅ BEST |
-| **CRV-USDT** | 1 | 100.0% | +$0.09 | ✅ |
-| **TRUMPSOL-USDT** | 1 | 100.0% | +$0.07 | ✅ |
-| **UNI-USDT** | 4 | 25.0% | -$0.06 | ⚠️ |
-| **MOODENG-USDT** | 6 | 33.3% | -$0.28 | ⚠️ |
-| **PEPE-USDT** | 7 | 42.9% | -$0.36 | ⚠️ |
-| **AIXBT-USDT** | 7 | 42.9% | -$1.01 | ❌ WORST |
-| **MELANIA-USDT** | 0 | - | $0.00 | (No signals) |
-| **XLM-USDT** | 0 | - | $0.00 | (No signals) |
-
-**Analysis:**
-- Mixed results during a challenging market week
-- DOGE was the standout performer (100% win rate)
-- AIXBT struggled with 6 losing trades
-- MELANIA and XLM had no RSI crossovers (stable prices)
-- Overall portfolio down slightly but within acceptable drawdown limits
-
-**Data Location:**
-- `dec8_15_all_trades.csv` - All 30 trades with full details
-- `dec8_15_by_coin.csv` - Performance breakdown by coin
-
-**1-Minute Strategies (Archived):** `pippin_fresh_crosses.py`, `trumpsol_contrarian.py`
+**Portfolio Performance (Jun-Dec 2025):**
+- **Total Return:** +5,204,473% ($100 → $5.2M)
+- **Max Drawdown:** -65.9%
+- **Return/DD Ratio:** 78,973x 🏆 EXCEPTIONAL!
+- **Timeframe:** 15-minute candles
+- **Position Sizing:** 5% risk per trade
+- **Method:** Limit orders with swing-based entries
 
 ---
 
-## Strategy 1: PIPPIN Fresh Crosses + RSI/Body Filter
+## 📊 STRATEGY PARAMETERS COMPARISON
 
-| Metric | Value |
-|--------|-------|
-| **Return/DD Ratio** | **12.71x** ⭐ BEST! |
-| **Return** | +21.76% (7 days BingX) |
-| **Max Drawdown** | -1.71% |
-| **Win Rate** | 50.0% |
-| **TP Rate** | 50.0% |
-| **Trades** | 10 |
-| **Direction** | LONG + SHORT |
-| **Timeframe** | 1-min |
-| **Avg Trade Duration** | ~80 bars |
+| Coin | RSI Trigger | Limit Offset | TP % | File |
+|------|-------------|--------------|------|------|
+| **FARTCOIN** | 70 | 1.0 ATR | 10.0% | `fartcoin_short_reversal.py` |
+| **MELANIA** | 72 | 0.8 ATR | 10.0% | `melania_short_reversal.py` |
+| **DOGE** | 72 | 0.6 ATR | 6.0% | `doge_short_reversal.py` |
+| **MOODENG** | 70 | 0.8 ATR | 8.0% | `moodeng_short_reversal.py` |
 
-### Entry (ALL conditions must be true)
-
-- EMA(9) crosses EMA(21) (bullish or bearish)
-- **Fresh cross only**: `consecutive_ups = 0` (LONG) OR `consecutive_downs = 0` (SHORT)
-- **RSI(14) >= 55** (cross has momentum conviction)
-- **Body <= 0.06%** (tiny doji-like candle = calm entry, not wild spike)
-- Market order (0.05% taker fee)
-
-### Exits
-
-- Stop Loss: **1.5x ATR(14)** from entry
-- Take Profit: **10x ATR(14)** from entry (R:R = 6.67:1)
-- Max Hold: 120 bars (2 hours)
-
-### Fees
-
-0.10% round-trip (0.05% taker x2)
-
-### Why It Works
-
-- Fresh crosses (`consecutive = 0`) avoid momentum chasers → cleaner reversals
-- RSI >= 55 filters weak crosses → only strong conviction signals
-- Tiny body (<0.06%) filters wild spikes → calm, decisive entries only
-- 10x ATR TP captures PIPPIN's explosive moves when conviction is right
-- Data-driven filters based on actual winner/loser analysis (not random)
-
-### Trade-offs
-
-- Very selective (10 trades in 7 days from 64 baseline fresh crosses)
-- Lower absolute return vs baseline (+21.76% vs +39.12%)
-- But **137.7% better R/DD** (12.71x vs 5.35x)
-- Extremely smooth equity curve (-1.71% max DD)
-
-### Data & Code
-
-- **Data**: `trading/pippin_7d_bingx.csv` (11,129 candles, 7 days)
-- **Analysis**: `trading/pippin_fresh_crosses_deep_analysis.py`
-- **Backtest**: `trading/pippin_fresh_crosses_final_filters.py`
-- **Results**: `trading/results/pippin_fresh_crosses_filtered.csv`
-- **Bot**: `bingx-trading-bot/strategies/pippin_fresh_crosses.py`
-
-### Development Process
-
-1. Tested 29 configs → Found Fresh Crosses baseline (5.35x R/DD, 64 trades)
-2. Analyzed 64 trades → Winners had tiny bodies (0.09% vs 0.21%), higher RSI (53.6 vs 47.4)
-3. Tested 10 filters → RSI + Body combo = **12.71x R/DD**, 50% TP rate, 10 trades
-4. Result: **137.7% improvement** in risk-adjusted returns vs baseline
+**Common Parameters (all 4 strategies):**
+- `lookback = 5` (swing low lookback period)
+- `max_wait_bars = 20` (5 hours timeout for limit orders)
+- `max_sl_pct = 10.0%` (skip if SL distance > 10%)
+- `risk_pct = 5.0%` (risk 5% of equity per trade)
 
 ---
 
-## Strategy 2: FARTCOIN ATR Expansion (Limit Order)
+## 🔄 UNIVERSAL STRATEGY LOGIC
 
-| Metric | Value |
-|--------|-------|
-| **Return/DD Ratio** | **8.44x** ⭐ |
-| **Return** | +101.11% (32 days BingX) |
-| **Max Drawdown** | -11.98% |
-| **Win Rate** | 42.6% |
-| **Trades** | 94 |
-| **Direction** | LONG + SHORT |
-| **Timeframe** | 1-min |
-| **Avg Duration** | ~80 bars (1.3 hours) |
+All 4 strategies follow the same core logic with different parameters:
 
-### Entry (ALL conditions must be true)
+1. **ARM Signal:** RSI(14) > trigger (overbought, ready for reversal)
+2. **Calculate Swing Low:** Min low of last 5 candles
+3. **Wait for Break:** Price breaks below swing low (resistance→support failure)
+4. **Place Limit Order:** `swing_low + (limit_offset × ATR)`
+5. **Stop Loss:** Swing high from signal bar to break bar (dynamic)
+6. **Take Profit:** Fixed % below entry price
+7. **Timeout:** Cancel limit if not filled within 20 bars (5 hours)
 
-1. **ATR Expansion**: Current ATR(14) > 1.5x rolling 20-bar average (volatility breakout)
-2. **EMA Distance Filter**: Price within 3% of EMA(20) (prevents late entries)
-3. **Directional Candle**: Bullish (close > open) for LONG, Bearish for SHORT
-4. **LIMIT ORDER**:
-   - LONG: Place limit 1% ABOVE signal price
-   - SHORT: Place limit 1% BELOW signal price
-   - Wait max 3 bars for fill (filters fake breakouts)
-
-### Exits
-
-- **Stop Loss**: 2.0x ATR(14) from limit fill price
-- **Take Profit**: 8.0x ATR(14) from limit fill price (R:R = 4:1)
-- **Max Hold**: 200 bars (3.3 hours) if neither SL/TP hit
-
-### Fees
-
-0.10% round-trip (conservative estimate: market fills)
-
-### Why It Works
-
-- ATR expansion catches beginning of explosive pump/dump moves
-- Limit order 1% away filters fake breakouts (only 21% of signals fill)
-- EMA distance prevents overextended entries
-- 8x ATR target captures full pump moves (avg winner: 4.97%)
-- Tight 2x ATR stop limits downside
-
-### Trade-offs
-
-- High selectivity (94 trades from 444 signals = 21% fill rate)
-- Lower absolute return vs market orders but 40% better Return/DD
-- Requires patience - most signals won't fill
-
-### Data & Code
-
-- **Data**: `trading/fartcoin_30d_bingx.csv` (46,080 candles, 32 days)
-- **Backtest**: `trading/fartcoin_limit_tp6x_test.py`
-- **Results**: `trading/results/fartcoin_limit_order_test.csv`
-- **Bot**: `bingx-trading-bot/strategies/fartcoin_atr_limit.py`
-
-### Development Process
-
-- Phase 1: Tested 7 entry concepts → ATR Expansion won (11.71% Top10 avg)
-- Phase 2: Added filters → EMA Distance 3% improved Return/DD to 6.00x
-- Phase 3: Limit orders → 1% offset + 3 bar wait → 8.44x Return/DD (final)
+**Position Sizing:** Risk 5% of equity per trade based on SL distance
 
 ---
 
-## Strategy 3: TRUMPSOL Contrarian (Mean Reversion) 🆕
+## 💎 MELANIA-USDT
 
+### Performance (Jun-Dec 2025)
 | Metric | Value |
 |--------|-------|
-| **Return/DD Ratio** | **5.17x** (with 0.1% fees) |
-| **Return** | +17.49% (32 days BingX) |
-| **Max Drawdown** | -3.38% |
-| **Win Rate** | **68.8%** ⭐ (highest!) |
-| **Trades** | 77 |
-| **Direction** | LONG + SHORT |
-| **Timeframe** | 1-min |
-| **Avg Duration** | 12.3 minutes |
+| **Total Return** | +1,330.4% |
+| **Max Drawdown** | -24.66% |
+| **Return/DD Ratio** | **53.96x** 🏆 |
+| **Total Trades** | 45 |
+| **Win Rate** | 42.2% (19W / 26L) |
+| **Avg SL Distance** | 3.02% |
+| **Max Consecutive Losses** | ~8-9 |
+| **Profitable Months** | 6/7 |
 
-### Strategy Concept
-
-**Fade violent moves with volume/volatility confirmation**
-
-Buy panic, short euphoria. Entry on extreme 5-minute moves when volume and volatility confirm.
-
-### Entry Conditions (ALL must be true - CONTRARIAN)
-
-1. **Momentum Filter**: `abs(ret_5m) >= 1.0%` (pump or dump in 5 minutes)
-2. **Volume Filter**: `volume_ratio >= 1.0` (current volume >= 30-min average)
-3. **Volatility Filter**: `atr_ratio >= 1.1` (current ATR >= 110% of 30-min average)
-4. **Time Filter**: `hour NOT IN {1, 5, 17}` (Europe/Warsaw timezone exclusions)
-
-**Direction (CONTRARIAN):**
-- **Pump (+1%)** → **SHORT** (fade down)
-- **Dump (-1%)** → **LONG** (fade up)
-
-### Exits
-
-- **Stop Loss**: 1% from entry (fixed %)
-- **Take Profit**: 1.5% from entry (fixed %)
-- **Time Exit**: 15 bars (15 minutes) max hold
-
-### Fees
-
-0.10% per trade (0.05% taker x2)
-
-### Why It Works
-
-1. **Mean reversion** - extreme moves revert in meme coins
-2. **High quality signals** - volume 3.4x + volatility 1.6x avg = real moves
-3. **74% trades = time exit** - most profits from small reversals in 15 min
-4. **LONG >> SHORT** - buying panic (+13.94%) better than shorting euphoria (+2.41%)
-5. **High win rate** - 68.8% psychologically easy to trade
-
-### Key Characteristics
-
-- **Very selective**: 2.4 trades/day average
-- **Best trades**: Extreme dumps (ret_5m < -3%) with vol > 5x → instant reversals
-- **Worst trades**: SHORT at local tops → momentum continues
-- **74% time exits**: Most trades held full 15 minutes for small gains
-
-### Data & Code
-
-- **Data**: `trading/trumpsol_30d_bingx.csv` (46,080 candles, 32 days)
-- **Backtest**: `trading/trumpsol_contrarian_verify.py`
-- **Results**: `trading/results/trumpsol_contrarian_trades.csv`
-- **Report**: `trading/results/TRUMPSOL_CONTRARIAN_REPORT.md`
-- **Bot**: `bingx-trading-bot/strategies/trumpsol_contrarian.py`
-
-### Configuration
-
+### Parameters
 ```python
-{
-    'min_ret_5m_pct': 1.0,        # Min 1% move in 5 minutes
-    'vol_ratio_min': 1.0,         # Volume >= 30-min avg
-    'atr_ratio_min': 1.1,         # ATR >= 110% of 30-min avg
-    'excluded_hours': [1, 5, 17], # Europe/Warsaw time filter
-    'stop_loss_pct': 1.0,         # 1% SL
-    'take_profit_pct': 1.5,       # 1.5% TP
-    'max_hold_bars': 15,          # 15 min max
-    'vol_ma_period': 30,          # 30-bar volume MA
-    'atr_ma_period': 30           # 30-bar ATR MA
-}
+rsi_trigger = 72           # ARM when RSI > 72
+lookback = 5               # Swing low lookback period
+limit_atr_offset = 0.8     # Limit order offset above swing low
+tp_pct = 10.0              # Take profit 10% below entry
+max_wait_bars = 20         # Max 20 bars (5 hours) to wait for fill
+max_sl_pct = 10.0          # Skip if SL distance > 10%
+risk_pct = 5.0             # Risk 5% of equity per trade
 ```
 
-### TL;DR
+### Monthly Performance
+| Month | P&L | Status |
+|-------|-----|--------|
+| Jun 2025 | +$62.15 | ✅ |
+| Jul 2025 | +$58.53 | ✅ |
+| Aug 2025 | +$162.49 | ✅ |
+| Sep 2025 | -$41.25 | ❌ ONLY LOSING MONTH |
+| Oct 2025 | +$230.49 | ✅ |
+| Nov 2025 | +$149.27 | ✅ |
+| Dec 2025 | +$708.74 | 🚀 BEST MONTH |
 
-**One-liner:** Buy panic, sell euphoria when volume + volatility explode. 15-min mean reversion scalp.
+### Key Insights
+- **December dominance:** $708.74 profit (53% of total return) in one month
+- **September drawdown:** Only losing month at -$41.25
+- **High R/R:** 53.96x return/drawdown ratio is exceptional
+- **Moderate win rate:** 42.2% but winners are much larger than losers
+- **Tight stops:** 3.02% avg SL distance keeps losses small
+
+### Code Location
+- **Live Strategy:** `bingx-trading-bot/strategies/melania_short_reversal.py`
+- **Backtest Script:** `trading/test_melania_sl_methods.py`
+- **Data File:** `trading/melania_6months_bingx.csv` (15m candles)
+
+---
+
+## 🚀 FARTCOIN-USDT
+
+### Performance (Jun-Dec 2025)
+| Metric | Value |
+|--------|-------|
+| **Contribution to Portfolio** | ~30% of total |
+| **Total Trades** | 86 |
+| **Profitable Months** | 6/7 |
+
+### Parameters
+```python
+rsi_trigger = 70           # ARM when RSI > 70 (lower threshold)
+lookback = 5               # Swing low lookback period
+limit_atr_offset = 1.0     # WIDER offset for FARTCOIN (more volatile)
+tp_pct = 10.0              # Take profit 10% below entry
+max_wait_bars = 20         # Max 20 bars (5 hours) to wait for fill
+max_sl_pct = 10.0          # Skip if SL distance > 10%
+risk_pct = 5.0             # Risk 5% of equity per trade
+```
+
+### Key Insights
+- **Lower RSI trigger (70):** FARTCOIN more volatile, reverses earlier
+- **Wider limit offset (1.0 ATR):** Allows for larger pullback before entry
+- **Same TP (10%):** Keeps consistent target across coins
+
+### Code Location
+- **Live Strategy:** `bingx-trading-bot/strategies/fartcoin_short_reversal.py`
+- **Data File:** `trading/fartcoin_6months_bingx.csv` (15m candles)
+
+---
+
+## 🐕 DOGE-USDT
+
+### Performance (Jun-Dec 2025)
+| Metric | Value |
+|--------|-------|
+| **Contribution to Portfolio** | $2,993,404 (57.5% of total!) 🏆 |
+| **Total Trades** | 79 |
+| **Profitable Months** | 5/7 |
+| **Best Trade** | +$998,362 (Dec 9) |
+
+### Parameters
+```python
+rsi_trigger = 72           # ARM when RSI > 72
+lookback = 5               # Swing low lookback period
+limit_atr_offset = 0.6     # TIGHTER offset for DOGE
+tp_pct = 6.0               # TIGHTER TP target (higher win rate)
+max_wait_bars = 20         # Max 20 bars (5 hours) to wait for fill
+max_sl_pct = 10.0          # Skip if SL distance > 10%
+risk_pct = 5.0             # Risk 5% of equity per trade
+```
+
+### Key Insights
+- **STAR PERFORMER:** 57.5% of portfolio returns!
+- **Tightest limit offset (0.6 ATR):** DOGE has cleaner reversals
+- **Lowest TP (6%):** Optimized for higher fill rate and win rate
+- **Best single trade:** +$998k in December
+
+### Code Location
+- **Live Strategy:** `bingx-trading-bot/strategies/doge_short_reversal.py`
+- **Data File:** `trading/doge_6months_bingx.csv` (15m candles)
+
+---
+
+## 🦛 MOODENG-USDT
+
+### Performance (Jun-Dec 2025)
+| Metric | Value |
+|--------|-------|
+| **Contribution to Portfolio** | ~10% of total |
+| **Total Trades** | 78 |
+| **Profitable Months** | 6/7 |
+
+### Parameters
+```python
+rsi_trigger = 70           # ARM when RSI > 70 (lower threshold)
+lookback = 5               # Swing low lookback period
+limit_atr_offset = 0.8     # Mid-range offset
+tp_pct = 8.0               # Mid-range TP (balance between DOGE 6% and MELANIA 10%)
+max_wait_bars = 20         # Max 20 bars (5 hours) to wait for fill
+max_sl_pct = 10.0          # Skip if SL distance > 10%
+risk_pct = 5.0             # Risk 5% of equity per trade
+```
+
+### Key Insights
+- **Balanced approach:** Mid-range offset and TP
+- **Lower RSI trigger (70):** Similar to FARTCOIN
+- **Consistent performer:** 6/7 profitable months
+
+### Code Location
+- **Live Strategy:** `bingx-trading-bot/strategies/moodeng_short_reversal.py`
+- **Data File:** `trading/moodeng_6months_bingx.csv` (15m candles)
+
+---
+
+## 🎯 PARAMETER OPTIMIZATION INSIGHTS
+
+### RSI Triggers
+- **70:** FARTCOIN, MOODENG (more volatile, reverse earlier)
+- **72:** MELANIA, DOGE (higher threshold for cleaner signals)
+
+### Limit Offsets
+- **0.6 ATR:** DOGE (tightest - cleanest reversals)
+- **0.8 ATR:** MELANIA, MOODENG (mid-range)
+- **1.0 ATR:** FARTCOIN (widest - most volatile)
+
+### Take Profit Targets
+- **6%:** DOGE (tightest - highest win rate)
+- **8%:** MOODENG (balanced)
+- **10%:** MELANIA, FARTCOIN (wider targets for larger moves)
+
+**General Rule:** More volatile coins (FARTCOIN) need wider offsets and can support wider TPs. Cleaner reversals (DOGE) work better with tighter parameters.
+
+---
+
+## 🚨 IMPORTANT NOTES
+
+1. **All strategies use corrected RSI (Wilder's EMA method)** - see Bug Fixes section
+2. **5% risk per trade** - position size calculated from SL distance
+3. **Limit orders only** - no market orders (reduces slippage, filters fake breakouts)
+4. **20-bar timeout** - prevents stale orders in ranging markets
+5. **Dynamic stop loss** - based on swing high, adapts to market structure
+
+---
+
+## 📁 CODE STRUCTURE
+
+```
+bingx-trading-bot/
+├── strategies/
+│   ├── base_strategy.py           # Base class
+│   ├── fartcoin_short_reversal.py # FARTCOIN strategy
+│   ├── melania_short_reversal.py  # MELANIA strategy
+│   ├── doge_short_reversal.py     # DOGE strategy
+│   └── moodeng_short_reversal.py  # MOODENG strategy
+├── data/
+│   ├── indicators.py              # RSI (Wilder's EMA), ATR
+│   └── candle_builder.py          # 15m candle aggregation
+└── execution/
+    ├── signal_generator.py        # Strategy signal routing
+    └── bingx_client.py            # BingX API client
+
+trading/
+├── melania_6months_bingx.csv      # MELANIA historical data
+├── fartcoin_6months_bingx.csv     # FARTCOIN historical data
+├── doge_6months_bingx.csv         # DOGE historical data
+└── moodeng_6months_bingx.csv      # MOODENG historical data
+```
+
+---
+
+## 🔥 PORTFOLIO SUMMARY
+
+**Why These 4 Coins Work Together:**
+
+1. **DOGE:** 57.5% contributor - star performer, cleanest reversals
+2. **FARTCOIN:** 30% contributor - volatile, wider targets capture big moves
+3. **MELANIA:** Exceptional R/DD (53.96x), highest quality trades
+4. **MOODENG:** Consistent diversifier, balanced approach
+
+**Combined Effect:**
+- Diversification smooths equity curve
+- Different volatility profiles = trades don't overlap perfectly
+- $100 → $5.2M in 6 months (backtest with 5% risk)
+- Return/DD: 78,973x (indicates exceptional risk-adjusted returns)
+
+**⚠️ Backtest Disclaimer:** These results are from historical backtesting with 5% risk per trade and full compounding. Live trading results may vary due to slippage, API latency, and market conditions.
 
 ---
 

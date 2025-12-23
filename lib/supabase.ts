@@ -70,7 +70,7 @@ export const clientsDb = {
    * Get client by ID
    */
   async getById(id: number) {
-    const { data, error } = await getSupabase()
+    const { data, error } = await getSupabaseAdmin()
       .from('clients')
       .select('*')
       .eq('id', id)
@@ -84,7 +84,7 @@ export const clientsDb = {
    * Get client by Fakturownia ID
    */
   async getByFakturowniaId(fakturowniaId: number) {
-    const { data, error } = await getSupabase()
+    const { data, error } = await getSupabaseAdmin()
       .from('clients')
       .select('*')
       .eq('id', fakturowniaId)

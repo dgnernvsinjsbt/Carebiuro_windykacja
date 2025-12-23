@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skill>
+  <name>bingx-data-download</name>
+  <description>Download historical candlestick data from BingX exchange with automatic chunking for any timeframe</description>
+
+  <input_parameters>
+    <parameter>
+      <name>symbol</name>
+      <type>string</type>
+      <required>true</required>
+      <description>Trading pair symbol (e.g., "BTC-USDT", "XLM-USDT", "MELANIA-USDT")</description>
+    </parameter>
+    <parameter>
+      <name>interval</name>
+      <type>string</type>
+      <required>true</required>
+      <description>Candlestick interval: "1m", "5m", "15m", "30m", "1h", "4h", "1d"</description>
+    </parameter>
+    <parameter>
+      <name>months</name>
+      <type>integer</type>
+      <required>true</required>
+      <description>Number of months to download (e.g., 3, 6)</description>
+    </parameter>
+    <parameter>
+      <name>output_filename</name>
+      <type>string</type>
+      <required>false</required>
+      <description>Optional output filename (default: {symbol}_{months}months_{interval}.csv)</description>
+    </parameter>
+  </input_parameters>
+
+  <instructions>
+    <overview>
+      This skill downloads historical candlestick data from BingX using the exchange's public API with automatic chunking to handle the 1440 candles per request limit.
+    </overview>
+
+    <critical_constraints>
+      <constraint>BingX API returns maximum 1440 candles per request</constraint>
+      <constraint>Chunk size must be calculated based on interval to avoid exceeding 1440 candles</constraint>
+      <constraint>Use BingXClient from bingx-trading-bot for proper async handling</constraint>
+      <constraint>BingX market data rate limit: 100 requests/10s = 10 req/s per IP (as of 2024-04-15)</constraint>
+      <constraint>Use 0.2s sleep between chunks = 5 req/s (50% of max, safe with margin)</constraint>
+      <constraint>Always convert string data to float for OHLCV columns</constraint>
+    </critical_constraints>
+
+    <chunk_calculation>
+      Calculate chunk size in days based on interval to stay under 1440 candles:
+
+      - 1m interval: 1440 candles = 1 day → use 1-day chunks
+      - 5m interval: 1440 candles = 5 days → use 5-day chunks
+      - 15m interval: 1440 candles = 15 days → use 15-day chunks
+      - 30m interval: 1440 candles = 30 days → use 30-day chunks
+      - 1h interval: 1440 candles = 60 days → use 60-day chunks
+      - 4h interval: 1440 candles = 240 days → use monthly chunks
+      - 1d interval: 1440 candles = 1440 days → download entire period at once
+
+      Formula: chunk_days = min((1440 * interval_minutes) / (24 * 60), 30)
+
+      For safety, use slightly smaller chunks (90% of max) to account for missing candles.
+    </chunk_calculation>
+
+    <implementation_steps>
+      <step num="1">
+        <title>Calculate optimal chunk size</title>
+        <details>
+          Based on the interval parameter, calculate how many days worth of data fit in 1440 candles.
+          Always round down and add safety margin (use 90% of theoretical max).
+        </details>
+      </step>
+
+      <step num="2">
+        <title>Generate date chunks</title>
+        <details>
+          Create list of (start_date, end_date, chunk_name) tuples covering the entire period.
+          Use timezone-aware UTC datetime objects.
+          Example for 3 months with 15-day chunks:
+          - Sept 1-15, Sept 16-30
+          - Oct 1-15, Oct 16-31
+          - Nov 1-15, Nov 16-30
+          - Dec 1-15, Dec 16-{end_date}
+        </details>
+      </step>
+
+      <step num="3">
+        <title>Create download script</title>
+        <details>
+          Generate Python script with:
+          - Import BingXClient from bingx-trading-bot
+          - Async download_chunk() function
+          - Main async function with chunk iteration
+          - Rate limiting (asyncio.sleep(0.5) between chunks)
+          - Progress logging for each chunk
+        </details>
+      </step>
+
+      <step num="4">
+        <title>Process and validate data</title>
+        <details>
+          After downloading all chunks:
+          - Combine into single DataFrame
+          - Convert 'time' to 'timestamp' using pd.to_datetime(unit='ms')
+          - Sort by timestamp
+          - Remove duplicates based on 'time' column
+          - Convert OHLCV columns to float: ['open', 'high', 'low', 'close', 'volume']
+          - Calculate ATR statistics for validation
+        </details>
+      </step>
+
+      <step num="5">
+        <title>Save and report</title>
+        <details>
+          Save to CSV with proper filename.
+          Report statistics:
+          - Total candles downloaded
+          - Date range (min/max timestamp)
+          - Period in days
+          - Average price
+          - Average ATR and ATR%
+          - Price range (min/max)
+        </details>
+      </step>
+    </implementation_steps>
+
+    <code_template>
+      ```python
+      #!/usr/bin/env python3
+      """
+      Download {symbol} {interval} data from BingX ({months} months)
+      Auto-generated by bingx-data-download skill
+      """
+      import sys
+      import os
+      sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'bingx-trading-bot'))
+
+      import asyncio
+      import pandas as pd
+      import numpy as np
+      from datetime import datetime, timedelta, timezone
+      from execution.bingx_client import BingXClient
+
+      async def download_chunk(bingx, symbol, start_date, end_date, chunk_name):
+          """Download one time chunk"""
+          print(f"📅 {chunk_name}: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+
+          start_time = int(start_date.timestamp() * 1000)
+          end_time = int(end_date.timestamp() * 1000)
+
+          candles = await bingx.get_klines(
+              symbol=symbol,
+              interval='{interval}',
+              start_time=start_time,
+              end_time=end_time,
+              limit=1440
+          )
+
+          print(f"   Got {len(candles)} candles")
+          await asyncio.sleep(0.2)  # Rate limit: 5 req/s (50% of BingX 10 req/s max)
+
+          return candles
+
+      async def main():
+          print("=" * 80)
+          print("DOWNLOADING {symbol} {interval} DATA - {months} MONTHS")
+          print("=" * 80)
+
+          bingx = BingXClient(api_key="", api_secret="", testnet=False)
+          symbol = "{symbol}"
+
+          # Calculate chunks based on interval
+          # [GENERATE CHUNK LIST HERE]
+
+          all_candles = []
+
+          for start_date, end_date, chunk_name in chunks:
+              candles = await download_chunk(bingx, symbol, start_date, end_date, chunk_name)
+              if candles:
+                  all_candles.extend(candles)
+
+          await bingx.close()
+
+          if not all_candles:
+              print("❌ No data downloaded")
+              return
+
+          # Process DataFrame
+          print(f"💾 Processing {len(all_candles)} candles...")
+          df = pd.DataFrame(all_candles)
+          df['timestamp'] = pd.to_datetime(df['time'], unit='ms')
+          df = df.sort_values('timestamp').drop_duplicates(subset=['time'])
+
+          # Convert to float
+          for col in ['open', 'high', 'low', 'close', 'volume']:
+              df[col] = df[col].astype(float)
+
+          # Calculate ATR
+          df['tr'] = np.maximum(
+              df['high'] - df['low'],
+              np.maximum(
+                  abs(df['high'] - df['close'].shift(1)),
+                  abs(df['low'] - df['close'].shift(1))
+              )
+          )
+          df['atr'] = df['tr'].rolling(14).mean()
+          df['atr_pct'] = (df['atr'] / df['close']) * 100
+
+          # Save
+          filename = "{output_filename}"
+          df.to_csv(filename, index=False)
+
+          # Report
+          print(f"✅ Saved to {filename}")
+          print(f"   Total candles: {len(df)}")
+          print(f"   Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
+          print(f"   Period: {(df['timestamp'].max() - df['timestamp'].min()).days} days")
+          print(f"📊 {symbol} Stats:")
+          print(f"   Avg Price: ${df['close'].mean():.4f}")
+          print(f"   Avg ATR %: {df['atr_pct'].mean():.3f}%")
+          print(f"   Price Range: ${df['close'].min():.4f} - ${df['close'].max():.4f}")
+          print("=" * 80)
+
+      if __name__ == "__main__":
+          asyncio.run(main())
+      ```
+    </code_template>
+
+    <interval_configs>
+      <config interval="1m" chunk_days="1" candles_per_day="1440"/>
+      <config interval="5m" chunk_days="5" candles_per_day="288"/>
+      <config interval="15m" chunk_days="15" candles_per_day="96"/>
+      <config interval="30m" chunk_days="30" candles_per_day="48"/>
+      <config interval="1h" chunk_days="60" candles_per_day="24"/>
+      <config interval="4h" chunk_days="30" candles_per_day="6"/>
+      <config interval="1d" chunk_days="365" candles_per_day="1"/>
+    </interval_configs>
+
+    <validation>
+      After download completes:
+      1. Verify total candles ≈ expected (months * 30 * candles_per_day)
+      2. Check for gaps in timestamp sequence (warn if >10% missing)
+      3. Validate OHLCV data (no zeros, high >= low, volume >= 0)
+      4. Calculate and display ATR% for volatility assessment
+    </validation>
+
+    <example_usage>
+      User: "Download BTC-USDT 5m data for last 6 months"
+
+      Skill generates:
+      - Chunk size: 5 days (5m × 1440 = 5 days)
+      - Total chunks: ~36 chunks (6 months / 5 days)
+      - Output: btc_6months_5m.csv
+      - Expected candles: ~51,840 (6 × 30 × 288)
+    </example_usage>
+
+    <error_handling>
+      - If chunk returns 0 candles, log warning but continue (may be weekend/holiday)
+      - If entire download fails, check symbol format (must be "XXX-USDT", not "XXXUSDT")
+      - If timeout errors, increase sleep between chunks to 1.0 seconds
+      - If API errors, verify BingX API is accessible and symbol exists on exchange
+    </error_handling>
+  </instructions>
+
+  <output>
+    The skill creates a Python script in the trading/ directory and executes it to download data.
+
+    Output file format:
+    - CSV with columns: timestamp, open, high, low, close, volume, time, tr, atr, atr_pct
+    - Sorted by timestamp (oldest to newest)
+    - No duplicate timestamps
+    - All OHLCV columns as float type
+
+    Console output includes:
+    - Progress for each chunk downloaded
+    - Total candles, date range, period
+    - Price and volatility statistics
+    - File path where data was saved
+  </output>
+
+  <tips>
+    - For very recent data (last few days), use smaller chunk sizes to get precise end date
+    - 1m and 5m intervals generate large files (>100MB for 6 months)
+    - BingX returns data in exchange timezone - timestamps are converted to UTC
+    - Duplicate removal handles overlapping chunks at month boundaries
+    - ATR% comparison helps assess if strategy parameters need scaling
+    - Rate limit: 0.2s sleep = 5 req/s is optimal (2.5x faster than 0.5s, still safe)
+    - For slower/unstable networks, increase to 0.3s; for stable low-latency, can try 0.15s
+    - If you get rate limit errors (HTTP 429), increase sleep time incrementally
+  </tips>
+</skill>

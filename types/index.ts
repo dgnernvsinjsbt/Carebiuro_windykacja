@@ -191,6 +191,14 @@ export interface FakturowniaClient {
   category_id: number | null;
   use_delivery_address: boolean;
   delivery_address: string;
+  use_postal_address: string | null;
+  postal_address: {
+    street: string;
+    street_additional: string | null;
+    city: string;
+    post_code: string;
+    country: string;
+  } | null;
   person: string | null;
   use_mass_payment: boolean;
   mass_payment_code: string | null;

@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 from datetime import datetime
 import pandas as pd
+import logging
 
 
 class BaseStrategy(ABC):
@@ -18,6 +19,9 @@ class BaseStrategy(ABC):
         self.config = config
         self.enabled = config.get('enabled', True)
         self.symbol = symbol  # Trading symbol this strategy is for
+
+        # Setup logger for this strategy
+        self.logger = logging.getLogger(f"strategy.{name}")
 
         # Position sizing
         self.base_risk_pct = config.get('base_risk_pct', 1.0)
