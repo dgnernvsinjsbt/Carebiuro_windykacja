@@ -192,4 +192,72 @@ MAX_LEVERAGE = 5.0   # Cap leverage to prevent extreme positions
 
 ---
 
+---
+
+## HOW TO REPRODUCE THESE RESULTS
+
+**IMPORTANT:** Only use these two authoritative scripts. Do NOT create ad-hoc scripts.
+
+### 1. Portfolio Results (all 619 trades combined)
+
+```bash
+cd trading
+python donchian_portfolio_backtest.py 3   # 3% risk per trade
+```
+
+Expected output (deterministic):
+```
+Total trades: 619
+Total Return:     +35,901.5%
+Max Drawdown:     -39.9%
+R:R Ratio:        899.02x
+Win Rate:         60.6%
+```
+
+### 2. Individual Coin Results
+
+```bash
+cd trading
+python verify_all_coins.py
+```
+
+Expected output (deterministic):
+```
+UNI      - 19.35x R:R (44 trades)
+PI       - 12.68x R:R (158 trades)
+DOGE     -  7.81x R:R (60 trades)
+PENGU    -  7.24x R:R (25 trades)
+ETH      -  6.64x R:R (230 trades)
+AIXBT    -  4.73x R:R (34 trades)
+FARTCOIN -  4.61x R:R (51 trades)
+CRV      -  2.92x R:R (17 trades)
+```
+
+### Key Calculation Details
+
+```python
+# Position sizing (risk-based)
+leverage = min(risk_pct / sl_dist_pct, MAX_LEVERAGE)  # MAX_LEVERAGE = 5.0
+equity *= (1 + leverage * pnl_pct / 100)              # Compounded
+
+# R:R Ratio
+rr_ratio = total_return / max_dd if max_dd > 0 and total_return > 0 else 0
+
+# ATR (simple, not Wilder's)
+atr = (high - low).rolling(14).mean()
+
+# Donchian Channels
+high_n = high.rolling(period).max().shift(1)
+low_n = low.rolling(period).min().shift(1)
+```
+
+### Why Portfolio R:R >> Sum of Individual R:Rs
+
+- Individual: 25-230 trades each, isolated compounding
+- Portfolio: 619 trades chronologically interleaved
+- Diversification reduces drawdowns (losses on one coin offset by wins on another)
+- More trades = more compounding opportunities
+
+---
+
 **Last Updated:** 2025-12-30
