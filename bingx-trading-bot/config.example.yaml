@@ -13,16 +13,16 @@ trading:
   enabled: true
   testnet: false
 
-  # 8-Coin Portfolio Symbols (ranked by R:R ratio)
+  # 8-Coin Portfolio Symbols (ranked by R:R ratio, 3% risk, compounded)
   symbols:
-    - PENGU-USDT      # 34.05x R:R (TP=7.0, SL=5, Period=25)
-    - DOGE-USDT       # 16.72x R:R (TP=4.0, SL=4, Period=15)
-    - FARTCOIN-USDT   # 12.57x R:R (TP=7.5, SL=2, Period=15)
-    - ETH-USDT        # 10.12x R:R (TP=1.5, SL=4, Period=20)
-    - UNI-USDT        #  9.95x R:R (TP=10.5, SL=2, Period=30)
-    - PI-USDT         #  7.79x R:R (TP=3.0, SL=2, Period=15)
-    - CRV-USDT        #  7.43x R:R (TP=9.0, SL=5, Period=15)
-    - AIXBT-USDT      #  5.86x R:R (TP=12.0, SL=2, Period=15)
+    - UNI-USDT        # 19.35x R:R (TP=10.5, SL=2, Period=30)
+    - PI-USDT         # 12.68x R:R (TP=3.0, SL=2, Period=15)
+    - DOGE-USDT       #  7.81x R:R (TP=4.0, SL=4, Period=15)
+    - PENGU-USDT      #  7.24x R:R (TP=7.0, SL=5, Period=25)
+    - ETH-USDT        #  6.64x R:R (TP=1.5, SL=4, Period=20)
+    - AIXBT-USDT      #  4.73x R:R (TP=12.0, SL=2, Period=15)
+    - FARTCOIN-USDT   #  4.61x R:R (TP=7.5, SL=2, Period=15)
+    - CRV-USDT        #  2.92x R:R (TP=9.0, SL=5, Period=15)
 
   strategies:
     # ═══════════════════════════════════════════════════════════════════
