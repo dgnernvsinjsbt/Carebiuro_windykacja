@@ -68,14 +68,29 @@ class OrderExecutor:
         entry_price = signal['entry_price']
         stop_loss = signal['stop_loss']
 
-        # Position value: Fixed USDT or Equity × Risk %
+        # Position value: Fixed USDT or Kelly sizing (risk-adjusted)
         if fixed_position_value_usdt > 0:
             position_value = fixed_position_value_usdt
             self.logger.info(f"Using fixed position value: ${position_value:.2f} USDT")
         else:
-            # Use risk_pct for position sizing (e.g., 10% = 0.10 of equity)
-            position_value = account_balance * (risk_pct / 100) * leverage
-            self.logger.info(f"Using percentage-based sizing: ${position_value:.2f} USDT ({risk_pct}% of equity × {leverage}x leverage)")
+            # Kelly sizing: Position size based on risk amount / SL distance
+            # Each trade risks exactly risk_pct% of equity, regardless of SL width
+            risk_amount = account_balance * (risk_pct / 100)  # e.g., $100 * 3% = $3
+            sl_distance_pct = abs(entry_price - stop_loss) / entry_price * 100
+
+            if sl_distance_pct <= 0:
+                self.logger.error(f"Invalid SL distance: {sl_distance_pct}%")
+                return 0
+
+            # Position value = Risk amount / SL distance %
+            # Wide SL (5%) → smaller position, Narrow SL (1%) → larger position
+            # But SL hit always = -risk_amount (e.g., -$3)
+            position_value = risk_amount / (sl_distance_pct / 100)
+
+            self.logger.info(f"Using Kelly sizing:")
+            self.logger.info(f"  Risk amount: ${risk_amount:.2f} ({risk_pct}% of equity)")
+            self.logger.info(f"  SL distance: {sl_distance_pct:.2f}%")
+            self.logger.info(f"  Position value: ${position_value:.2f} USDT")
 
         position_size = position_value / entry_price
 

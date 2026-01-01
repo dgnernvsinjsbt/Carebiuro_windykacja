@@ -157,13 +157,14 @@ class TradingEngine:
                 self.logger.error("Failed to connect to BingX")
                 return False
 
-            # Get account balance
+            # Get account balance (use 'balance' for Kelly sizing - total equity)
             balance_data = await self.bingx.get_balance()
             if isinstance(balance_data, list):
                 for asset in balance_data:
                     if asset.get('asset') == 'USDT':
-                        self.account_balance = float(asset.get('availableMargin', 0))
-                        self.logger.info(f"Account balance: ${self.account_balance:.2f} USDT")
+                        self.account_balance = float(asset.get('balance', 0))
+                        available = float(asset.get('availableMargin', 0))
+                        self.logger.info(f"Account balance: ${self.account_balance:.2f} USDT (available: ${available:.2f})")
 
             # Check minimum balance
             if self.account_balance < self.config.safety.min_account_balance:
@@ -787,7 +788,14 @@ class TradingEngine:
 
 def main():
     """Entry point"""
-    engine = TradingEngine()
+    import argparse
+
+    parser = argparse.ArgumentParser(description='BingX Trading Bot')
+    parser.add_argument('--config', type=str, default='config.yaml',
+                        help='Path to config file (default: config.yaml)')
+    args = parser.parse_args()
+
+    engine = TradingEngine(config_path=args.config)
 
     # Handle shutdown signals
     def signal_handler(sig, frame):

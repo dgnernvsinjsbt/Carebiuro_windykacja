@@ -1,0 +1,142 @@
+# DONCHIAN BREAKOUT - TOP 8 COIN PORTFOLIO
+# Strategy Performance (3% risk/trade, Jun-Dec 2025):
+# - Total Return: +35,902%
+# - Max Drawdown: -39.9%
+# - R:R Ratio: 899x
+# - Win Rate: 60.6%
+# - Total Trades: 619
+
+# Trading Configuration
+trading:
+  enabled: true          # LIVE TRADING ENABLED
+  testnet: false         # Production mode
+
+  # TOP 8 COINS (R:R > 2.9x)
+  symbols:
+    - UNI-USDT          # Rank 1: R:R 19.35x, 36% WR, 44 trades
+    - PI-USDT           # Rank 2: R:R 12.68x, 53% WR, 158 trades
+    - DOGE-USDT         # Rank 3: R:R 7.81x, 67% WR, 60 trades
+    - PENGU-USDT        # Rank 4: R:R 7.24x, 68% WR, 25 trades
+    - ETH-USDT          # Rank 5: R:R 6.64x, 80% WR, 230 trades
+    - AIXBT-USDT        # Rank 6: R:R 4.73x, 26% WR, 34 trades
+    - FARTCOIN-USDT     # Rank 7: R:R 4.61x, 31% WR, 51 trades
+    - CRV-USDT          # Rank 8: R:R 2.92x, 59% WR, 17 trades
+
+  strategies:
+    # DONCHIAN BREAKOUT - 8 COINS (1H candles)
+    # Parameters (TP_ATR, SL_ATR, Period) hardcoded in COIN_PARAMS
+
+    donchian_uni:          # Rank 1: R:R 19.35x, 36% WR, 44 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_pi:           # Rank 2: R:R 12.68x, 53% WR, 158 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_doge:         # Rank 3: R:R 7.81x, 67% WR, 60 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_pengu:        # Rank 4: R:R 7.24x, 68% WR, 25 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_eth:          # Rank 5: R:R 6.64x, 80% WR, 230 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_aixbt:        # Rank 6: R:R 4.73x, 26% WR, 34 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_fartcoin:     # Rank 7: R:R 4.61x, 31% WR, 51 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+    donchian_crv:          # Rank 8: R:R 2.92x, 59% WR, 17 trades
+      enabled: true
+      base_risk_pct: 3.0   # Kelly sizing: risk 3% equity per trade
+      max_risk_pct: 5.0
+      max_positions: 1
+
+  # Risk Management
+  risk_management:
+    max_portfolio_risk: 10.0     # Max 10% total capital at risk
+    max_drawdown: 15.0           # Emergency stop at 15% drawdown
+    cooldown_after_loss: 60      # 60 min cooldown after loss
+    max_consecutive_losses: 3    # Stop after 3 consecutive losses
+    max_daily_loss_pct: 5.0      # Stop after 5% daily loss
+
+# BingX API Configuration
+bingx:
+  api_key: "OCdqe4dHf1VpXw0Jbk3uoQTsa5CLp73rnRisvvzo2MDNp492d989QKee4znGmuLDccvnNDmRckbzEZms1AZg"
+  api_secret: "bCxPlsFtwm5RsWgslRFaqr7jDzZiAY41gfQ1jmdAurTTz3uhjESBGB5FoqqFvLhyMLs7lD4uK6j89Lbf3AIw"
+  testnet: false
+  base_url: "https://open-api.bingx.com"
+  requests_per_minute: 1200
+  default_leverage: 20          # 20x for margin efficiency (risk unchanged)
+  leverage_mode: "isolated"     # Isolated margin mode
+
+# Safety
+safety:
+  dry_run: false                 # LIVE TRADING ENABLED
+  stop_file: ./STOP              # Create this file to halt trading
+  emergency_stop_enabled: true
+  min_account_balance: 25.0      # Min USDT balance (8 coins × 3 USDT)
+  check_existing_positions: true
+  close_positions_on_shutdown: false  # Don't auto-close on shutdown
+  max_shutdown_wait_seconds: 30
+
+# Data Feed
+data:
+  provider: bingx
+  websocket_url: wss://open-api-swap.bingx.com/swap-market
+  rest_api_url: https://open-api.bingx.com
+
+  candle_interval: 1h
+  buffer_size: 500               # Keep 500 historical candles
+
+  # Data validation
+  max_price_change_pct: 20.0     # Flag if price changes > 20%
+  min_volume_threshold: 100      # Min volume per candle
+
+  # Reconnection (not used in REST mode but required by config)
+  reconnect_attempts: 5
+  reconnect_delay_seconds: 5
+  max_reconnect_delay: 60
+
+# Logging
+logging:
+  level: INFO
+  console_output: true
+  file_output: true
+  file_path: ./logs/donchian-bot.log
+  max_size_mb: 50
+  backup_count: 5
+  json_format: false
+  dashboard_interval_minutes: 60
+
+# Database
+database:
+  type: sqlite
+  path: ./data/donchian_trades.db
+  echo: false
+
+# Notifications (optional)
+notifications:
+  enabled: false
