@@ -1,0 +1,36 @@
+{
+  "coin": "MELANIA",
+  "test_name": "MELANIA_Aggressive_TP",
+  "metrics": {
+    "total_return_pct": 15.157769694312192,
+    "max_drawdown": -1.4149449514541297,
+    "rr_ratio": 10.712621490139705,
+    "profit_factor": 14.92767069364395,
+    "win_rate": 60.0,
+    "total_trades": 5,
+    "avg_win": 5.1775034004793445,
+    "avg_loss": -0.47247016511565104
+  },
+  "config": {
+    "body_threshold": 1.0,
+    "volume_multiplier": 2.5,
+    "wick_threshold": 0.35,
+    "require_strong_trend": true,
+    "sma_distance_min": 2.5,
+    "rsi_short_max": 55,
+    "rsi_short_min": 25,
+    "rsi_long_min": 45,
+    "rsi_long_max": 75,
+    "require_high_vol": true,
+    "atr_percentile_min": 50,
+    "tp_atr_mult": 18.0,
+    "stop_atr_mult": 3.0,
+    "base_risk_pct": 1.5,
+    "max_risk_pct": 5.0,
+    "win_streak_scaling": 0.5,
+    "use_trailing_stop": true,
+    "use_partial_exits": true,
+    "max_hold_hours": 24,
+    "trade_both_directions": true
+  }
+}

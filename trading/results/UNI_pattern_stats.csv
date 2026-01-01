@@ -1,5 +1,0 @@
-pattern_type,pattern_name,edge_pct,win_rate,sample_size,confidence,lookforward
-sequential,touch_bb_upper_3std,-0.10492814256679124,40.55944055944056,143,MEDIUM,20
-sequential,touch_bb_upper_3std,-0.11198906713710996,40.55944055944056,143,MEDIUM,10
-sequential,touch_bb_lower_3std,-0.12115601503705677,40.77669902912621,103,MEDIUM,5
-sequential,touch_bb_lower_3std,-0.185337549724885,39.80582524271845,103,MEDIUM,20

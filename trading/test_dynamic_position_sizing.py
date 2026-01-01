@@ -1,244 +1,437 @@
 """
-Test dynamic position sizing strategies on FARTCOIN
-Reduce size on consecutive losses, increase on consecutive wins
+Dynamic Position Sizing Based on Win/Loss Streaks
+- Increase size after wins
+- Decrease size after losses
+- Naturally scales up in hot streaks, down in cold streaks
 """
-
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
-# Load filtered trades
-trades_df = pd.read_csv('results/fartcoin_30m_trade_analysis.csv')
+def analyze_streaks(df, month_name):
+    """Analyze win/loss streaks in a month"""
 
-# Apply best filter
-filtered = trades_df[
-    (trades_df['entry_momentum_7d'] < 0) &
-    (trades_df['entry_atr_pct'] < 6) &
-    (trades_df['entry_rsi'] < 60)
-].copy()
+    # Basic indicators
+    delta = df['close'].diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
+    rs = avg_gain / avg_loss
+    df['rsi'] = 100 - (100 / (1 + rs))
 
-filtered = filtered.sort_values('exit_date').reset_index(drop=True)
+    df['tr'] = np.maximum(df['high'] - df['low'], np.maximum(
+        abs(df['high'] - df['close'].shift(1)),
+        abs(df['low'] - df['close'].shift(1))
+    ))
+    df['atr'] = df['tr'].rolling(14).mean()
+    df['ret_20'] = (df['close'] / df['close'].shift(20) - 1) * 100
 
-print("="*100)
-print("DYNAMIC POSITION SIZING TEST - FARTCOIN")
-print("="*100)
+    trades = []
+    equity = 100.0
+    position = None
+    pending_order = None
 
-def backtest_with_position_sizing(trades, sizing_method='fixed', **params):
-    """
-    sizing_method options:
-    - 'fixed': Always 100% position
-    - 'anti_martingale': Increase on wins, decrease on losses
-    - 'streak_based': Scale based on consecutive win/loss streak
-    """
+    for i in range(300, len(df)):
+        row = df.iloc[i]
 
-    equity = 1.0
-    equity_curve = [equity]
-    position_size = 1.0  # Start with 100%
-    consecutive_wins = 0
-    consecutive_losses = 0
+        if pd.isna(row['rsi']) or pd.isna(row['atr']) or pd.isna(row['ret_20']):
+            continue
 
-    position_sizes_used = []
+        # Check pending limit order
+        if pending_order:
+            bars_waiting = i - pending_order['signal_bar']
+            if bars_waiting > 8:
+                pending_order = None
+                continue
 
-    for _, trade in trades.iterrows():
-        # Determine position size based on method
-        if sizing_method == 'fixed':
-            position_size = 1.0
-
-        elif sizing_method == 'anti_martingale':
-            # Increase on wins, decrease on losses
-            win_multiplier = params.get('win_mult', 1.2)
-            loss_multiplier = params.get('loss_mult', 0.8)
-            min_size = params.get('min_size', 0.25)
-            max_size = params.get('max_size', 2.0)
-
-            if consecutive_wins > 0:
-                position_size = min(position_size * (win_multiplier ** consecutive_wins), max_size)
-            elif consecutive_losses > 0:
-                position_size = max(position_size * (loss_multiplier ** consecutive_losses), min_size)
+            if pending_order['direction'] == 'LONG':
+                if row['low'] <= pending_order['limit_price']:
+                    position = {
+                        'direction': 'LONG',
+                        'entry': pending_order['limit_price'],
+                        'sl_price': pending_order['sl_price'],
+                        'tp_price': pending_order['tp_price'],
+                        'size': pending_order['size']
+                    }
+                    pending_order = None
             else:
-                position_size = 1.0
+                if row['high'] >= pending_order['limit_price']:
+                    position = {
+                        'direction': 'SHORT',
+                        'entry': pending_order['limit_price'],
+                        'sl_price': pending_order['sl_price'],
+                        'tp_price': pending_order['tp_price'],
+                        'size': pending_order['size']
+                    }
+                    pending_order = None
 
-        elif sizing_method == 'streak_based':
-            # Simple: reduce 20% per consecutive loss, increase 20% per win
-            win_step = params.get('win_step', 0.2)
-            loss_step = params.get('loss_step', 0.2)
-            min_size = params.get('min_size', 0.25)
-            max_size = params.get('max_size', 2.0)
+        # Manage active position
+        if position:
+            pnl_pct = None
+            exit_type = None
 
-            if consecutive_wins > 0:
-                position_size = min(1.0 + (consecutive_wins * win_step), max_size)
-            elif consecutive_losses > 0:
-                position_size = max(1.0 - (consecutive_losses * loss_step), min_size)
+            if position['direction'] == 'LONG':
+                if row['low'] <= position['sl_price']:
+                    pnl_pct = ((position['sl_price'] - position['entry']) / position['entry']) * 100
+                    exit_type = 'SL'
+                elif row['high'] >= position['tp_price']:
+                    pnl_pct = ((position['tp_price'] - position['entry']) / position['entry']) * 100
+                    exit_type = 'TP'
             else:
-                position_size = 1.0
+                if row['high'] >= position['sl_price']:
+                    pnl_pct = ((position['entry'] - position['sl_price']) / position['entry']) * 100
+                    exit_type = 'SL'
+                elif row['low'] <= position['tp_price']:
+                    pnl_pct = ((position['entry'] - position['tp_price']) / position['entry']) * 100
+                    exit_type = 'TP'
 
-        elif sizing_method == 'gradual':
-            # Gradual adjustment
-            adjustment = params.get('adjustment', 0.15)
-            min_size = params.get('min_size', 0.4)
-            max_size = params.get('max_size', 1.5)
+            if pnl_pct is not None:
+                pnl_dollar = position['size'] * (pnl_pct / 100) - position['size'] * 0.001
+                equity += pnl_dollar
+                trades.append({'pnl_pct': pnl_pct, 'exit': exit_type, 'winner': pnl_pct > 0})
+                position = None
+                continue
 
-            if consecutive_wins > 0:
-                position_size = min(position_size + adjustment, max_size)
-            elif consecutive_losses > 0:
-                position_size = max(position_size - adjustment, min_size)
+        # Generate signals
+        if not position and not pending_order and i > 0:
+            prev_row = df.iloc[i-1]
 
-        position_sizes_used.append(position_size)
+            if row['ret_20'] <= 0:
+                continue
+            if pd.isna(prev_row['rsi']):
+                continue
 
-        # Calculate P&L with position sizing
-        trade_pnl = trade['pnl_pct'] * position_size
-        equity *= (1 + trade_pnl / 100)
-        equity_curve.append(equity)
+            signal_price = row['close']
+            atr = row['atr']
 
-        # Update streak counters
-        if trade['pnl_pct'] > 0:
-            consecutive_wins += 1
-            consecutive_losses = 0
+            if prev_row['rsi'] < 35 and row['rsi'] >= 35:
+                limit_price = signal_price - (atr * 0.1)
+                sl_price = limit_price - (atr * 1.2)
+                tp_price = limit_price + (atr * 3.0)
+                sl_dist = abs((limit_price - sl_price) / limit_price) * 100
+                size = (equity * 0.12) / (sl_dist / 100)
+
+                pending_order = {
+                    'direction': 'LONG',
+                    'limit_price': limit_price,
+                    'sl_price': sl_price,
+                    'tp_price': tp_price,
+                    'size': size,
+                    'signal_bar': i
+                }
+
+            elif prev_row['rsi'] > 65 and row['rsi'] <= 65:
+                limit_price = signal_price + (atr * 0.1)
+                sl_price = limit_price + (atr * 1.2)
+                tp_price = limit_price - (atr * 3.0)
+                sl_dist = abs((sl_price - limit_price) / limit_price) * 100
+                size = (equity * 0.12) / (sl_dist / 100)
+
+                pending_order = {
+                    'direction': 'SHORT',
+                    'limit_price': limit_price,
+                    'sl_price': sl_price,
+                    'tp_price': tp_price,
+                    'size': size,
+                    'signal_bar': i
+                }
+
+    if not trades:
+        return None
+
+    # Analyze streaks
+    df_t = pd.DataFrame(trades)
+
+    # Calculate streaks
+    current_streak = 0
+    max_win_streak = 0
+    max_loss_streak = 0
+    streaks = []
+
+    for winner in df_t['winner']:
+        if winner:
+            if current_streak >= 0:
+                current_streak += 1
+            else:
+                streaks.append(current_streak)
+                current_streak = 1
+            max_win_streak = max(max_win_streak, current_streak)
         else:
-            consecutive_losses += 1
-            consecutive_wins = 0
+            if current_streak <= 0:
+                current_streak -= 1
+            else:
+                streaks.append(current_streak)
+                current_streak = -1
+            max_loss_streak = max(max_loss_streak, abs(current_streak))
 
-    # Calculate metrics
-    equity_series = pd.Series(equity_curve)
-    running_max = equity_series.expanding().max()
-    drawdown = (equity_series - running_max) / running_max * 100
-    max_dd = drawdown.min()
-    total_return = (equity - 1) * 100
+    if current_streak != 0:
+        streaks.append(current_streak)
+
+    # Calculate average streaks
+    win_streaks = [s for s in streaks if s > 0]
+    loss_streaks = [abs(s) for s in streaks if s < 0]
+
+    avg_win_streak = np.mean(win_streaks) if win_streaks else 0
+    avg_loss_streak = np.mean(loss_streaks) if loss_streaks else 0
 
     return {
-        'equity_curve': equity_curve,
-        'drawdown': drawdown,
-        'total_return': total_return,
-        'max_dd': max_dd,
-        'final_equity': equity,
-        'position_sizes': position_sizes_used
+        'month': month_name,
+        'trades': len(df_t),
+        'winners': (df_t['winner']).sum(),
+        'win_rate': (df_t['winner']).sum() / len(df_t) * 100,
+        'max_win_streak': max_win_streak,
+        'max_loss_streak': max_loss_streak,
+        'avg_win_streak': avg_win_streak,
+        'avg_loss_streak': avg_loss_streak,
+        'total_return': ((equity - 100) / 100) * 100
     }
 
-# Test different position sizing strategies
-strategies = [
-    ('Fixed 100%', 'fixed', {}),
+def backtest_dynamic_sizing(df, month_name, win_multiplier=1.2, loss_multiplier=0.8, max_risk=0.30):
+    """
+    Dynamic position sizing:
+    - After win: multiply risk by win_multiplier
+    - After loss: multiply risk by loss_multiplier
+    - Cap at max_risk
+    """
 
-    ('Anti-Martingale (1.2x/0.8x)', 'anti_martingale', {
-        'win_mult': 1.2, 'loss_mult': 0.8, 'min_size': 0.25, 'max_size': 2.0
-    }),
+    # Basic indicators
+    delta = df['close'].diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
+    rs = avg_gain / avg_loss
+    df['rsi'] = 100 - (100 / (1 + rs))
 
-    ('Anti-Martingale (1.15x/0.85x)', 'anti_martingale', {
-        'win_mult': 1.15, 'loss_mult': 0.85, 'min_size': 0.3, 'max_size': 1.8
-    }),
+    df['tr'] = np.maximum(df['high'] - df['low'], np.maximum(
+        abs(df['high'] - df['close'].shift(1)),
+        abs(df['low'] - df['close'].shift(1))
+    ))
+    df['atr'] = df['tr'].rolling(14).mean()
+    df['ret_20'] = (df['close'] / df['close'].shift(20) - 1) * 100
 
-    ('Streak-Based (20% steps)', 'streak_based', {
-        'win_step': 0.2, 'loss_step': 0.2, 'min_size': 0.25, 'max_size': 2.0
-    }),
+    trades = []
+    equity = 100.0
+    equity_curve = [100.0]
+    position = None
+    pending_order = None
+    current_risk = 0.12  # Start at 12%
 
-    ('Streak-Based (15% steps)', 'streak_based', {
-        'win_step': 0.15, 'loss_step': 0.15, 'min_size': 0.3, 'max_size': 1.8
-    }),
+    for i in range(300, len(df)):
+        row = df.iloc[i]
 
-    ('Gradual (15% adjust)', 'gradual', {
-        'adjustment': 0.15, 'min_size': 0.4, 'max_size': 1.5
-    }),
+        if pd.isna(row['rsi']) or pd.isna(row['atr']) or pd.isna(row['ret_20']):
+            continue
 
-    ('Gradual (10% adjust)', 'gradual', {
-        'adjustment': 0.10, 'min_size': 0.5, 'max_size': 1.3
-    }),
+        # Check pending limit order
+        if pending_order:
+            bars_waiting = i - pending_order['signal_bar']
+            if bars_waiting > 8:
+                pending_order = None
+                continue
 
-    ('Conservative (Win only)', 'anti_martingale', {
-        'win_mult': 1.1, 'loss_mult': 1.0, 'min_size': 0.5, 'max_size': 1.5
-    }),
+            if pending_order['direction'] == 'LONG':
+                if row['low'] <= pending_order['limit_price']:
+                    position = {
+                        'direction': 'LONG',
+                        'entry': pending_order['limit_price'],
+                        'sl_price': pending_order['sl_price'],
+                        'tp_price': pending_order['tp_price'],
+                        'size': pending_order['size']
+                    }
+                    pending_order = None
+            else:
+                if row['high'] >= pending_order['limit_price']:
+                    position = {
+                        'direction': 'SHORT',
+                        'entry': pending_order['limit_price'],
+                        'sl_price': pending_order['sl_price'],
+                        'tp_price': pending_order['tp_price'],
+                        'size': pending_order['size']
+                    }
+                    pending_order = None
+
+        # Manage active position
+        if position:
+            pnl_pct = None
+            exit_type = None
+
+            if position['direction'] == 'LONG':
+                if row['low'] <= position['sl_price']:
+                    pnl_pct = ((position['sl_price'] - position['entry']) / position['entry']) * 100
+                    exit_type = 'SL'
+                elif row['high'] >= position['tp_price']:
+                    pnl_pct = ((position['tp_price'] - position['entry']) / position['entry']) * 100
+                    exit_type = 'TP'
+            else:
+                if row['high'] >= position['sl_price']:
+                    pnl_pct = ((position['entry'] - position['sl_price']) / position['entry']) * 100
+                    exit_type = 'SL'
+                elif row['low'] <= position['tp_price']:
+                    pnl_pct = ((position['entry'] - position['tp_price']) / position['entry']) * 100
+                    exit_type = 'TP'
+
+            if pnl_pct is not None:
+                pnl_dollar = position['size'] * (pnl_pct / 100) - position['size'] * 0.001
+                equity += pnl_dollar
+                equity_curve.append(equity)
+
+                # DYNAMIC SIZING: Adjust risk based on outcome
+                if pnl_pct > 0:  # Winner
+                    current_risk = min(current_risk * win_multiplier, max_risk)
+                else:  # Loser
+                    current_risk = max(current_risk * loss_multiplier, 0.05)  # Min 5%
+
+                trades.append({'pnl_pct': pnl_pct, 'exit': exit_type, 'risk_used': current_risk})
+                position = None
+                continue
+
+        # Generate signals with DYNAMIC RISK
+        if not position and not pending_order and i > 0:
+            prev_row = df.iloc[i-1]
+
+            if row['ret_20'] <= 0:
+                continue
+            if pd.isna(prev_row['rsi']):
+                continue
+
+            signal_price = row['close']
+            atr = row['atr']
+
+            if prev_row['rsi'] < 35 and row['rsi'] >= 35:
+                limit_price = signal_price - (atr * 0.1)
+                sl_price = limit_price - (atr * 1.2)
+                tp_price = limit_price + (atr * 3.0)
+                sl_dist = abs((limit_price - sl_price) / limit_price) * 100
+                size = (equity * current_risk) / (sl_dist / 100)  # Use dynamic risk
+
+                pending_order = {
+                    'direction': 'LONG',
+                    'limit_price': limit_price,
+                    'sl_price': sl_price,
+                    'tp_price': tp_price,
+                    'size': size,
+                    'signal_bar': i
+                }
+
+            elif prev_row['rsi'] > 65 and row['rsi'] <= 65:
+                limit_price = signal_price + (atr * 0.1)
+                sl_price = limit_price + (atr * 1.2)
+                tp_price = limit_price - (atr * 3.0)
+                sl_dist = abs((sl_price - limit_price) / limit_price) * 100
+                size = (equity * current_risk) / (sl_dist / 100)  # Use dynamic risk
+
+                pending_order = {
+                    'direction': 'SHORT',
+                    'limit_price': limit_price,
+                    'sl_price': sl_price,
+                    'tp_price': tp_price,
+                    'size': size,
+                    'signal_bar': i
+                }
+
+    if not trades:
+        return {'month': month_name, 'trades': 0, 'total_return': 0, 'final_equity': equity}
+
+    df_t = pd.DataFrame(trades)
+
+    eq_series = pd.Series(equity_curve)
+    running_max = eq_series.expanding().max()
+    drawdown = (eq_series - running_max) / running_max * 100
+    max_dd = drawdown.min()
+
+    winners = df_t[df_t['pnl_pct'] > 0]
+
+    return {
+        'month': month_name,
+        'trades': len(df_t),
+        'winners': len(winners),
+        'win_rate': len(winners) / len(df_t) * 100,
+        'total_return': ((equity - 100) / 100) * 100,
+        'max_dd': max_dd,
+        'final_equity': equity
+    }
+
+print('=' * 140)
+print('PART 1: WIN/LOSS STREAK ANALYSIS')
+print('=' * 140)
+
+months = [
+    ('June', 'melania_june_2025_15m.csv', 'LOSER'),
+    ('July', 'melania_july_2025_15m.csv', 'LOSER'),
+    ('August', 'melania_august_2025_15m.csv', 'LOSER'),
+    ('September', 'melania_september_2025_15m.csv', 'LOSER'),
+    ('October', 'melania_october_2025_15m.csv', 'WINNER'),
+    ('November', 'melania_november_2025_15m.csv', 'WINNER'),
+    ('December', 'melania_december_2025_15m.csv', 'WINNER'),
 ]
 
-results = []
-equity_curves = {}
+streak_results = []
 
-for name, method, params in strategies:
-    result = backtest_with_position_sizing(filtered, method, **params)
+for month_name, filename, category in months:
+    df = pd.read_csv(filename)
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    result = analyze_streaks(df.copy(), month_name)
+    if result:
+        result['category'] = category
+        streak_results.append(result)
 
-    results.append({
-        'strategy': name,
-        'return': result['total_return'],
-        'max_dd': result['max_dd'],
-        'final_equity': result['final_equity'],
-        'return_improvement': result['total_return'] - 288.40,
-        'dd_improvement': result['max_dd'] - (-30.45)
-    })
+print(f"\n{'Month':<12} {'Cat':<7} {'Trades':<8} {'WR%':<6} {'Max W':<7} {'Max L':<7} "
+      f"{'Avg W':<7} {'Avg L':<7} {'Return':<10}")
+print('-' * 140)
 
-    equity_curves[name] = result['equity_curve']
+for r in streak_results:
+    print(f"{r['month']:<12} {r['category']:<7} {r['trades']:<8} {r['win_rate']:>5.1f}% "
+          f"{r['max_win_streak']:<7} {r['max_loss_streak']:<7} {r['avg_win_streak']:<7.2f} "
+          f"{r['avg_loss_streak']:<7.2f} {r['total_return']:>+9.1f}%")
 
-results_df = pd.DataFrame(results)
-results_df = results_df.sort_values('return', ascending=False)
+# Summary
+losers = [r for r in streak_results if r['category'] == 'LOSER']
+winners = [r for r in streak_results if r['category'] == 'WINNER']
 
-print("\n" + "="*100)
-print("POSITION SIZING STRATEGY RESULTS")
-print("="*100)
-print(f"\n{'Strategy':<30} {'Return':<12} {'Max DD':<12} {'Final Eq':<12} {'Ret Δ':<12} {'DD Δ':<12}")
-print("-"*100)
+print('\n' + '=' * 140)
+print('SUMMARY')
+print('=' * 140)
+print(f"\nLOSER MONTHS (Jun-Sep):")
+print(f"  Avg max win streak: {np.mean([r['max_win_streak'] for r in losers]):.1f}")
+print(f"  Avg max loss streak: {np.mean([r['max_loss_streak'] for r in losers]):.1f}")
+print(f"  Avg win streak length: {np.mean([r['avg_win_streak'] for r in losers]):.2f}")
+print(f"  Avg loss streak length: {np.mean([r['avg_loss_streak'] for r in losers]):.2f}")
 
-for _, row in results_df.iterrows():
-    print(f"{row['strategy']:<30} {row['return']:<11.2f}% {row['max_dd']:<11.2f}% {row['final_equity']:<11.2f}x {row['return_improvement']:>+11.2f}% {row['dd_improvement']:>+11.2f}%")
+print(f"\nWINNER MONTHS (Oct-Dec):")
+print(f"  Avg max win streak: {np.mean([r['max_win_streak'] for r in winners]):.1f}")
+print(f"  Avg max loss streak: {np.mean([r['max_loss_streak'] for r in winners]):.1f}")
+print(f"  Avg win streak length: {np.mean([r['avg_win_streak'] for r in winners]):.2f}")
+print(f"  Avg loss streak length: {np.mean([r['avg_loss_streak'] for r in winners]):.2f}")
 
-print("\n" + "="*100)
-print("TOP 3 STRATEGIES")
-print("="*100)
+# Test dynamic sizing
+print('\n' + '=' * 140)
+print('PART 2: DYNAMIC POSITION SIZING TEST')
+print('=' * 140)
 
-for idx, row in results_df.head(3).iterrows():
-    print(f"\n#{idx+1}: {row['strategy']}")
-    print(f"  Total Return: {row['return']:.2f}% ({row['return_improvement']:+.2f}% vs Fixed)")
-    print(f"  Max Drawdown: {row['max_dd']:.2f}% ({row['dd_improvement']:+.2f}% vs Fixed)")
-    print(f"  Final Equity: {row['final_equity']:.2f}x (Fixed: 3.88x)")
+configs = [
+    (1.1, 0.9, 'Conservative (+10%/-10%)'),
+    (1.2, 0.8, 'Moderate (+20%/-20%)'),
+    (1.3, 0.7, 'Aggressive (+30%/-30%)'),
+    (1.5, 0.5, 'Very Aggressive (+50%/-50%)'),
+]
 
-    # Calculate sharpe-like ratio
-    ret_dd_ratio = row['return'] / abs(row['max_dd'])
-    print(f"  Return/DD Ratio: {ret_dd_ratio:.2f}")
+for win_mult, loss_mult, label in configs:
+    print(f'\n{label}:')
 
-# Visualize top 3 strategies
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+    cumulative_equity = 100.0
+    for month_name, filename, category in months:
+        df = pd.read_csv(filename)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        result = backtest_dynamic_sizing(df.copy(), month_name, win_mult, loss_mult)
 
-colors = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D']
+        starting = cumulative_equity
+        cumulative_equity = starting * (1 + result['total_return'] / 100)
 
-for idx, (_, row) in enumerate(results_df.head(4).iterrows()):
-    strategy = row['strategy']
-    ec = equity_curves[strategy]
-    ax1.plot(range(len(ec)), ec, linewidth=2, label=strategy, color=colors[idx])
+        print(f"  {month_name}: {result['trades']} trades, {result['total_return']:+.1f}% "
+              f"(${starting:.2f} → ${cumulative_equity:.2f})")
 
-ax1.axhline(y=1, color='gray', linestyle='--', alpha=0.5, linewidth=1)
-ax1.set_title('FARTCOIN - Position Sizing Strategy Comparison', fontsize=14, fontweight='bold', pad=20)
-ax1.set_ylabel('Equity (Multiple of Starting Capital)', fontsize=11)
-ax1.set_xlabel('Trade Number', fontsize=11)
-ax1.legend(loc='upper left', fontsize=10)
-ax1.grid(True, alpha=0.3)
+    total_return = ((cumulative_equity - 100) / 100) * 100
+    print(f"  FINAL: ${cumulative_equity:.2f} ({total_return:+.1f}%)")
 
-# Drawdown comparison
-for idx, (_, row) in enumerate(results_df.head(4).iterrows()):
-    strategy = row['strategy']
-    ec = equity_curves[strategy]
-    equity_series = pd.Series(ec)
-    running_max = equity_series.expanding().max()
-    drawdown = (equity_series - running_max) / running_max * 100
-    ax2.plot(range(len(drawdown)), drawdown, linewidth=1.5, label=strategy, color=colors[idx])
-
-ax2.set_title('Drawdown Comparison', fontsize=11, fontweight='bold')
-ax2.set_ylabel('Drawdown %', fontsize=10)
-ax2.set_xlabel('Trade Number', fontsize=10)
-ax2.legend(loc='lower left', fontsize=9)
-ax2.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.savefig('results/fartcoin_position_sizing_comparison.png', dpi=300, bbox_inches='tight')
-print("\n✓ Saved comparison chart to results/fartcoin_position_sizing_comparison.png")
-
-# Save results
-results_df.to_csv('results/position_sizing_results.csv', index=False)
-print("✓ Saved results to results/position_sizing_results.csv")
-
-print("\n" + "="*100)
-print("RECOMMENDATION")
-print("="*100)
-
-best = results_df.iloc[0]
-print(f"\nBest Strategy: {best['strategy']}")
-print(f"  Improves return by {best['return_improvement']:+.2f}%")
-print(f"  Improves drawdown by {best['dd_improvement']:+.2f}%")
-print(f"  Final return: {best['return']:.2f}%")
-print(f"  Max drawdown: {best['max_dd']:.2f}%")
-
-print("\n" + "="*100)
+print('\n' + '=' * 140)

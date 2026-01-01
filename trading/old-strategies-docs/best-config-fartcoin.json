@@ -1,0 +1,36 @@
+{
+  "coin": "FARTCOIN",
+  "test_name": "FARTCOIN_Body_1.2%",
+  "metrics": {
+    "total_return_pct": 21.384701506676628,
+    "max_drawdown": -2.004930937792087,
+    "rr_ratio": 10.666053929132515,
+    "profit_factor": 4.671444557054587,
+    "win_rate": 63.63636363636363,
+    "total_trades": 11,
+    "avg_win": 3.5387710054762267,
+    "avg_loss": -1.2237183695185545
+  },
+  "config": {
+    "body_threshold": 1.2,
+    "volume_multiplier": 2.5,
+    "wick_threshold": 0.35,
+    "require_strong_trend": true,
+    "sma_distance_min": 2.0,
+    "rsi_short_max": 55,
+    "rsi_short_min": 25,
+    "rsi_long_min": 45,
+    "rsi_long_max": 75,
+    "require_high_vol": true,
+    "atr_percentile_min": 50,
+    "tp_atr_mult": 15.0,
+    "stop_atr_mult": 3.0,
+    "base_risk_pct": 1.5,
+    "max_risk_pct": 5.0,
+    "win_streak_scaling": 0.5,
+    "use_trailing_stop": true,
+    "use_partial_exits": true,
+    "max_hold_hours": 24,
+    "trade_both_directions": true
+  }
+}

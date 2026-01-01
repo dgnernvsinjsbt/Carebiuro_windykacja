@@ -1,0 +1,38 @@
+{
+  "config_name": "V7 Baseline - Trend + Distance 2%",
+  "metrics": {
+    "total_trades": 14,
+    "total_return_pct": 52.51491266346328,
+    "max_drawdown_pct": 4.433497728691705,
+    "rr_ratio": 11.845029788469086,
+    "win_rate": 57.14285714285714,
+    "profit_factor": 3.391995679042218,
+    "avg_win": 7.432753350233808,
+    "avg_loss": -2.4665437892401982
+  },
+  "config": {
+    "body_threshold": 1.0,
+    "volume_multiplier": 2.5,
+    "wick_threshold": 0.35,
+    "require_strong_trend": true,
+    "sma_distance_min": 2.0,
+    "short_only_in_downtrend": true,
+    "long_only_in_uptrend": true,
+    "rsi_short_max": 55,
+    "rsi_short_min": 25,
+    "rsi_long_min": 45,
+    "rsi_long_max": 75,
+    "require_high_vol": true,
+    "atr_percentile_min": 50,
+    "stop_atr_mult": 3.0,
+    "dynamic_tp": false,
+    "tp_atr_high_vol": 15.0,
+    "base_risk_pct": 1.5,
+    "max_risk_pct": 5.0,
+    "win_streak_scaling": 0.5,
+    "use_trailing_stop": true,
+    "use_partial_exits": true,
+    "max_hold_hours": 24,
+    "trade_both_directions": true
+  }
+}

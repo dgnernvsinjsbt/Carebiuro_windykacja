@@ -1,0 +1,54 @@
+## 🏆 ACTIVE STRATEGIES (9-Coin RSI Portfolio - CORRECTED RSI)
+
+**⚠️ CRITICAL BUG FIXES (Dec 2025):**
+
+**4 Critical Bugs Fixed:**
+1. ✅ **RSI Calculation** - Was using SMA instead of Wilder's EMA (matched BingX/TradingView)
+2. ✅ **Symbol Matching** - Strategy symbols ('PEPE') didn't match config ('1000PEPE-USDT')
+3. ✅ **Field Names** - Strategies returned 'side' but main.py expected 'direction' (KeyError)
+4. ✅ **Signal Type** - Strategies returned 'LIMIT' but main.py checked for 'PENDING_LIMIT_REQUEST'
+
+**Impact:** Old results were based on **phantom RSI signals** that don't exist on BingX charts. The buggy SMA-based RSI showed values up to 20 points higher/lower than real Wilder's RSI, generating false crossover signals.
+
+**Example:** Bot saw RSI 66.87 → 62.44 (SHORT signal), but BingX showed max RSI was only 58.23 (no signal).
+
+---
+
+**Individual Strategy Performance (90 Days - WITH CORRECTED RSI):**
+
+| Rank | Coin | RSI | Limit% | SL | TP | Trades | Return% | MaxDD% | **R/R Ratio** | Win% |
+|------|------|-----|--------|----|----|--------|---------|--------|---------------|------|
+| 🥇 | **MELANIA** | 25/75 | 1.5% | 1.0x | 3.0x | 10 | **+9.08%** | -0.29% | **31.70x** 🔥 | 80.0% |
+| 🥈 | **CRV** | 25/70 | 2.0% | 1.0x | 1.0x | 13 | +2.58% | -0.17% | **15.20x** | 84.6% |
+| 🥉 | **XLM** | 30/75 | 1.5% | 1.0x | 1.5x | 16 | +3.03% | -0.21% | **14.76x** | 81.2% |
+| 4 | **PEPE** | 27/65 | 2.0% | 1.0x | 1.0x | 19 | +2.96% | -0.26% | **11.39x** | 84.2% |
+| 5 | **DOGE** | 25/65 | 2.0% | 1.5x | 1.5x | 13 | +2.32% | -0.22% | **10.58x** | 92.3% 🌟 |
+| 6 | **AIXBT** | 25/65 | 2.0% | 1.0x | 1.0x | 26 | +3.62% | -0.49% | **7.34x** | 69.2% |
+| 7 | **UNI** | 27/70 | 1.5% | 1.5x | 1.0x | 17 | +2.81% | -0.39% | **7.23x** | 88.2% |
+| 8 | **MOODENG** | 27/65 | 2.0% | 1.0x | 1.0x | 21 | +2.94% | -0.60% | **4.92x** | 71.4% |
+| 9 | **TRUMPSOL** | 30/65 | 1.5% | 2.0x | 1.5x | 13 | +1.31% | -0.62% | **2.10x** ⚠️ | 76.9% |
+
+**Key Changes from Buggy Version:**
+
+| Metric | Old (Buggy RSI) | New (Corrected RSI) | Impact |
+|--------|-----------------|---------------------|--------|
+| **MOODENG R/R** | 26.96x (fantasy) | 4.92x (reality) | **-82%** |
+| **Returns** | +97% per coin | +2-9% per coin | **-95%** phantom profit |
+| **Max DD** | -3.6% | -0.2% to -0.6% | **Smoother** ✅ |
+
+**Realistic Expectations:**
+- Individual coins: +2-9% return over 90 days (realistic)
+- Best performer: MELANIA at 31.70x R/R (+9.08% with -0.29% DD)
+- Worst performer: TRUMPSOL at 2.10x R/R (consider replacing)
+- Average R/R: ~11.5x across 9 coins
+- **Portfolio approach still valid** - diversification across 9 coins should smooth returns
+
+**Code Location:**
+- Strategies: `bingx-trading-bot/strategies/{coin}_rsi_swing.py`
+- Corrected RSI: `bingx-trading-bot/data/indicators.py:40-75`
+- Signal fixes: `bingx-trading-bot/execution/signal_generator.py`
+- Optimization results: `all_coins_optimization_corrected.csv`
+
+**1-Minute Strategies (Archived):** `pippin_fresh_crosses.py`, `trumpsol_contrarian.py`
+
+---

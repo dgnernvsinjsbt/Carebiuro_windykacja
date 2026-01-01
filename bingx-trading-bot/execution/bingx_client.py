@@ -452,13 +452,13 @@ class BingXClient:
         if client_order_id:
             params['clientOrderID'] = client_order_id
 
-        # Add stop loss
+        # Add stop loss (compact JSON, no spaces - required for BingX signature)
         if stop_loss:
-            params['stopLoss'] = json.dumps(stop_loss)
+            params['stopLoss'] = json.dumps(stop_loss, separators=(',', ':'))
 
-        # Add take profit
+        # Add take profit (compact JSON, no spaces - required for BingX signature)
         if take_profit:
-            params['takeProfit'] = json.dumps(take_profit)
+            params['takeProfit'] = json.dumps(take_profit, separators=(',', ':'))
 
         result = await self._request('POST', self.ENDPOINT_PLACE_ORDER, params, signed=True)
 

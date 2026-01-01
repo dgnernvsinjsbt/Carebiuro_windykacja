@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { fakturowniaApi } from '@/lib/fakturownia';
-import { supabase, invoicesDb } from '@/lib/supabase';
+import { supabaseAdmin, invoicesDb } from '@/lib/supabase';
 import { Invoice, FakturowniaInvoice } from '@/types';
 import { verifyAndCleanInvoiceHash } from '@/lib/hash-verifier';
 
@@ -37,30 +37,38 @@ export async function POST(request: NextRequest) {
     console.log(`[SyncClient] Client data:`, {
       id: clientData.id,
       name: clientData.name,
+      phone: clientData.phone,
+      mobile_phone: clientData.mobile_phone,
+      email: clientData.email,
       hasNote: !!clientData.note,
       notePreview: clientData.note?.substring(0, 100),
     });
 
     // STEP 2: Update client in Supabase
-    console.log(`[SyncClient] Updating client in Supabase...`);
-    const { error: clientUpdateError } = await supabase()
+    // Use phone OR mobile_phone (whichever is available)
+    const clientPhone = clientData.phone || clientData.mobile_phone || null;
+    console.log(`[SyncClient] Phone resolution: phone="${clientData.phone}" mobile_phone="${clientData.mobile_phone}" => using "${clientPhone}"`);
+
+    const updatePayload = {
+      name: clientData.name || null,
+      first_name: clientData.first_name || null,
+      last_name: clientData.last_name || null,
+      email: clientData.email || null,
+      phone: clientPhone,
+      note: clientData.note || null,
+      updated_at: new Date().toISOString(),
+    };
+    console.log(`[SyncClient] Updating client with payload:`, JSON.stringify(updatePayload));
+
+    const { data: updateData, error: clientUpdateError } = await supabaseAdmin()
       .from('clients')
-      .update({
-        name: clientData.name || null,
-        first_name: clientData.first_name || null,
-        last_name: clientData.last_name || null,
-        email: clientData.email || null,
-        phone: clientData.phone || null,
-        note: clientData.note || null, // WINDYKACJA tag jest tutaj
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', client_id);
+      .upsert({ id: client_id, ...updatePayload })
+      .select();
 
     if (clientUpdateError) {
-      console.error('[SyncClient] Error updating client:', clientUpdateError);
-      // Continue anyway - not critical
+      console.error('[SyncClient] Error updating client:', JSON.stringify(clientUpdateError));
     } else {
-      console.log('[SyncClient] ✓ Client updated');
+      console.log('[SyncClient] ✓ Client updated, result:', JSON.stringify(updateData));
     }
 
     // STEP 3: Fetch all invoices for this client from Fakturownia
@@ -95,6 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     // STEP 4: Transform and upsert into Supabase
+    // Use client's phone as fallback if invoice's buyer_phone is empty
     const invoicesToSync: Invoice[] = clientInvoices.map((fi: FakturowniaInvoice) => ({
       id: fi.id,
       client_id: fi.client_id,
@@ -124,7 +133,8 @@ export async function POST(request: NextRequest) {
       // Buyer information
       buyer_name: fi.buyer_name || null,
       buyer_email: fi.buyer_email || null,
-      buyer_phone: fi.buyer_phone || null,
+      // Fallback to client's phone if invoice's buyer_phone is empty
+      buyer_phone: fi.buyer_phone || clientPhone,
       buyer_tax_no: fi.buyer_tax_no || null,
       buyer_street: fi.buyer_street || null,
       buyer_city: fi.buyer_city || null,
@@ -154,6 +164,7 @@ export async function POST(request: NextRequest) {
       data: {
         client_id,
         synced_invoices: invoicesToSync.length,
+        client_name: clientData.name,
       },
     });
   } catch (error: any) {

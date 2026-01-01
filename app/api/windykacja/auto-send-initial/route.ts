@@ -118,7 +118,9 @@ export async function POST(request: NextRequest) {
       // Check if any of E1, S1 need to be sent
       // We'll send them if they haven't been sent yet
       // W1 (WhatsApp) disabled - not configured in system
-      const needsE1 = !fiscalSync?.EMAIL_1;
+      // IMPORTANT: Also check Fakturownia's email_status to avoid duplicates!
+      const e1AlreadySent = fiscalSync?.EMAIL_1 || invoice.email_status === 'sent';
+      const needsE1 = !e1AlreadySent;
       const needsS1 = !fiscalSync?.SMS_1;
 
       if (!needsE1 && !needsS1) {
@@ -180,8 +182,9 @@ export async function POST(request: NextRequest) {
 
       let fiscalSync = parseFiscalSync(freshInvoice.internal_note);
 
-      // Send E1 if needed
-      if (!fiscalSync?.EMAIL_1) {
+      // Send E1 if needed - check both our flag AND Fakturownia's email_status
+      const e1AlreadySent = fiscalSync?.EMAIL_1 || freshInvoice.email_status === 'sent';
+      if (!e1AlreadySent) {
         try {
           console.log(`[AutoSendInitial] Sending E1 for invoice ${invoice.id} (${invoice.number || 'N/A'})`);
 

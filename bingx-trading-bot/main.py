@@ -2,7 +2,7 @@
 Trading Engine Main Entry Point
 
 SIMPLIFIED ARCHITECTURE (Dec 2025):
-- Every minute: Fetch 300 candles with start_time/end_time
+- Every hour: Fetch 300 1h candles with start_time/end_time
 - Build DataFrame from scratch (identical to backtests)
 - Calculate indicators
 - Log all values for verification
@@ -31,10 +31,10 @@ from monitoring.notifications import EmailNotifier, init_notifier, get_notifier
 from monitoring.status_reporter import get_reporter
 from database.trade_logger import TradeLogger
 from data.indicators import IndicatorCalculator
-from strategies.doge_volume_zones import DogeVolumeZonesStrategy
-from strategies.fartcoin_atr_limit import FartcoinATRLimitStrategy
-from strategies.trumpsol_contrarian import TrumpsolContrarianStrategy
-from strategies.pippin_fresh_crosses import PippinFreshCrossesStrategy
+from strategies.fartcoin_short_reversal import FartcoinShortReversal
+from strategies.moodeng_short_reversal import MoodengShortReversal
+from strategies.melania_short_reversal import MelaniaShortReversal
+from strategies.doge_short_reversal import DogeShortReversal
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
@@ -70,34 +70,42 @@ class TradingEngine:
         self.db = TradeLogger(self.config.get_database_url(), self.config.database.echo)
         self.metrics = PerformanceTracker(initial_capital=10000)
 
-        # Initialize strategies (Active: PIPPIN, FARTCOIN, DOGE, TRUMPSOL)
+        # Initialize strategies (4-Coin SHORT Reversal Portfolio)
         self.strategies = []
 
-        if self.config.is_strategy_enabled('pippin_fresh_crosses'):
-            strategy_config = self.config.get_strategy_config('pippin_fresh_crosses')
-            self.strategies.append(PippinFreshCrossesStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('pippin_fresh_crosses')
+        # Strategy class mapping
+        strategy_classes = {
+            'fartcoin_short_reversal': FartcoinShortReversal,
+            'moodeng_short_reversal': MoodengShortReversal,
+            'melania_short_reversal': MelaniaShortReversal,
+            'doge_short_reversal': DogeShortReversal,
+        }
 
-        if self.config.is_strategy_enabled('fartcoin_atr_limit'):
-            strategy_config = self.config.get_strategy_config('fartcoin_atr_limit')
-            self.strategies.append(FartcoinATRLimitStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('fartcoin_atr_limit')
+        # Load enabled strategies dynamically
+        for strategy_name, strategy_class in strategy_classes.items():
+            if self.config.is_strategy_enabled(strategy_name):
+                strategy_config = self.config.get_strategy_config(strategy_name)
+                strategy = strategy_class(strategy_config.__dict__)
+                self.strategies.append(strategy)
+                self.metrics.register_strategy(strategy_name)
+                self.logger.info(f"✅ {strategy_name.upper()} LOADED - {strategy.symbol}")
 
-        if self.config.is_strategy_enabled('doge_volume_zones'):
-            strategy_config = self.config.get_strategy_config('doge_volume_zones')
-            self.strategies.append(DogeVolumeZonesStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('doge_volume_zones')
-
-        if self.config.is_strategy_enabled('trumpsol_contrarian'):
-            strategy_config = self.config.get_strategy_config('trumpsol_contrarian')
-            self.strategies.append(TrumpsolContrarianStrategy(strategy_config.__dict__))
-            self.metrics.register_strategy('trumpsol_contrarian')
+        self.logger.info(f"📊 Total strategies loaded: {len(self.strategies)}")
+        self.logger.info("💰 Portfolio: FARTCOIN, MOODENG, MELANIA, DOGE (SHORT reversal)")
 
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)
 
-        max_positions = {s.name: self.config.get_strategy_config(s.name).max_positions
-                        for s in self.strategies}
+        max_positions = {}
+        for s in self.strategies:
+            # Get strategy name (from BaseStrategy.name attribute)
+            strategy_name = s.name
+            strategy_config = self.config.get_strategy_config(strategy_name)
+            if strategy_config:
+                max_positions[strategy_name] = strategy_config.max_positions
+            else:
+                max_positions[strategy_name] = 1  # Default to 1 position
+
         self.position_manager = PositionManager(max_positions)
         self.risk_manager = RiskManager(self.config.trading.risk_management)
 
@@ -190,20 +198,20 @@ class TradingEngine:
 
     async def _fetch_and_analyze(self, symbol: str) -> tuple:
         """
-        Fetch 300 candles and calculate indicators (identical to backtests)
+        Fetch 300 15-minute candles and calculate indicators (for MELANIA strategy)
 
         Returns:
-            (df_1min, df_5min, latest_candle_data) or (None, None, None) on error
+            (df_15m, df_4h, latest_candle_data) or (None, None, None) on error
         """
         try:
-            # Fetch last 300 minutes with explicit time range
+            # Fetch last 300 15-minute candles with explicit time range
             now = datetime.now(timezone.utc)
             end_time = int(now.timestamp() * 1000)
-            start_time = end_time - (300 * 60 * 1000)  # 300 minutes ago
+            start_time = end_time - (300 * 15 * 60 * 1000)  # 300 15-minute candles ago
 
             klines = await self.bingx.get_klines(
                 symbol=symbol,
-                interval='1m',
+                interval='15m',
                 start_time=start_time,
                 end_time=end_time,
                 limit=300
@@ -222,29 +230,29 @@ class TradingEngine:
 
             # Calculate indicators
             calc = IndicatorCalculator(df)
-            df_1min = calc.add_all_indicators()
+            df_15m = calc.add_all_indicators()
 
-            # Build 5-min candles (for multi-timeframe strategies)
-            df_5min = df_1min.resample('5min', on='timestamp').agg({
+            # Build 4-hour candles (for multi-timeframe strategies)
+            df_4h = df_15m.resample('4h', on='timestamp').agg({
                 'open': 'first',
                 'high': 'max',
                 'low': 'min',
                 'close': 'last',
                 'volume': 'sum'
             }).dropna()
-            df_5min = df_5min.reset_index()
+            df_4h = df_4h.reset_index()
 
-            # Calculate indicators for 5-min
-            calc_5min = IndicatorCalculator(df_5min)
-            df_5min = calc_5min.add_all_indicators()
+            # Calculate indicators for 4h
+            calc_4h = IndicatorCalculator(df_4h)
+            df_4h = calc_4h.add_all_indicators()
 
             # Get latest closed candle (second to last, since last might be forming)
-            if len(df_1min) >= 2:
-                latest = df_1min.iloc[-2]
+            if len(df_15m) >= 2:
+                latest = df_15m.iloc[-2]
             else:
-                latest = df_1min.iloc[-1]
+                latest = df_15m.iloc[-1]
 
-            return df_1min, df_5min, latest
+            return df_15m, df_4h, latest
 
         except Exception as e:
             self.logger.error(f"Error fetching/analyzing {symbol}: {e}", exc_info=True)
@@ -256,7 +264,7 @@ class TradingEngine:
             # ============================================================
             # CHECK PENDING LIMIT ORDERS (FIRST!)
             # ============================================================
-            current_bar = int(pd.Timestamp.now().timestamp() // 60)  # Minute-level bar index
+            current_bar = int(pd.Timestamp.now().timestamp() // 3600)  # Hour-level bar index
             filled_signals = await self.pending_order_manager.check_pending_orders(current_bar)
 
             if filled_signals:
@@ -266,9 +274,9 @@ class TradingEngine:
                     await self._place_sl_tp_for_filled_order(filled_signal)
 
             # Fetch and analyze (same as backtests!)
-            df_1min, df_5min, latest = await self._fetch_and_analyze(symbol)
+            df_15m, df_4h, latest = await self._fetch_and_analyze(symbol)
 
-            if df_1min is None:
+            if df_15m is None:
                 return
 
             # ============================================================
@@ -306,7 +314,7 @@ class TradingEngine:
             # ============================================================
             # GENERATE SIGNALS
             # ============================================================
-            signals = self.signal_generator.generate_signals(df_1min, df_5min, symbol)
+            signals = self.signal_generator.generate_signals(df_15m, df_4h, symbol)
 
             if signals:
                 signal = self.signal_generator.resolve_conflicts(signals)
@@ -315,6 +323,17 @@ class TradingEngine:
                 # Check if this is a pending limit order request
                 if signal.get('type') == 'PENDING_LIMIT_REQUEST':
                     self.logger.info(f"  📝 PENDING LIMIT REQUEST: {signal['strategy']} {signal['direction']} @ ${signal['limit_price']:.6f}")
+
+                    # Send email notification for signal generation
+                    if self.notifier:
+                        await self.notifier.notify_signal_generated(
+                            strategy=signal['strategy'],
+                            symbol=symbol,
+                            direction=signal['direction'],
+                            signal_price=signal.get('signal_price', signal['limit_price']),
+                            limit_price=signal['limit_price'],
+                            confidence=signal.get('confidence')
+                        )
 
                     # Check risk management before placing limit order
                     can_trade, reason = self.risk_manager.validate_trade(signal, self.metrics.current_capital)
@@ -326,6 +345,13 @@ class TradingEngine:
                     if not self.position_manager.can_open_position(signal['strategy']):
                         self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
                         return
+
+                    # REMOVED: Blocking for duplicate pending orders
+                    # Now allows multiple pending orders (matches backtest behavior)
+                    # existing_pending = self.pending_order_manager.get_pending_orders_for_strategy(signal['strategy'])
+                    # if existing_pending:
+                    #     self.logger.warning(f"  ❌ Already have {len(existing_pending)} pending order(s) for {signal['strategy']} - skipping")
+                    #     return
 
                     # Place pending limit order
                     await self._place_pending_limit_order(signal)
@@ -344,6 +370,13 @@ class TradingEngine:
                     if not self.position_manager.can_open_position(signal['strategy']):
                         self.logger.warning(f"  ❌ Position limit reached for {signal['strategy']}")
                         return
+
+                    # REMOVED: Blocking for duplicate pending orders
+                    # Now allows multiple pending orders (matches backtest behavior)
+                    # existing_pending = self.pending_order_manager.get_pending_orders_for_strategy(signal['strategy'])
+                    # if existing_pending:
+                    #     self.logger.warning(f"  ❌ Already have {len(existing_pending)} pending order(s) for {signal['strategy']} - skipping")
+                    #     return
 
                     # Execute trade
                     await self.execute_trade(signal)
@@ -464,8 +497,15 @@ class TradingEngine:
             strategy_config = self.config.get_strategy_config(strategy)
             risk_pct = strategy_config.base_risk_pct
 
-            # Simplified position sizing for limit order
-            position_value = self.account_balance * self.config.bingx.default_leverage
+            # Use fixed position value (e.g., $6 USDT per trade) or fallback to % based
+            fixed_value = self.config.bingx.fixed_position_value_usdt
+            if fixed_value and fixed_value > 0:
+                position_value = fixed_value
+                self.logger.info(f"Using fixed position value: ${position_value:.2f} USDT")
+            else:
+                # Use risk_pct for position sizing (e.g., 10% = 0.10 of equity)
+                position_value = self.account_balance * (risk_pct / 100) * self.config.bingx.default_leverage
+                self.logger.info(f"Using %-based sizing: ${position_value:.2f} USDT ({risk_pct}% × {self.config.bingx.default_leverage}x leverage)")
             quantity = position_value / signal['limit_price']
 
             # Round to contract precision
@@ -505,11 +545,41 @@ class TradingEngine:
                 self.logger.info(f"   Limit: ${pending.limit_price:.6f}")
                 self.logger.info(f"   Qty: {pending.quantity}")
                 self.logger.info(f"   Max wait: {pending.max_wait_bars} bars")
+
+                # Send email notification
+                if self.notifier:
+                    await self.notifier.notify_limit_order_placed(
+                        strategy=strategy,
+                        symbol=symbol,
+                        direction=signal['direction'],
+                        limit_price=pending.limit_price,
+                        quantity=pending.quantity,
+                        order_id=pending.order_id
+                    )
             else:
                 self.logger.error(f"❌ Failed to create pending limit order")
 
+                # Send error email
+                if self.notifier:
+                    await self.notifier.notify_order_error(
+                        strategy=strategy,
+                        symbol=symbol,
+                        direction=signal['direction'],
+                        error_message="Failed to create pending limit order"
+                    )
+
         except Exception as e:
             self.logger.error(f"❌ Error placing pending limit order: {e}", exc_info=True)
+
+            # Send error email
+            if self.notifier:
+                await self.notifier.notify_order_error(
+                    strategy=strategy,
+                    symbol=symbol,
+                    direction=signal.get('direction', 'UNKNOWN'),
+                    error_message=str(e),
+                    order_details=f"Limit price: {signal.get('limit_price', 'N/A')}"
+                )
 
     async def _place_sl_tp_for_filled_order(self, signal: dict) -> None:
         """
@@ -636,8 +706,8 @@ class TradingEngine:
 
         try:
             self.logger.info("=" * 70)
-            self.logger.info("SIMPLIFIED POLLING MODE")
-            self.logger.info("Every minute: Fetch 300 candles → Calculate → Log → Trade")
+            self.logger.info("SIMPLIFIED POLLING MODE - 15M CANDLES (FOR MELANIA)")
+            self.logger.info("Every 15 minutes: Fetch 300 15m candles → Calculate → Log → Trade")
             self.logger.info("=" * 70)
 
             while self.running:
@@ -646,15 +716,21 @@ class TradingEngine:
                     self.logger.warning("Stop file detected, shutting down")
                     break
 
-                # Wait until exactly :01 of next minute (candle fully settled)
+                # Wait until :01 of next 15-min candle (candle fully settled)
                 now = datetime.now(timezone.utc)
-                next_minute = (now + timedelta(minutes=1)).replace(second=1, microsecond=0)
-                wait_seconds = (next_minute - now).total_seconds()
+                # Calculate next 15-minute boundary (:00, :15, :30, :45)
+                current_minute = now.minute
+                next_15min = ((current_minute // 15) + 1) * 15
+                if next_15min >= 60:
+                    next_poll = (now + timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+                else:
+                    next_poll = now.replace(minute=next_15min, second=0, microsecond=0) + timedelta(minutes=1)
+                wait_seconds = (next_poll - now).total_seconds()
                 if wait_seconds > 0:
-                    self.logger.debug(f"Waiting {wait_seconds:.0f}s until {next_minute.strftime('%H:%M:%S')}")
+                    self.logger.info(f"⏰ Waiting {wait_seconds/60:.1f} minutes until {next_poll.strftime('%H:%M:%S UTC')}")
                     await asyncio.sleep(wait_seconds)
 
-                # Now it's :05 - process all symbols
+                # Now it's top of the hour - process all symbols
                 poll_time = datetime.now(timezone.utc)
                 self.logger.info(f"\n{'=' * 70}")
                 self.logger.info(f"POLL START: {poll_time.strftime('%Y-%m-%d %H:%M:%S')} UTC")

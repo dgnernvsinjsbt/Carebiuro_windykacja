@@ -1,202 +1,226 @@
-#!/usr/bin/env python3
 """
-Final Implementation: Macro Filter + Tight Stops
-Goal: <30% DD with best R:R
+FINAL ANALYSIS - Trade frequency, timing, and equity curve
 """
-
 import pandas as pd
 import numpy as np
-from pathlib import Path
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
-def calculate_ema(prices, period):
-    return prices.ewm(span=period, adjust=False).mean()
+# Load fixed portfolio results
+portfolio = pd.read_csv('portfolio_FIXED.csv')
+portfolio['time'] = pd.to_datetime(portfolio['time'])
+portfolio['entry_time'] = pd.to_datetime(portfolio['entry_time'])
+portfolio['exit_time'] = pd.to_datetime(portfolio['exit_time'])
 
-def backtest_final_strategy(df, sl_pct=0.03, tp_multiplier=1.5):
-    """
-    Backtest with MACRO filter:
-    DON'T TRADE when:
-    1. 7-day momentum > 0% (short term rally)
-    2. 14-day momentum > +10% (medium term rally)
-    3. OR Bullish EMA alignment (EMA20 > EMA50 > EMA100 > EMA200)
-    """
-    
-    df = df.copy()
-    
-    # Calculate indicators
-    df['ema20'] = calculate_ema(df['close'], 20)
-    df['ema50'] = calculate_ema(df['close'], 50)
-    df['ema100'] = calculate_ema(df['close'], 100)
-    df['ema200'] = calculate_ema(df['close'], 200)
-    df['ema5'] = calculate_ema(df['close'], 5)
-    
-    # Momentum
-    df['momentum_7d'] = df['close'].pct_change(672) * 100   # 7 days
-    df['momentum_14d'] = df['close'].pct_change(1344) * 100 # 14 days
-    
-    # EMA alignment
-    df['ema_bullish'] = (df['ema20'] > df['ema50']) & (df['ema50'] > df['ema100']) & (df['ema100'] > df['ema200'])
-    
-    # MACRO FILTER: Allow trading only in downtrends
-    df['macro_allow'] = (
-        (df['momentum_7d'] < 0) &      # 7d downtrend
-        (df['momentum_14d'] < 10) &     # Not in strong 14d rally
-        (~df['ema_bullish'])             # EMAs not fully bullish
+print('='*100)
+print('📊 FINAL PORTFOLIO ANALYSIS')
+print('='*100)
+print()
+
+# Overall stats
+total_trades = len(portfolio)
+start_date = portfolio['entry_time'].min()
+end_date = portfolio['exit_time'].max()
+total_days = (end_date - start_date).days
+total_hours = (end_date - start_date).total_seconds() / 3600
+
+print(f'Total Portfolio Trades: {total_trades}')
+print(f'Date Range: {start_date.date()} to {end_date.date()}')
+print(f'Duration: {total_days} days ({total_hours:.0f} hours)')
+print()
+
+# Time between trades
+portfolio_sorted = portfolio.sort_values('exit_time').reset_index(drop=True)
+portfolio_sorted['time_since_prev'] = portfolio_sorted['exit_time'].diff()
+avg_hours = portfolio_sorted['time_since_prev'].dt.total_seconds().mean() / 3600
+median_hours = portfolio_sorted['time_since_prev'].dt.total_seconds().median() / 3600
+
+print(f'Avg Time Between Trades: {avg_hours:.1f} hours ({avg_hours/24:.1f} days)')
+print(f'Median Time Between Trades: {median_hours:.1f} hours ({median_hours/24:.1f} days)')
+print(f'Trades Per Day: {total_trades / total_days:.2f}')
+print(f'Trades Per Week: {total_trades / (total_days/7):.1f}')
+print()
+
+# Per coin analysis
+print('='*100)
+print('📈 TRADES PER STRATEGY')
+print('='*100)
+print()
+print(f'{"Coin":<15} {"Portfolio":<12} {"Backtest":<12} {"Executed %":<12} {"Avg Between":<15} {"Median Between"}')
+print('-'*100)
+
+# Load individual backtest counts
+import sys
+sys.path.insert(0, '/workspaces/Carebiuro_windykacja')
+from portfolio_simulation_FIXED import backtest_coin_FIXED, COINS
+
+coin_stats = []
+for coin, config in COINS.items():
+    # Individual backtest
+    df = pd.read_csv(config['file'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+    backtest_trades = backtest_coin_FIXED(
+        df, coin,
+        rsi_low=config['rsi_low'],
+        rsi_high=config['rsi_high'],
+        limit_offset_pct=config['offset'],
+        stop_atr_mult=config['sl'],
+        tp_atr_mult=config['tp']
     )
-    
-    # Entry signal
-    df['signal'] = 0
-    df.loc[(df['ema5'] < df['ema20']) & (df['ema5'].shift(1) >= df['ema20'].shift(1)), 'signal'] = -1
-    
-    # Backtest
-    trades = []
-    equity = 1.0
-    max_equity = 1.0
-    in_position = False
-    fee = 0.00005
-    tp_pct = sl_pct * tp_multiplier
-    
-    signals_generated = 0
-    signals_filtered = 0
-    
-    for i in range(3000, len(df)):  # Start after 30d momentum ready
-        row = df.iloc[i]
-        
-        if not in_position:
-            if row['signal'] == -1:
-                signals_generated += 1
-                
-                # Apply MACRO filter
-                if not row['macro_allow']:
-                    signals_filtered += 1
-                    continue
-                
-                in_position = True
-                entry_idx = i
-                entry_price = row['close']
-                entry_time = row['timestamp']
-                stop_loss = entry_price * (1 + sl_pct)
-                take_profit = entry_price * (1 - tp_pct)
-                
-        else:
-            exit_price = None
-            exit_reason = None
-            
-            if row['high'] >= stop_loss:
-                exit_price = stop_loss
-                exit_reason = 'SL'
-            elif row['low'] <= take_profit:
-                exit_price = take_profit
-                exit_reason = 'TP'
-            
-            if exit_price:
-                pnl_pct = (entry_price - exit_price) / entry_price
-                net_pnl = pnl_pct - (fee * 2)
-                
-                equity *= (1 + net_pnl)
-                max_equity = max(max_equity, equity)
-                dd = (max_equity - equity) / max_equity * 100
-                
-                trades.append({
-                    'entry_time': entry_time,
-                    'pnl_pct': net_pnl * 100,
-                    'winner': net_pnl > 0,
-                    'exit_reason': exit_reason,
-                    'equity': equity,
-                    'drawdown': dd,
-                })
-                
-                in_position = False
-    
-    trades_df = pd.DataFrame(trades)
-    
-    filter_stats = {
-        'signals_generated': signals_generated,
-        'signals_filtered': signals_filtered,
-        'filter_rate': signals_filtered / signals_generated * 100 if signals_generated > 0 else 0,
-    }
-    
-    return trades_df, equity, filter_stats
 
-# Load data
-df = pd.read_csv('/workspaces/Carebiuro_windykacja/trading/fartcoin_bingx_15m.csv')
+    backtest_count = len(backtest_trades)
 
-print("=" * 90)
-print("FINAL STRATEGY: MACRO FILTER + OPTIMAL STOPS")
-print("=" * 90)
+    # Portfolio trades
+    coin_portfolio = portfolio[portfolio['coin'] == coin].sort_values('exit_time')
+    portfolio_count = len(coin_portfolio)
 
-# Test multiple SL/TP combinations
-configs = []
+    executed_pct = (portfolio_count / backtest_count * 100) if backtest_count > 0 else 0
 
-for sl in [0.02, 0.025, 0.03, 0.035, 0.04]:
-    trades_df, equity, filter_stats = backtest_final_strategy(df, sl_pct=sl)
-    
-    if len(trades_df) > 0:
-        total_return = (equity - 1) * 100
-        max_dd = trades_df['drawdown'].max()
-        win_rate = trades_df['winner'].mean() * 100
-        risk_reward = total_return / max_dd if max_dd > 0 else 0
-        
-        configs.append({
-            'sl_pct': sl * 100,
-            'tp_pct': sl * 1.5 * 100,
-            'trades': len(trades_df),
-            'filtered': filter_stats['signals_filtered'],
-            'filter_rate': filter_stats['filter_rate'],
-            'win_rate': win_rate,
-            'return': total_return,
-            'max_dd': max_dd,
-            'risk_reward': risk_reward,
-            'dd_ok': max_dd <= 30,
-        })
+    # Time between trades
+    if portfolio_count > 1:
+        coin_portfolio['time_diff'] = coin_portfolio['exit_time'].diff()
+        avg_time = coin_portfolio['time_diff'].dt.total_seconds().mean() / 3600
+        median_time = coin_portfolio['time_diff'].dt.total_seconds().median() / 3600
+    else:
+        avg_time = None
+        median_time = None
 
-# Display results
-print(f"\n{'SL%':<6} {'TP%':<6} {'Trades':<8} {'Filtered':<10} {'Win%':<7} {'Return':<11} {'MaxDD':<9} {'R:R':<8} {'<30%?'}")
-print("=" * 90)
+    coin_stats.append({
+        'coin': coin,
+        'backtest': backtest_count,
+        'portfolio': portfolio_count,
+        'executed_pct': executed_pct,
+        'avg_hours': avg_time,
+        'median_hours': median_time
+    })
 
-for c in configs:
-    dd_status = "✅" if c['dd_ok'] else "❌"
-    print(f"{c['sl_pct']:<6.1f} {c['tp_pct']:<6.1f} {c['trades']:<8} {c['filtered']:<10} "
-          f"{c['win_rate']:<6.1f}% {c['return']:<+10.2f}% {c['max_dd']:<8.1f}% {c['risk_reward']:<7.2f}x {dd_status}")
+    if avg_time:
+        print(f'{coin:<15} {portfolio_count:<12} {backtest_count:<12} {executed_pct:<11.1f}% {avg_time:<14.1f}h {median_time:.1f}h')
+    else:
+        print(f'{coin:<15} {portfolio_count:<12} {backtest_count:<12} {executed_pct:<11.1f}% {"N/A":<14} N/A')
 
-# Find best
-best_configs = [c for c in configs if c['dd_ok']]
+print()
+print(f'TOTALS: Portfolio {total_trades}, Backtest {sum(c["backtest"] for c in coin_stats)}, Executed {total_trades/sum(c["backtest"] for c in coin_stats)*100:.1f}%')
+print()
 
-if best_configs:
-    best = max(best_configs, key=lambda x: x['risk_reward'])
-    
-    print("\n" + "=" * 90)
-    print("🎯 WINNING CONFIGURATION")
-    print("=" * 90)
-    
-    print(f"\nStop Loss: {best['sl_pct']:.1f}%")
-    print(f"Take Profit: {best['tp_pct']:.1f}%")
-    print(f"Risk:Reward: 1.5:1")
-    
-    print(f"\n📊 RESULTS:")
-    print(f"  Return: {best['return']:+.2f}%")
-    print(f"  Max DD: {best['max_dd']:.2f}% ✅")
-    print(f"  Risk:Reward: {best['risk_reward']:.2f}x")
-    print(f"  Trades: {best['trades']}")
-    print(f"  Win Rate: {best['win_rate']:.1f}%")
-    print(f"  Signals Filtered: {best['filtered']} ({best['filter_rate']:.0f}%)")
-    
-    print(f"\n💡 LEVERAGE:")
-    safe_lev = 100 / (best['max_dd'] * 2)
-    agg_lev = 100 / (best['max_dd'] * 1.5)
-    
-    print(f"  Safe (2x buffer): {safe_lev:.1f}x → {best['return']*safe_lev:+.0f}% return, {best['max_dd']*safe_lev:.0f}% DD")
-    print(f"  Aggressive (1.5x buffer): {agg_lev:.1f}x → {best['return']*agg_lev:+.0f}% return, {best['max_dd']*agg_lev:.0f}% DD")
-    
-    print(f"\n🎯 MACRO FILTER RULES:")
-    print(f"  1. DON'T TRADE when 7-day momentum > 0% (short-term rally)")
-    print(f"  2. DON'T TRADE when 14-day momentum > +10% (medium-term rally)")
-    print(f"  3. DON'T TRADE when EMAs are bullish aligned")
-    
-    print(f"\n✅ This filter would have AVOIDED:")
-    print(f"  • March 2025 catastrophe (+77% rally)")
-    print(f"  • May 2025 losses (+16% rally)")
-    print(f"  • While PRESERVING current profitable conditions")
-    
-else:
-    print("\n❌ No configuration achieved <30% DD")
+# Create equity curve plot
+print('='*100)
+print('📈 GENERATING EQUITY CURVE')
+print('='*100)
+print()
 
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(16, 12), sharex=True)
+
+# Prepare equity data
+portfolio_sorted = portfolio.sort_values('exit_time').reset_index(drop=True)
+equity_data = []
+
+starting_equity = 1000.0
+equity = starting_equity
+
+equity_data.append({
+    'time': portfolio_sorted['entry_time'].min(),
+    'equity': starting_equity,
+    'cumulative_return': 0
+})
+
+for idx, trade in portfolio_sorted.iterrows():
+    equity_data.append({
+        'time': trade['exit_time'],
+        'equity': trade['equity'],
+        'cumulative_return': ((trade['equity'] - starting_equity) / starting_equity) * 100
+    })
+
+equity_df = pd.DataFrame(equity_data)
+
+# Calculate drawdown
+equity_df['peak'] = equity_df['equity'].cummax()
+equity_df['drawdown'] = equity_df['equity'] - equity_df['peak']
+equity_df['drawdown_pct'] = (equity_df['drawdown'] / equity_df['peak']) * 100
+
+# Plot 1: Equity curve
+ax1.plot(equity_df['time'], equity_df['equity'], linewidth=2, color='#2ecc71', label='Equity')
+ax1.axhline(y=starting_equity, color='gray', linestyle='--', alpha=0.5, label='Starting Equity')
+ax1.fill_between(equity_df['time'], starting_equity, equity_df['equity'],
+                  where=(equity_df['equity'] >= starting_equity),
+                  alpha=0.2, color='green', label='Profit')
+ax1.set_ylabel('Equity ($)', fontsize=12, fontweight='bold')
+ax1.set_title('Portfolio Equity Curve - 9 Coins RSI Strategy (FIXED)',
+              fontsize=14, fontweight='bold')
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='upper left')
+
+# Stats text
+final_equity = equity_df['equity'].iloc[-1]
+total_return = ((final_equity - starting_equity) / starting_equity) * 100
+max_dd = equity_df['drawdown_pct'].min()
+
+stats_text = f"Final: ${final_equity:.2f}\n"
+stats_text += f"Return: +{total_return:.2f}%\n"
+stats_text += f"Max DD: {max_dd:.2f}%\n"
+stats_text += f"R/R: {abs(total_return/max_dd):.2f}x\n"
+stats_text += f"Trades: {total_trades}"
+
+ax1.text(0.98, 0.02, stats_text, transform=ax1.transAxes,
+         fontsize=10, verticalalignment='bottom', horizontalalignment='right',
+         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+# Plot 2: Drawdown
+ax2.fill_between(equity_df['time'], 0, equity_df['drawdown_pct'],
+                  color='red', alpha=0.3, label='Drawdown')
+ax2.plot(equity_df['time'], equity_df['drawdown_pct'], color='darkred', linewidth=1.5)
+ax2.set_ylabel('Drawdown (%)', fontsize=12, fontweight='bold')
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='lower left')
+
+# Plot 3: Trade distribution over time
+bins = pd.date_range(start_date, end_date, freq='3D')
+trade_counts, _ = np.histogram(portfolio_sorted['exit_time'], bins=bins)
+ax3.bar(bins[:-1], trade_counts, width=2.5, color='steelblue', alpha=0.7, edgecolor='black')
+ax3.set_ylabel('Trades per 3 Days', fontsize=12, fontweight='bold')
+ax3.set_xlabel('Date', fontsize=12, fontweight='bold')
+ax3.grid(True, alpha=0.3, axis='y')
+
+# Format x-axis
+ax3.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+ax3.xaxis.set_major_locator(mdates.WeekdayLocator(interval=2))
+plt.xticks(rotation=45)
+
+plt.tight_layout()
+plt.savefig('portfolio_equity_curve_FINAL.png', dpi=150, bbox_inches='tight')
+print('✅ Saved: portfolio_equity_curve_FINAL.png')
+plt.close()
+
+# Trade breakdown by exit reason
+print()
+print('='*100)
+print('🎯 EXIT REASON BREAKDOWN')
+print('='*100)
+print()
+
+exit_summary = portfolio.groupby('exit_reason').agg({
+    'pnl_pct': ['count', 'mean'],
+    'dollar_pnl': 'sum'
+}).round(2)
+
+print(exit_summary)
+print()
+
+# Monthly breakdown
+portfolio_sorted['month'] = portfolio_sorted['exit_time'].dt.to_period('M')
+monthly = portfolio_sorted.groupby('month').agg({
+    'dollar_pnl': 'sum',
+    'coin': 'count'
+}).rename(columns={'coin': 'trades'})
+
+print('='*100)
+print('📅 MONTHLY BREAKDOWN')
+print('='*100)
+print()
+print(monthly)
+print()
+
+print('='*100)
+print('✅ ANALYSIS COMPLETE')
+print('='*100)

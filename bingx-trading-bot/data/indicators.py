@@ -39,7 +39,10 @@ def ema(data: pd.Series, period: int) -> pd.Series:
 
 def rsi(data: pd.Series, period: int = 14) -> pd.Series:
     """
-    Relative Strength Index
+    Relative Strength Index (Wilder's RSI with EMA smoothing)
+
+    Uses Wilder's smoothing method (EMA) - matches TradingView, BingX, and all
+    standard charting platforms.
 
     Args:
         data: Price series
@@ -53,8 +56,18 @@ def rsi(data: pd.Series, period: int = 14) -> pd.Series:
     gain = delta.where(delta > 0, 0.0)
     loss = -delta.where(delta < 0, 0.0)
 
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
+    # Initialize series
+    avg_gain = pd.Series(index=data.index, dtype=float)
+    avg_loss = pd.Series(index=data.index, dtype=float)
+
+    # First value: SMA of first 'period' values
+    avg_gain.iloc[period] = gain.iloc[1:period+1].mean()
+    avg_loss.iloc[period] = loss.iloc[1:period+1].mean()
+
+    # Subsequent values: Wilder's smoothing (EMA with alpha=1/period)
+    for i in range(period + 1, len(data)):
+        avg_gain.iloc[i] = (avg_gain.iloc[i-1] * (period - 1) + gain.iloc[i]) / period
+        avg_loss.iloc[i] = (avg_loss.iloc[i-1] * (period - 1) + loss.iloc[i]) / period
 
     rs = avg_gain / avg_loss
     rsi_values = 100 - (100 / (1 + rs))

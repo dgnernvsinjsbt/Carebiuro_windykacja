@@ -1,3 +1,0 @@
-exchange,data_period,total_trades,net_return,max_dd,return_dd_ratio,win_rate,top_20_concentration,best_trade_contrib,max_loss_streak,winner_cv,verdict
-LBank,30_days,129,24.02,2.25,10.68,31,43,N/A,N/A,N/A,ACCEPTABLE
-BingX,32_days,127,18.78,5.21,3.60,31,361.2,56.5,97,0.86,OUTLIER_DEPENDENT

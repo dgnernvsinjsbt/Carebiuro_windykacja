@@ -1,12 +1,17 @@
 """
-Pending Order Manager - Handles limit orders that wait for confirmation
+Pending Order Manager - Handles TRIGGER_MARKET orders that wait for breakout confirmation
 
-Manages the lifecycle of pending limit orders:
-1. Place limit order on exchange
+Manages the lifecycle of pending trigger orders:
+1. Place TRIGGER_MARKET order with SL/TP attached (atomic - all or nothing)
 2. Track order status
 3. Check fills every minute
 4. Cancel if timeout (3 bars)
-5. Convert filled orders to trading signals
+5. When filled, SL/TP are automatically active (no separate placement needed)
+
+FIXED Dec 2024:
+- Changed LIMIT → TRIGGER_MARKET (LIMIT above price fills instantly, TRIGGER waits)
+- SL/TP attached to order (type: STOP_MARKET / TAKE_PROFIT_MARKET, compact JSON)
+- Fixed nested response handling (order.get('order', order))
 """
 
 import asyncio
@@ -15,10 +20,11 @@ from datetime import datetime, timedelta
 import logging
 
 from execution.bingx_client import BingXClient, BingXAPIError
+from monitoring.notifications import get_notifier
 
 
 class PendingOrder:
-    """Represents a pending limit order waiting for fill"""
+    """Represents a pending TRIGGER_MARKET order waiting for breakout fill"""
 
     def __init__(
         self,
@@ -26,7 +32,7 @@ class PendingOrder:
         symbol: str,
         strategy: str,
         direction: str,
-        limit_price: float,
+        trigger_price: float,  # Renamed from limit_price for clarity
         quantity: float,
         stop_loss: float,
         take_profit: float,
@@ -38,7 +44,7 @@ class PendingOrder:
         self.symbol = symbol
         self.strategy = strategy
         self.direction = direction
-        self.limit_price = limit_price
+        self.trigger_price = trigger_price  # Price at which order triggers
         self.quantity = quantity
         self.stop_loss = stop_loss
         self.take_profit = take_profit
@@ -53,17 +59,26 @@ class PendingOrder:
         self.bars_waited = current_bar - self.created_bar
         return self.bars_waited >= self.max_wait_bars
 
+    # Alias for backwards compatibility
+    @property
+    def limit_price(self):
+        return self.trigger_price
+
 
 class PendingOrderManager:
     """
-    Manages pending limit orders that wait for market confirmation
+    Manages pending TRIGGER_MARKET orders that wait for breakout confirmation
 
     Workflow:
-    1. Strategy requests limit order
-    2. We place limit order on BingX
+    1. Strategy requests breakout order (1% above/below current price)
+    2. We place TRIGGER_MARKET order with SL/TP attached
     3. Every minute we check order status
-    4. If filled → convert to signal for SL/TP placement
+    4. If filled → SL/TP are already active (attached to order)
     5. If timeout → cancel order
+
+    IMPORTANT: Uses TRIGGER_MARKET (not LIMIT) because:
+    - BUY LIMIT above current price fills INSTANTLY (wrong behavior)
+    - BUY TRIGGER_MARKET above current price WAITS for breakout (correct)
     """
 
     def __init__(self, bingx_client: BingXClient):
@@ -76,7 +91,7 @@ class PendingOrderManager:
         symbol: str,
         strategy: str,
         direction: str,
-        limit_price: float,
+        limit_price: float,  # This is actually trigger_price, kept for backwards compat
         quantity: float,
         stop_loss: float,
         take_profit: float,
@@ -86,13 +101,13 @@ class PendingOrderManager:
         contract_info: Dict[str, Any] = None
     ) -> Optional[PendingOrder]:
         """
-        Place a pending limit order on BingX
+        Place a pending TRIGGER_MARKET order on BingX with SL/TP attached
 
         Args:
             symbol: Trading symbol (e.g., "FARTCOIN-USDT")
             strategy: Strategy name
             direction: "LONG" or "SHORT"
-            limit_price: Limit order price
+            limit_price: Trigger price (when price reaches this, order executes)
             quantity: Position size
             stop_loss: Stop loss price
             take_profit: Take profit price
@@ -105,39 +120,73 @@ class PendingOrderManager:
             PendingOrder if successful, None if failed
         """
         try:
-            # Round price to contract precision
+            trigger_price = limit_price  # Rename for clarity
+
+            # Round prices to contract precision
             if contract_info:
-                price_precision = contract_info.get('pricePrecision', 4)
-                limit_price = round(limit_price, price_precision)
+                # Handle contract_info being a list (BingX returns list)
+                contract = contract_info[0] if isinstance(contract_info, list) else contract_info
+                price_precision = contract.get('pricePrecision', 4)
+                trigger_price = round(trigger_price, price_precision)
+                stop_loss = round(stop_loss, price_precision)
+                if take_profit is not None:
+                    take_profit = round(take_profit, price_precision)
 
             # Determine order side
             side = "BUY" if direction == "LONG" else "SELL"
 
-            self.logger.info(f"📝 Placing PENDING LIMIT order:")
+            self.logger.info(f"📝 Placing TRIGGER_MARKET order with SL/TP:")
             self.logger.info(f"   Strategy: {strategy}")
             self.logger.info(f"   Symbol: {symbol}")
             self.logger.info(f"   Direction: {direction}")
-            self.logger.info(f"   Limit Price: ${limit_price:.6f}")
+            self.logger.info(f"   Trigger Price: ${trigger_price:.6f}")
+            self.logger.info(f"   Stop Loss: ${stop_loss:.6f}")
+            self.logger.info(f"   Take Profit: ${take_profit:.6f}" if take_profit else "   Take Profit: None")
             self.logger.info(f"   Quantity: {quantity}")
             self.logger.info(f"   Max wait: {max_wait_bars} bars")
 
-            # Place limit order on BingX
+            # Place TRIGGER_MARKET order with SL/TP attached
+            # SL/TP use STOP_MARKET and TAKE_PROFIT_MARKET types (not MARK_PRICE!)
             order = await self.client.place_order(
                 symbol=symbol,
                 side=side,
-                position_side="BOTH",  # One-way mode
-                order_type="LIMIT",
-                price=limit_price,
-                quantity=quantity
+                position_side=direction,
+                order_type="TRIGGER_MARKET",  # CHANGED from LIMIT!
+                stop_price=trigger_price,     # Trigger price (not 'price')
+                quantity=quantity,
+                stop_loss={'type': 'STOP_MARKET', 'stopPrice': stop_loss},
+                take_profit={'type': 'TAKE_PROFIT_MARKET', 'stopPrice': take_profit}
             )
 
-            order_id = order.get('orderId')
+            # Handle nested response: BingX returns {'order': {...}} or {...}
+            order_data = order.get('order', order)
+            order_id = order_data.get('orderId') or order_data.get('orderID')
+            status = order_data.get('status')
 
             if not order_id:
                 self.logger.error(f"❌ No order ID returned: {order}")
+                # Send notification about failed order
+                notifier = get_notifier()
+                if notifier:
+                    await notifier.notify_order_error(
+                        strategy=strategy,
+                        symbol=symbol,
+                        direction=direction,
+                        error_message="No order ID returned from BingX",
+                        order_details=str(order)
+                    )
                 return None
 
-            self.logger.info(f"✅ Limit order placed: {order_id}")
+            # Check if order filled immediately (shouldn't happen with TRIGGER, but handle it)
+            if status == 'FILLED':
+                avg_price = order_data.get('avgPrice', trigger_price)
+                self.logger.warning(f"⚡ TRIGGER order filled immediately @ ${avg_price}")
+                self.logger.info(f"   SL/TP should be active automatically")
+                # Don't track as pending - it's done
+                return None
+
+            self.logger.info(f"✅ TRIGGER_MARKET order placed: {order_id}")
+            self.logger.info(f"   Status: {status} (waiting for trigger)")
 
             # Create pending order tracker
             pending = PendingOrder(
@@ -145,7 +194,7 @@ class PendingOrderManager:
                 symbol=symbol,
                 strategy=strategy,
                 direction=direction,
-                limit_price=limit_price,
+                trigger_price=trigger_price,
                 quantity=quantity,
                 stop_loss=stop_loss,
                 take_profit=take_profit,
@@ -159,10 +208,20 @@ class PendingOrderManager:
             return pending
 
         except BingXAPIError as e:
-            self.logger.error(f"❌ Failed to place limit order: {e.msg}")
+            self.logger.error(f"❌ Failed to place TRIGGER_MARKET order: {e.msg}")
+            # Send notification
+            notifier = get_notifier()
+            if notifier:
+                await notifier.notify_order_error(
+                    strategy=strategy,
+                    symbol=symbol,
+                    direction=direction,
+                    error_message=f"BingX API Error: {e.msg}",
+                    order_details=f"Trigger: ${limit_price}, SL: ${stop_loss}, TP: ${take_profit if take_profit else 'None'}"
+                )
             return None
         except Exception as e:
-            self.logger.error(f"❌ Unexpected error placing limit order: {e}", exc_info=True)
+            self.logger.error(f"❌ Unexpected error placing TRIGGER_MARKET order: {e}", exc_info=True)
             return None
 
     async def check_pending_orders(
@@ -170,13 +229,13 @@ class PendingOrderManager:
         current_bar: int
     ) -> List[Dict[str, Any]]:
         """
-        Check status of all pending orders
+        Check status of all pending TRIGGER_MARKET orders
 
         Args:
             current_bar: Current bar index
 
         Returns:
-            List of filled signals ready for SL/TP placement
+            List of filled signals (for logging/metrics only - SL/TP already attached!)
         """
         if not self.pending_orders:
             return []
@@ -188,7 +247,19 @@ class PendingOrderManager:
             try:
                 # Check if timeout
                 if pending.is_timeout(current_bar):
-                    self.logger.warning(f"⏱️  Pending order {order_id} TIMEOUT ({pending.bars_waited} bars)")
+                    self.logger.warning(f"⏱️  TRIGGER order {order_id} TIMEOUT ({pending.bars_waited} bars)")
+
+                    # Send email notification before cancelling
+                    notifier = get_notifier()
+                    if notifier:
+                        await notifier.notify_limit_order_cancelled(
+                            strategy=pending.strategy,
+                            symbol=pending.symbol,
+                            direction=pending.direction,
+                            limit_price=pending.trigger_price,
+                            reason=f"Timeout after {pending.bars_waited} bars (no breakout)"
+                        )
+
                     await self._cancel_order(pending)
                     orders_to_remove.append(order_id)
                     continue
@@ -202,15 +273,29 @@ class PendingOrderManager:
                 status = order_status.get('status')
 
                 if status == 'FILLED':
-                    # ✅ Order filled! Convert to signal
-                    avg_price = float(order_status.get('avgPrice', pending.limit_price))
+                    # ✅ TRIGGER order filled! SL/TP are already active (attached to order)
+                    avg_price = float(order_status.get('avgPrice', pending.trigger_price))
                     filled_qty = float(order_status.get('executedQty', pending.quantity))
 
-                    self.logger.info(f"✅ Limit order FILLED: {order_id}")
+                    self.logger.info(f"✅ TRIGGER order FILLED: {order_id}")
                     self.logger.info(f"   Filled @ ${avg_price:.6f} (qty: {filled_qty})")
-                    self.logger.info(f"   Waited {pending.bars_waited} bars")
+                    self.logger.info(f"   Waited {pending.bars_waited} bars for breakout")
+                    tp_str = f"${pending.take_profit:.6f}" if pending.take_profit else "None"
+                    self.logger.info(f"   SL @ ${pending.stop_loss:.6f} | TP @ {tp_str} (auto-active)")
 
-                    # Create signal for SL/TP placement
+                    # Send email notification
+                    notifier = get_notifier()
+                    if notifier:
+                        await notifier.notify_limit_order_filled(
+                            strategy=pending.strategy,
+                            symbol=pending.symbol,
+                            direction=pending.direction,
+                            fill_price=avg_price,
+                            quantity=filled_qty,
+                            bars_waited=pending.bars_waited
+                        )
+
+                    # Return signal for logging/metrics (NO separate SL/TP placement needed!)
                     signal = {
                         'strategy': pending.strategy,
                         'direction': pending.direction,
@@ -220,9 +305,10 @@ class PendingOrderManager:
                         'symbol': pending.symbol,
                         'quantity': filled_qty,
                         'entry_order_id': order_id,
-                        'pattern': pending.signal_data.get('pattern', 'Limit Confirmed'),
+                        'pattern': pending.signal_data.get('pattern', 'Breakout Confirmed'),
                         'confidence': pending.signal_data.get('confidence', 0.8),
-                        **pending.signal_data  # Include all original signal data
+                        'sl_tp_attached': True,  # Flag: SL/TP already active!
+                        **pending.signal_data
                     }
 
                     filled_signals.append(signal)
@@ -235,7 +321,7 @@ class PendingOrderManager:
 
                 else:
                     # Still pending (NEW, PARTIALLY_FILLED)
-                    self.logger.debug(f"⏳ Order {order_id} still {status} (bar {pending.bars_waited}/{pending.max_wait_bars})")
+                    self.logger.debug(f"⏳ TRIGGER {order_id} still {status} (bar {pending.bars_waited}/{pending.max_wait_bars})")
 
             except BingXAPIError as e:
                 self.logger.error(f"❌ Error checking order {order_id}: {e.msg}")

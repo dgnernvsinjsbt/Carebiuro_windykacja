@@ -36,11 +36,6 @@ jobs:
             exit 1
           fi
 
-      - name: Wait 15 minutes before overdue
-        run: |
-          echo "Waiting 15 minutes before sending overdue reminders..."
-          sleep 900
-
       - name: Send E1/S1 for overdue invoices (auto-send-overdue)
         run: |
           echo "Calling auto-send-overdue endpoint..."
@@ -59,11 +54,6 @@ jobs:
             echo "Error: API returned $HTTP_CODE"
             exit 1
           fi
-
-      - name: Wait 15 minutes before sequence
-        run: |
-          echo "Waiting 15 minutes before sending E2/E3/S2/S3 sequence..."
-          sleep 900
 
       - name: Send E2/E3/S2/S3 sequence (auto-send-sequence)
         run: |
