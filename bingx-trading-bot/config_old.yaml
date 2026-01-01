@@ -8,13 +8,13 @@ trading:
   symbols:
     - FARTCOIN-USDT    # ATR Limit strategy (8.44x Return/DD)
     - TRUMPSOL-USDT    # Contrarian mean reversion (5.17x Return/DD)
-    - 1000PEPE-USDT    # Contrarian SHORT (9.02x Return/DD)
+    - PEPE-USDT        # Contrarian SHORT (9.02x Return/DD, #3 portfolio rank!)
 
   strategies:
     fartcoin_atr_limit:
-      enabled: true  # ⭐ ATR Expansion + Limit Orders (8.44x Return/DD)
-      base_risk_pct: 48.5        # Flat $6 USDT position size ($6 / $12.38 * 100%)
-      max_risk_pct: 48.5
+      enabled: true  # ⭐ NEW STRATEGY - Testing (8.44x Return/DD, #4 ranked!)
+      base_risk_pct: 1.5         # Conservative for new strategy
+      max_risk_pct: 3.0
       max_positions: 1           # ~94 trades/month (21% fill rate)
 
       # Strategy parameters (from 32-day BingX backtest: +101.11%, -11.98% DD, 42.6% WR)
@@ -22,7 +22,7 @@ trading:
       atr_lookback_bars: 20      # Lookback for ATR average
       ema_distance_max_pct: 3.0  # Max 3% distance from EMA(20)
 
-      # Limit order parameters
+      # Limit order simulation
       limit_offset_pct: 1.0      # Place limit 1% away from signal price
       max_wait_bars: 3           # Wait max 3 bars for limit fill
 
@@ -37,61 +37,8 @@ trading:
       use_partial_exits: false   # No partial exits - full TP or SL
       max_hold_hours: 3.5        # Max 3.5 hours in trade
 
-    trumpsol_contrarian:
-      enabled: true  # ✅ Mean Reversion (5.17x Return/DD, 68.8% WR)
-      base_risk_pct: 48.5        # Flat $6 USDT position size ($6 / $12.38 * 100%)
-      max_risk_pct: 48.5
-      max_positions: 1           # ~77 trades/month (2.4/day)
-
-      # Strategy parameters (from 32-day BingX backtest: +17.49%, -3.38% DD, 68.8% WR)
-      params:
-        min_ret_5m_pct: 1.0      # Min 1% move in 5 minutes
-        vol_ratio_min: 1.0       # Volume >= 30-min average
-        atr_ratio_min: 1.1       # ATR >= 110% of 30-min average
-        excluded_hours: [1, 5, 17]  # Europe/Warsaw hours to skip
-
-        # Fixed % exits
-        stop_loss_pct: 1.0       # 1% SL from entry
-        take_profit_pct: 1.5     # 1.5% TP from entry
-        max_hold_bars: 15        # Max 15 minutes in trade
-
-        # Lookback periods
-        vol_ma_period: 30        # 30-bar volume MA
-        atr_ma_period: 30        # 30-bar ATR MA
-
-      win_streak_scaling: 0.5    # Risk increase per win
-      use_trailing_stop: false   # No trailing - let TP/time exit hit
-      use_partial_exits: false   # No partial exits - full TP or SL
-      max_hold_hours: 0.25       # Max 15 minutes
-
-    pepe_contrarian_short:
-      enabled: true  # ✅ Contrarian SHORT (9.02x Return/DD, 72.7% WR)
-      base_risk_pct: 48.5        # Flat $6 USDT position size
-      max_risk_pct: 48.5
-      max_positions: 1           # ~22 trades/month (0.7/day)
-
-      # Strategy parameters (from 30-day BingX backtest: +8.21%, -0.91% DD, 72.7% WR)
-      params:
-        min_ret_5m_pct: 1.5      # Min 1.5% pump in 5 minutes
-        vol_ratio_min: 2.0       # Volume >= 2x 30-bar average
-        atr_ratio_min: 1.3       # ATR >= 130% of 30-bar average
-
-        # Exit parameters
-        stop_atr_mult: 1.5       # 1.5x ATR SL
-        target_atr_mult: 2.0     # 2.0x ATR TP
-        max_hold_bars: 15        # Max 15 minutes
-
-        # Lookback periods
-        vol_ma_period: 30        # 30-bar volume MA
-        atr_ma_period: 30        # 30-bar ATR MA
-
-      win_streak_scaling: 0.5    # Risk increase per win
-      use_trailing_stop: false   # No trailing - let TP hit
-      use_partial_exits: false   # No partial exits - full TP or SL
-      max_hold_hours: 0.25       # Max 15 minutes
-
     multi_timeframe_long:
-      enabled: false  # DISABLED - old strategy
+      enabled: false  # DISABLED FOR TESTING
       base_risk_pct: 1.0
       max_risk_pct: 3.0
       max_positions: 1
@@ -113,7 +60,7 @@ trading:
       distance_from_sma: 0.6     # Min % distance from 50 SMA
 
     trend_distance_short:
-      enabled: false  # DISABLED - old strategy
+      enabled: false  # DISABLED FOR TESTING
       base_risk_pct: 1.5
       max_risk_pct: 4.0
       max_positions: 1
@@ -136,112 +83,175 @@ trading:
       below_200sma: true         # Must be below 200 SMA
 
     moodeng_rsi_momentum:
-      enabled: false  # DISABLED - old strategy
+      enabled: false  # DISABLED FOR TESTING
       base_risk_pct: 2.0         # Higher risk due to excellent R:R
       max_risk_pct: 5.0
       max_positions: 2           # Can run 2 positions (only ~4 trades/day)
 
-      params:
-        # Strategy parameters (from backtest: +24.02%, -2.25% DD, 31% WR)
-        rsi_cross_level: 55        # RSI must cross above this
-        min_body_pct: 0.5          # Min bullish candle body %
-        stop_atr_mult: 1.0         # Tight stop (1x ATR)
-        target_atr_mult: 4.0       # Wide target (4x ATR) = 4:1 R:R
-        max_hold_bars: 60          # Time exit after 60 minutes
-        win_streak_scaling: 0.5    # Risk increase per win
-        use_trailing_stop: false   # No trailing - let TP hit
-        use_partial_exits: false   # No partial exits - full TP or SL
-        max_hold_hours: 1          # Max 1 hour in trade
+      # Strategy parameters (from backtest: +24.02%, -2.25% DD, 31% WR)
+      rsi_cross_level: 55        # RSI must cross above this
+      min_body_pct: 0.5          # Min bullish candle body %
+      stop_atr_mult: 1.0         # Tight stop (1x ATR)
+      target_atr_mult: 4.0       # Wide target (4x ATR) = 4:1 R:R
+      max_hold_bars: 60          # Time exit after 60 minutes
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 1          # Max 1 hour in trade
 
     doge_volume_zones:
-      enabled: false  # DISABLED for now
-      base_risk_pct: 2.0         # Good R:R (7.15x Return/DD)
-      max_risk_pct: 5.0
-      max_positions: 1           # ~25 trades/month, 1 at a time
+      enabled: false  # DISABLED
+      base_risk_pct: 1.0         # ⚠️ CONSERVATIVE: Outlier-harvester (10.75x Return/DD, #3 ranked!)
+      max_risk_pct: 2.0          # Lower due to outlier dependency (95.3% from top 5 trades)
+      max_positions: 1           # ~22 trades/month, 1 at a time
 
-      params:
-        # Strategy parameters (from backtest: +8.14%, -1.14% DD, 52% WR)
-        volume_threshold: 1.5      # 1.5x average volume
-        min_zone_bars: 5           # Min 5 consecutive elevated volume bars
-        max_zone_bars: 15          # Max zone length
-        lookback_bars: 20          # Bars to look back for price extremes
-        stop_atr_mult: 2.0         # Stop loss (2x ATR)
-        rr_ratio: 2.0              # Take profit (2:1 R:R)
-        max_hold_bars: 90          # Time exit after 90 minutes
-        session_filter: overnight  # 21:00-07:00 UTC only (critical!)
-        win_streak_scaling: 0.5    # Risk increase per win
-        use_trailing_stop: false   # No trailing - let TP hit
-        use_partial_exits: false   # No partial exits - full TP or SL
-        max_hold_hours: 1.5        # Max 1.5 hours in trade
+      # ⚠️ BINGX OPTIMIZED (Dec 9, 2025) - DO NOT use LBank parameters!
+      # Strategy parameters (from 32-day BingX backtest: +5.15%, -0.48% DD, 63.6% WR)
+      # OUTLIER-HARVESTER: Top 5 trades = 95.3% of profit (like TRUMP strategy)
+      volume_threshold: 1.5      # 1.5x average volume
+      min_zone_bars: 5           # Min 5 consecutive elevated volume bars
+      max_zone_bars: 15          # Max zone length
+      lookback_bars: 20          # Bars to look back for price extremes
+
+      # OPTIMIZED EXITS (BingX-specific)
+      stop_atr_mult: 1.5         # TIGHTER stop (1.5x vs 2.0x for overnight)
+      tp_type: 'atr_multiple'    # ⚠️ NEW: 'atr_multiple' not 'rr_multiple'!
+      tp_atr_mult: 4.0           # 4.0x ATR absolute target (not R:R!)
+      rr_ratio: 2.0              # Fallback (only used if tp_type='rr_multiple')
+
+      max_hold_bars: 90          # Time exit after 90 minutes
+      session_filter: 'asia_eu'  # ⚠️ CRITICAL: 07:00-14:00 UTC (NOT overnight!)
+
+      win_streak_scaling: 0.0    # NO scaling for outlier strategy
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 1.5        # Max 1.5 hours in trade
 
     pepe_volume_zones:
-      enabled: true
+      enabled: false  # DISABLED FOR TESTING
       base_risk_pct: 2.0         # Best R:R for shallow DD (6.80x Return/DD)
       max_risk_pct: 5.0
       max_positions: 1           # ~15 trades/month
 
-      params:
-        # Strategy parameters (from backtest: +2.57%, -0.38% DD, 66.7% WR)
-        # SHALLOWEST DRAWDOWN and HIGHEST WIN RATE!
-        volume_threshold: 1.5      # 1.5x average volume
-        min_zone_bars: 5           # Min 5 consecutive elevated volume bars
-        max_zone_bars: 15          # Max zone length
-        lookback_bars: 20          # Bars to look back for price extremes
-        stop_atr_mult: 1.0         # TIGHTER stop (1x ATR vs 2x for DOGE)
-        rr_ratio: 2.0              # Take profit (2:1 R:R)
-        max_hold_bars: 90          # Time exit after 90 minutes
-        session_filter: overnight  # 21:00-07:00 UTC only
-        win_streak_scaling: 0.5    # Risk increase per win
-        use_trailing_stop: false   # No trailing - let TP hit
-        use_partial_exits: false   # No partial exits - full TP or SL
-        max_hold_hours: 1.5        # Max 1.5 hours in trade
+      # Strategy parameters (from backtest: +2.57%, -0.38% DD, 66.7% WR)
+      # SHALLOWEST DRAWDOWN and HIGHEST WIN RATE!
+      volume_threshold: 1.5      # 1.5x average volume
+      min_zone_bars: 5           # Min 5 consecutive elevated volume bars
+      max_zone_bars: 15          # Max zone length
+      lookback_bars: 20          # Bars to look back for price extremes
+      stop_atr_mult: 1.0         # TIGHTER stop (1x ATR vs 2x for DOGE)
+      rr_ratio: 2.0              # Take profit (2:1 R:R)
+      max_hold_bars: 90          # Time exit after 90 minutes
+      session_filter: overnight  # 21:00-07:00 UTC only
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 1.5        # Max 1.5 hours in trade
 
     trump_volume_zones:
-      enabled: true
+      enabled: false  # DISABLED FOR TESTING
       base_risk_pct: 1.5         # HIGHEST R:R (10.56x Return/DD) but outlier-dependent!
       max_risk_pct: 4.0          # Slightly lower due to outlier dependency
       max_positions: 1           # ~21 trades/month
 
-      params:
-        # Strategy parameters (from backtest: +8.06%, -0.76% DD, 61.9% WR)
-        # WARNING: OUTLIER-DEPENDENT - 88.6% profit from top 20% trades!
-        # MUST take ALL signals to catch big winners
-        volume_threshold: 1.5      # 1.5x average volume
-        min_zone_bars: 5           # Min 5 consecutive elevated volume bars
-        max_zone_bars: 15          # Max zone length
-        lookback_bars: 20          # Bars to look back for price extremes
-        sl_type: fixed_pct         # CRITICAL: Fixed % stop, NOT ATR!
-        sl_value: 0.5              # 0.5% fixed stop loss
-        rr_ratio: 4.0              # WIDER target (4:1 R:R vs 2:1 for DOGE/PEPE)
-        max_hold_bars: 90          # Time exit after 90 minutes
-        session_filter: overnight  # 21:00-07:00 UTC only
-        win_streak_scaling: 0.5    # Risk increase per win
-        use_trailing_stop: false   # No trailing - let TP hit
-        use_partial_exits: false   # No partial exits - full TP or SL
-        max_hold_hours: 1.5        # Max 1.5 hours in trade
+      # Strategy parameters (from backtest: +8.06%, -0.76% DD, 61.9% WR)
+      # WARNING: OUTLIER-DEPENDENT - 88.6% profit from top 20% trades!
+      # MUST take ALL signals to catch big winners
+      volume_threshold: 1.5      # 1.5x average volume
+      min_zone_bars: 5           # Min 5 consecutive elevated volume bars
+      max_zone_bars: 15          # Max zone length
+      lookback_bars: 20          # Bars to look back for price extremes
+      sl_type: fixed_pct         # CRITICAL: Fixed % stop, NOT ATR!
+      sl_value: 0.5              # 0.5% fixed stop loss
+      rr_ratio: 4.0              # WIDER target (4:1 R:R vs 2:1 for DOGE/PEPE)
+      max_hold_bars: 90          # Time exit after 90 minutes
+      session_filter: overnight  # 21:00-07:00 UTC only
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 1.5        # Max 1.5 hours in trade
 
     uni_volume_zones:
-      enabled: true
+      enabled: false  # DISABLED FOR TESTING
       base_risk_pct: 2.0         # BEST Return/DD ratio (17.98x)!
       max_risk_pct: 5.0
       max_positions: 1           # ~195 trades over 3 months (~65/month)
 
+      # Strategy parameters (from backtest: +31.99%, -1.78% DD, 45.1% WR)
+      # BEST Return/DD - excels at catching distribution zones before crashes
+      # 8 out of 10 top trades were SHORTS on whale distribution
+      volume_threshold: 1.3      # LOWER than others (1.3 vs 1.5)
+      min_zone_bars: 3           # SHORTER zones (3 vs 5)
+      max_zone_bars: 15          # Max zone length
+      lookback_bars: 20          # Bars to look back for price extremes
+      stop_atr_mult: 1.0         # Tight stop (1x ATR)
+      rr_ratio: 4.0              # Wide target (4:1 R:R for big moves)
+      max_hold_bars: 90          # Time exit after 90 minutes
+      session_filter: asia_eu    # 00:00-14:00 UTC (DIFFERENT from others!)
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 1.5        # Max 1.5 hours in trade
+
+    trumpsol_contrarian:
+      enabled: true  # ✅ ENABLED - Mean reversion strategy
+      base_risk_pct: 2.0         # Higher risk due to high WR (68.8%)
+      max_risk_pct: 4.0
+      max_positions: 1           # ~77 trades/month (2.4/day)
+
+      # Strategy parameters (from 32-day BingX backtest with 0.1% fees: +17.49%, -3.38% DD, 68.8% WR)
+      # MEAN REVERSION: Fade violent moves with vol/volatility confirmation
+      # 74% trades hit time exit (not SL/TP) = small reversals over 15 min
+      # LONG 2.7x better than SHORT (+13.94% vs +2.41%)
       params:
-        # Strategy parameters (from backtest: +31.99%, -1.78% DD, 45.1% WR)
-        # BEST Return/DD - excels at catching distribution zones before crashes
-        # 8 out of 10 top trades were SHORTS on whale distribution
-        volume_threshold: 1.3      # LOWER than others (1.3 vs 1.5)
-        min_zone_bars: 3           # SHORTER zones (3 vs 5)
-        max_zone_bars: 15          # Max zone length
-        lookback_bars: 20          # Bars to look back for price extremes
-        stop_atr_mult: 1.0         # Tight stop (1x ATR)
-        rr_ratio: 4.0              # Wide target (4:1 R:R for big moves)
-        max_hold_bars: 90          # Time exit after 90 minutes
-        session_filter: asia_eu    # 00:00-14:00 UTC (DIFFERENT from others!)
-        win_streak_scaling: 0.5    # Risk increase per win
-        use_trailing_stop: false   # No trailing - let TP hit
-        use_partial_exits: false   # No partial exits - full TP or SL
-        max_hold_hours: 1.5        # Max 1.5 hours in trade
+        min_ret_5m_pct: 1.0      # Min 1% move in 5 minutes (pump or dump)
+        vol_ratio_min: 1.0       # Volume >= 30-min average
+        atr_ratio_min: 1.1       # ATR >= 110% of 30-min average
+        excluded_hours: [1, 5, 17]  # Europe/Warsaw hours to skip
+
+        # Fixed % exits (NOT ATR-based)
+        stop_loss_pct: 1.0       # 1% SL from entry
+        take_profit_pct: 1.5     # 1.5% TP from entry
+        max_hold_bars: 15        # Max 15 minutes in trade
+
+        # Lookback periods
+        vol_ma_period: 30        # 30-bar volume MA
+        atr_ma_period: 30        # 30-bar ATR MA
+
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP/time exit hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 0.25       # Max 15 minutes (0.25 hours)
+
+    pepe_contrarian_short:
+      enabled: true  # ✅ ENABLED - Contrarian SHORT strategy (PORTFOLIO #3!)
+      base_risk_pct: 2.5         # Higher risk due to excellent R:R (9.02x)
+      max_risk_pct: 5.0
+      max_positions: 1           # ~22 trades/month (0.7/day)
+
+      # Strategy parameters (from 30-day BingX backtest with 0.1% fees: +8.21%, -0.91% DD, 72.7% WR)
+      # FINAL OPTIMIZED: ATR ratio 1.2x→1.3x = +124.9% Return/DD improvement!
+      # CONTRARIAN SHORT: Fade extreme pumps with volume/volatility confirmation
+      # 68.2% TP hit rate, 31.8% SL hit rate, 0% time exits
+      params:
+        min_ret_5m_pct: 1.5      # Min 1.5% pump in 5 minutes
+        vol_ratio_min: 2.0       # Volume >= 2x 30-bar average
+        atr_ratio_min: 1.3       # ATR >= 1.3x 30-bar average (OPTIMIZED from 1.2x!)
+
+        # ATR-based exits
+        sl_atr: 1.5              # 1.5x ATR(14) stop
+        tp_atr: 2.0              # 2.0x ATR(14) target (OPTIMIZED from 4.0x!)
+        max_hold_bars: 15        # Max 15 minutes in trade
+
+        # Lookback periods
+        vol_ma_period: 30        # 30-bar volume MA
+        atr_ma_period: 30        # 30-bar ATR MA
+        atr_period: 14           # ATR(14)
+
+      win_streak_scaling: 0.5    # Risk increase per win
+      use_trailing_stop: false   # No trailing - let TP hit
+      use_partial_exits: false   # No partial exits - full TP or SL
+      max_hold_hours: 0.25       # Max 15 minutes (0.25 hours)
 
   risk_management:
     max_portfolio_risk: 5.0     # % of account
@@ -280,8 +290,13 @@ bingx:
   requests_per_minute: 1200
 
   # Leverage Configuration
-  default_leverage: 1  # 1x for now (100% of equity). Increase later: 2x=200%, 10x=1000%
-  fixed_position_value_usdt: 6.0  # Flat $6 USDT position size per trade
+  default_leverage: 5  # 5x leverage for multiple simultaneous positions
+
+  # Position Sizing
+  # fixed_position_value_usdt: Fixed USDT value per trade (overrides % based sizing)
+  # With 5x leverage: 6 USDT position requires 1.2 USDT margin
+  # With 12 USDT balance: 12 / 1.2 = 10 simultaneous positions possible
+  fixed_position_value_usdt: 6.0  # Each trade = 6 USDT worth of crypto
 
   # Leverage Mode:
   # - 'conservative': Same position size as 1x, less margin required
@@ -326,7 +341,7 @@ database:
 
 # Safety Features
 safety:
-  dry_run: false  # LIVE EXECUTION ENABLED
+  dry_run: false  # LIVE TRADING ENABLED - Real limit orders on BingX
 
   # Emergency stop
   stop_file: ./STOP  # Create this file to halt trading
@@ -339,10 +354,3 @@ safety:
   # Graceful shutdown
   close_positions_on_shutdown: false  # Close all positions on SIGTERM
   max_shutdown_wait_seconds: 30
-
-# Email Notifications
-notifications:
-  enabled: true
-  resend_api_key: re_idgwdJii_DXCTg91a243UwyefiKX9hDwR
-  to_email: krystian.todoraszko@gmail.com
-  from_email: trading-bot@resend.dev
