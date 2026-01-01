@@ -3,42 +3,38 @@ Trading Strategies Module
 
 All trading strategies inherit from BaseStrategy
 
-🚀 ACTIVE STRATEGIES (Dec 2025 - 15M CANDLES - SHORT REVERSAL PORTFOLIO):
+ACTIVE STRATEGY (Dec 2025 - 1H CANDLES - DONCHIAN BREAKOUT):
 
-4-Coin Portfolio Performance (Jun-Dec 2025):
-- Starting: $100 → Final: $5,204,573 (+5,204,473%)
-- Return/DD: 78,973x ⭐⭐⭐
-- Max DD: -65.9%
-- Win Rate: 39.9%
-- Total Trades: 288
+8-Coin Portfolio Performance (Jun-Dec 2025, 3% risk/trade):
+- Total Return: +35,902%
+- Max Drawdown: -39.9%
+- R:R Ratio: 899x
+- Win Rate: 60.6%
+- Total Trades: 619
 
-Individual Strategy Performance:
-1. MELANIA Short Reversal - 53.96x R/DD, +1330%, 6/7 profitable months 🥇
-2. DOGE Short Reversal - 32.53x R/DD, +1167%, 5/7 profitable months (57.5% of portfolio profit!)
-3. FARTCOIN Short Reversal - 31.91x R/DD, +3112%, 4/7 profitable months
-4. MOODENG Short Reversal - 29.70x R/DD, +844%, 7/7 profitable months ⭐ PERFECT CONSISTENCY
+Individual Coin Performance (by R:R ratio, 3% risk, compounded):
+1. UNI      - 19.35x R:R (TP=10.5, SL=2, Period=30)
+2. PI       - 12.68x R:R (TP=3.0, SL=2, Period=15)
+3. DOGE     -  7.81x R:R (TP=4.0, SL=4, Period=15)
+4. PENGU    -  7.24x R:R (TP=7.0, SL=5, Period=25)
+5. ETH      -  6.64x R:R (TP=1.5, SL=4, Period=20)
+6. AIXBT    -  4.73x R:R (TP=12.0, SL=2, Period=15)
+7. FARTCOIN -  4.61x R:R (TP=7.5, SL=2, Period=15)
+8. CRV      -  2.92x R:R (TP=9.0, SL=5, Period=15)
 
-All strategies use:
-- RSI reversal setup (overbought → support break → limit order retest)
-- 5% risk per trade
-- Swing high stop loss
-- Fixed % take profit targets
-- 15-minute candles
+Strategy Logic:
+- Entry LONG: Close > Donchian Upper (highest high of N bars)
+- Entry SHORT: Close < Donchian Lower (lowest low of N bars)
+- ATR-based TP/SL with coin-specific multipliers
+- 1-hour candles
 """
 
 from .base_strategy import BaseStrategy
-
-# SHORT Reversal Strategies (ACTIVE - Dec 2025)
-from .fartcoin_short_reversal import FartcoinShortReversal
-from .moodeng_short_reversal import MoodengShortReversal
-from .melania_short_reversal import MelaniaShortReversal
-from .doge_short_reversal import DogeShortReversal
+from .donchian_breakout import DonchianBreakout, create_donchian_strategies, COIN_PARAMS
 
 __all__ = [
     'BaseStrategy',
-    # Active SHORT Reversal Portfolio
-    'FartcoinShortReversal',
-    'MoodengShortReversal',
-    'MelaniaShortReversal',
-    'DogeShortReversal',
+    'DonchianBreakout',
+    'create_donchian_strategies',
+    'COIN_PARAMS',
 ]

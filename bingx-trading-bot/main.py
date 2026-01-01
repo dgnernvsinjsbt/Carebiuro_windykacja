@@ -31,10 +31,7 @@ from monitoring.notifications import EmailNotifier, init_notifier, get_notifier
 from monitoring.status_reporter import get_reporter
 from database.trade_logger import TradeLogger
 from data.indicators import IndicatorCalculator
-from strategies.fartcoin_short_reversal import FartcoinShortReversal
-from strategies.moodeng_short_reversal import MoodengShortReversal
-from strategies.melania_short_reversal import MelaniaShortReversal
-from strategies.doge_short_reversal import DogeShortReversal
+from strategies.donchian_breakout import DonchianBreakout, COIN_PARAMS
 from execution.signal_generator import SignalGenerator
 from execution.position_manager import PositionManager, PositionStatus
 from execution.risk_manager import RiskManager
@@ -70,28 +67,22 @@ class TradingEngine:
         self.db = TradeLogger(self.config.get_database_url(), self.config.database.echo)
         self.metrics = PerformanceTracker(initial_capital=10000)
 
-        # Initialize strategies (4-Coin SHORT Reversal Portfolio)
+        # Initialize strategies (8-Coin Donchian Breakout Portfolio - 1H candles)
         self.strategies = []
 
-        # Strategy class mapping
-        strategy_classes = {
-            'fartcoin_short_reversal': FartcoinShortReversal,
-            'moodeng_short_reversal': MoodengShortReversal,
-            'melania_short_reversal': MelaniaShortReversal,
-            'doge_short_reversal': DogeShortReversal,
-        }
-
-        # Load enabled strategies dynamically
-        for strategy_name, strategy_class in strategy_classes.items():
+        # Load Donchian strategies for each symbol in COIN_PARAMS
+        for symbol in COIN_PARAMS.keys():
+            strategy_name = f'donchian_{symbol.split("-")[0].lower()}'
             if self.config.is_strategy_enabled(strategy_name):
                 strategy_config = self.config.get_strategy_config(strategy_name)
-                strategy = strategy_class(strategy_config.__dict__)
-                self.strategies.append(strategy)
-                self.metrics.register_strategy(strategy_name)
-                self.logger.info(f"✅ {strategy_name.upper()} LOADED - {strategy.symbol}")
+                if strategy_config:
+                    strategy = DonchianBreakout(strategy_config.__dict__, symbol)
+                    self.strategies.append(strategy)
+                    self.metrics.register_strategy(strategy_name)
+                    self.logger.info(f"✅ {strategy_name.upper()} LOADED - {symbol}")
 
         self.logger.info(f"📊 Total strategies loaded: {len(self.strategies)}")
-        self.logger.info("💰 Portfolio: FARTCOIN, MOODENG, MELANIA, DOGE (SHORT reversal)")
+        self.logger.info("💰 Portfolio: 8-Coin Donchian Breakout (1H candles)")
 
         # Initialize execution components
         self.signal_generator = SignalGenerator(self.strategies)
@@ -198,26 +189,26 @@ class TradingEngine:
 
     async def _fetch_and_analyze(self, symbol: str) -> tuple:
         """
-        Fetch 300 15-minute candles and calculate indicators (for MELANIA strategy)
+        Fetch 300 1-hour candles and calculate indicators (for Donchian Breakout)
 
         Returns:
-            (df_15m, df_4h, latest_candle_data) or (None, None, None) on error
+            (df_1h, df_4h, latest_candle_data) or (None, None, None) on error
         """
         try:
-            # Fetch last 300 15-minute candles with explicit time range
+            # Fetch last 300 1-hour candles with explicit time range
             now = datetime.now(timezone.utc)
             end_time = int(now.timestamp() * 1000)
-            start_time = end_time - (300 * 15 * 60 * 1000)  # 300 15-minute candles ago
+            start_time = end_time - (300 * 60 * 60 * 1000)  # 300 1-hour candles ago
 
             klines = await self.bingx.get_klines(
                 symbol=symbol,
-                interval='15m',
+                interval='1h',
                 start_time=start_time,
                 end_time=end_time,
                 limit=300
             )
 
-            if not klines or len(klines) < 250:
+            if not klines or len(klines) < 50:
                 self.logger.warning(f"{symbol}: Insufficient data ({len(klines) if klines else 0} candles)")
                 return None, None, None
 
@@ -230,10 +221,10 @@ class TradingEngine:
 
             # Calculate indicators
             calc = IndicatorCalculator(df)
-            df_15m = calc.add_all_indicators()
+            df_1h = calc.add_all_indicators()
 
-            # Build 4-hour candles (for multi-timeframe strategies)
-            df_4h = df_15m.resample('4h', on='timestamp').agg({
+            # Build 4-hour candles (for multi-timeframe strategies if needed)
+            df_4h = df_1h.resample('4h', on='timestamp').agg({
                 'open': 'first',
                 'high': 'max',
                 'low': 'min',
@@ -243,16 +234,17 @@ class TradingEngine:
             df_4h = df_4h.reset_index()
 
             # Calculate indicators for 4h
-            calc_4h = IndicatorCalculator(df_4h)
-            df_4h = calc_4h.add_all_indicators()
+            if len(df_4h) > 0:
+                calc_4h = IndicatorCalculator(df_4h)
+                df_4h = calc_4h.add_all_indicators()
 
             # Get latest closed candle (second to last, since last might be forming)
-            if len(df_15m) >= 2:
-                latest = df_15m.iloc[-2]
+            if len(df_1h) >= 2:
+                latest = df_1h.iloc[-2]
             else:
-                latest = df_15m.iloc[-1]
+                latest = df_1h.iloc[-1]
 
-            return df_15m, df_4h, latest
+            return df_1h, df_4h, latest
 
         except Exception as e:
             self.logger.error(f"Error fetching/analyzing {symbol}: {e}", exc_info=True)
@@ -706,8 +698,8 @@ class TradingEngine:
 
         try:
             self.logger.info("=" * 70)
-            self.logger.info("SIMPLIFIED POLLING MODE - 15M CANDLES (FOR MELANIA)")
-            self.logger.info("Every 15 minutes: Fetch 300 15m candles → Calculate → Log → Trade")
+            self.logger.info("DONCHIAN BREAKOUT MODE - 1H CANDLES (8-COIN PORTFOLIO)")
+            self.logger.info("Every hour: Fetch 300 1h candles → Calculate → Log → Trade")
             self.logger.info("=" * 70)
 
             while self.running:
@@ -716,18 +708,12 @@ class TradingEngine:
                     self.logger.warning("Stop file detected, shutting down")
                     break
 
-                # Wait until :01 of next 15-min candle (candle fully settled)
+                # Wait until :01 of next hour (candle fully settled)
                 now = datetime.now(timezone.utc)
-                # Calculate next 15-minute boundary (:00, :15, :30, :45)
-                current_minute = now.minute
-                next_15min = ((current_minute // 15) + 1) * 15
-                if next_15min >= 60:
-                    next_poll = (now + timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
-                else:
-                    next_poll = now.replace(minute=next_15min, second=0, microsecond=0) + timedelta(minutes=1)
-                wait_seconds = (next_poll - now).total_seconds()
+                next_hour = (now + timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+                wait_seconds = (next_hour - now).total_seconds()
                 if wait_seconds > 0:
-                    self.logger.info(f"⏰ Waiting {wait_seconds/60:.1f} minutes until {next_poll.strftime('%H:%M:%S UTC')}")
+                    self.logger.info(f"⏰ Waiting {wait_seconds/60:.1f} minutes until {next_hour.strftime('%H:%M:%S UTC')}")
                     await asyncio.sleep(wait_seconds)
 
                 # Now it's top of the hour - process all symbols

@@ -207,6 +207,25 @@ def adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> 
     return adx_values
 
 
+def donchian_channel(high: pd.Series, low: pd.Series, period: int = 20) -> Tuple[pd.Series, pd.Series]:
+    """
+    Donchian Channel
+
+    Args:
+        high: High prices
+        low: Low prices
+        period: Lookback period (default: 20)
+
+    Returns:
+        Tuple of (upper_channel, lower_channel)
+        upper_channel: Highest high of last N bars (shifted by 1 to avoid lookahead)
+        lower_channel: Lowest low of last N bars (shifted by 1 to avoid lookahead)
+    """
+    upper = high.rolling(window=period).max().shift(1)
+    lower = low.rolling(window=period).min().shift(1)
+    return upper, lower
+
+
 def vwap(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series) -> pd.Series:
     """
     Volume Weighted Average Price
