@@ -65,11 +65,12 @@ jobs:
           curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=9" \
             -H "x-github-action: true" --max-time 150
 
-      - name: Batch 10 (pages 451-500)
+      - name: Batch 10 (pages 451-500, final + post-processing)
         run: |
           sleep 10
+          # Longer timeout for last batch which runs post-processing (fetchAllClients + total_unpaid calculation)
           curl -X POST "https://gbylzdyyhnvmrgfgpfqh.supabase.co/functions/v1/full-sync?batch=10" \
-            -H "x-github-action: true" --max-time 150
+            -H "x-github-action: true" --max-time 300
 
       - name: Backfill message history
         run: |
