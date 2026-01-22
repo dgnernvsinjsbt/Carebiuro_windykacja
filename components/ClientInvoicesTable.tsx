@@ -22,6 +22,7 @@ export default function ClientInvoicesTable({
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedInvoices, setSelectedInvoices] = useState<Set<number>>(new Set());
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const sortedInvoices = useMemo(() => {
@@ -183,6 +184,82 @@ export default function ClientInvoicesTable({
     }
   };
 
+  const cancelSelectedInvoices = async () => {
+    if (selectedInvoices.size === 0) {
+      toast.error('Wybierz faktury do anulowania');
+      return;
+    }
+
+    // Potwierdzenie
+    if (!confirm(`Czy na pewno chcesz anulować ${selectedInvoices.size} ${selectedInvoices.size === 1 ? 'fakturę' : 'faktury'}?`)) {
+      return;
+    }
+
+    // Get client_id from first invoice
+    const firstInvoice = invoices.find((inv) => selectedInvoices.has(inv.id));
+    if (!firstInvoice?.client_id) {
+      toast.error('Nie można określić klienta');
+      return;
+    }
+
+    setIsCanceling(true);
+
+    try {
+      const response = await fetch('/api/invoices/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoice_ids: Array.from(selectedInvoices),
+          client_id: firstInvoice.client_id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        toast.error(result.error || 'Nie udało się anulować faktur');
+        return;
+      }
+
+      toast.success(`Anulowano ${result.data.canceled_invoices} ${result.data.canceled_invoices === 1 ? 'fakturę' : 'faktur'}`);
+
+      // Wait for Fakturownia to process cancellations
+      toast.loading('Synchronizacja faktur...', { id: 'sync' });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Sync all invoices for this client
+      const syncResponse = await fetch('/api/sync/client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: result.data.client_id,
+        }),
+      });
+
+      const syncResult = await syncResponse.json();
+
+      if (syncResult.success) {
+        toast.success(`Zsynchronizowano ${syncResult.data.synced_invoices} faktur`, { id: 'sync' });
+      } else {
+        toast.error('Błąd synchronizacji', { id: 'sync' });
+      }
+
+      // Clear selection
+      setSelectedInvoices(new Set());
+
+      // Refresh page
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error canceling invoices:', error);
+      toast.error('Błąd podczas anulowania faktur');
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   if (invoices.length === 0) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -224,10 +301,22 @@ export default function ClientInvoicesTable({
             {isSyncing ? 'Synchronizacja...' : 'Odśwież'}
           </button>
           <button
-            onClick={createCollectiveInvoice}
-            disabled={isCreatingInvoice || selectedInvoices.size === 0}
+            onClick={cancelSelectedInvoices}
+            disabled={isCanceling || isCreatingInvoice || selectedInvoices.size === 0}
             className={`px-4 py-2 rounded-md font-medium text-white transition-colors ${
-              isCreatingInvoice || selectedInvoices.size === 0
+              isCanceling || isCreatingInvoice || selectedInvoices.size === 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-red-600 hover:bg-red-700'
+            }`}
+            title="Anuluj zaznaczone faktury"
+          >
+            {isCanceling ? 'Anulowanie...' : 'Anuluj faktury'}
+          </button>
+          <button
+            onClick={createCollectiveInvoice}
+            disabled={isCreatingInvoice || isCanceling || selectedInvoices.size === 0}
+            className={`px-4 py-2 rounded-md font-medium text-white transition-colors ${
+              isCreatingInvoice || isCanceling || selectedInvoices.size === 0
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700'
             }`}
