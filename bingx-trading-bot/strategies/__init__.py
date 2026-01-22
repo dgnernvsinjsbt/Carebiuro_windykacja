@@ -3,7 +3,7 @@ Trading Strategies Module
 
 All trading strategies inherit from BaseStrategy
 
-ACTIVE STRATEGY (Dec 2025 - 1H CANDLES - DONCHIAN BREAKOUT):
+=== STRATEGY 1: DONCHIAN BREAKOUT (1H CANDLES) ===
 
 8-Coin Portfolio Performance (Jun-Dec 2025, 3% risk/trade):
 - Total Return: +35,902%
@@ -22,19 +22,31 @@ Individual Coin Performance (by R:R ratio, 3% risk, compounded):
 7. FARTCOIN -  4.61x R:R (TP=7.5, SL=2, Period=15)
 8. CRV      -  2.92x R:R (TP=9.0, SL=5, Period=15)
 
-Strategy Logic:
-- Entry LONG: Close > Donchian Upper (highest high of N bars)
-- Entry SHORT: Close < Donchian Lower (lowest low of N bars)
-- ATR-based TP/SL with coin-specific multipliers
-- 1-hour candles
+=== STRATEGY 2: NEW LISTING SHORT (1H CANDLES) ===
+
+Backtest Results (324 coins listed in 2025, first 30 days):
+- Conservative (1-1-1%): +649% return, 19% DD, 33x R:R
+- Aggressive (5-3-1%):   +75,150% return, 58% DD, 1304x R:R
+
+Out-of-Sample 2026 (27 coins): 75% WR, +77.5% return, 9% DD
+
+Logic:
+- Wait 24h after listing
+- Short when pump ≥25% above listing price
+- Pyramid up to 3 entries (DCA on +10% moves)
+- SL 25%, TP 25% or return to listing price
+- Moving SL (moves up with each DCA entry)
 """
 
 from .base_strategy import BaseStrategy
 from .donchian_breakout import DonchianBreakout, create_donchian_strategies, COIN_PARAMS
+from .new_listing_short import NewListingShort, create_new_listing_strategy
 
 __all__ = [
     'BaseStrategy',
     'DonchianBreakout',
     'create_donchian_strategies',
     'COIN_PARAMS',
+    'NewListingShort',
+    'create_new_listing_strategy',
 ]

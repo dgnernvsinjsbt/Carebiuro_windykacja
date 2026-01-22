@@ -42,6 +42,53 @@ Higher R:R = Better risk-adjusted performance.
 
 ---
 
+## 📉 NEW LISTING SHORT STRATEGY (Jan 2026)
+
+**Edge**: 63% of 2025 BingX listings dumped >30% after initial pump
+
+### Backtest Results (324 coins listed in 2025)
+
+| Risk Schedule | Total Return | Max DD | R:R Ratio |
+|--------------|-------------|--------|-----------|
+| 1→1→1% (conservative) | +649% | 19% | 33x |
+| 5→3→1% (reverse pyramid) | +75,150% | 58% | 1304x |
+
+**Out-of-Sample 2026 (27 coins):** 75% Win Rate, +77.5% return, 9% DD
+
+### Strategy Parameters
+
+```python
+WAIT_HOURS = 24           # Wait after listing before trading
+PUMP_THRESHOLD = 25.0     # % pump required to enter
+MAX_ENTRIES = 3           # Max pyramid entries
+ENTRY_STEP = 10.0         # % between DCA entries
+SL_PCT = 25.0             # Stop loss (moves up with each entry)
+TP_PCT = 25.0             # Take profit (or return to listing price)
+MAX_COIN_AGE = 30 days    # Only trade coins < 30 days old
+```
+
+### Risk Schedules
+
+| Schedule | Entry 1 | Entry 2 | Entry 3 | Max Risk |
+|----------|---------|---------|---------|----------|
+| conservative | 1% | 1% | 1% | 3% |
+| moderate | 2% | 1.5% | 1% | 4.5% |
+| aggressive | 5% | 3% | 1% | 9% |
+
+### Key Insights
+
+1. **Reverse pyramid works best**: 5→3→1% (big first, small last) = 1304x R:R
+2. **Single entry fails**: Without DCA confirmation, win rate drops to 50%
+3. **Moving SL critical**: SL moves up with each entry, prevents runaways
+4. **TP=25% optimal**: Higher TP reduces win rate due to "dead cat bounces"
+
+### Code Location
+- **Strategy**: `bingx-trading-bot/strategies/new_listing_short.py`
+- **Backtest**: `trading/optimize_fast.py`, `trading/backtest_new_listings_full.py`
+- **Listings Data**: `trading/listings_2025.csv`, `trading/cache/listings_2025_data.pkl`
+
+---
+
 ## 🐛 CRITICAL BUG FIXES (Dec 2025)
 
 **Four critical bugs were discovered and fixed on Dec 15, 2025:**
