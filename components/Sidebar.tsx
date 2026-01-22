@@ -38,7 +38,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col relative">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
+      <Link href="/" className="block p-6 border-b border-gray-200 hover:bg-gray-50 transition-colors">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
             C
@@ -48,7 +48,7 @@ export default function Sidebar() {
             <div className="text-xs text-gray-500">Windykacja</div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="p-4 space-y-1">
